@@ -1,0 +1,137 @@
+import { DailyMoodPreset } from '../types.js';
+
+export const DAILY_MOOD_PRESETS: DailyMoodPreset[] = [
+  {
+    id: 'fresh_energetic',
+    title: 'Fresh & Energetic',
+    emoji: '🌞',
+    tagline: 'Luminous citrus sparkle & invigorating green herbs',
+    description: 'Crisp bergamot, Sicilian lemon, and green leaves paired with radiant light woods. Ideal for an early morning boost or radiant sunny weather.',
+    preferredNotes: ['Bergamot', 'Lemon', 'Neroli', 'Mint', 'Vetiver'],
+    favoriteFamily: ['Citrus', 'Aromatic Fresh', 'Green Floral'],
+    sweetness: 3,
+    freshness: 9,
+    intensity: 5,
+    season: 'Summer',
+    occasion: 'Casual',
+    timeOfDay: 'Day',
+    originFilter: 'all',
+    formatFilter: 'all',
+    accentColor: '#EAB308', // gold / warm yellow
+    secondaryColor: '#FEF08A'
+  },
+  {
+    id: 'warm_seductive',
+    title: 'Warm & Seductive',
+    emoji: '🌙',
+    tagline: 'Opulent amber, toasted spices & sultry vanilla',
+    description: 'An intoxicating blend of golden amber resins, bourbon vanilla, cinnamon, and cashmere musk. Perfect for evening soirees and intimate dates.',
+    preferredNotes: ['Amber', 'Vanilla', 'Cardamom', 'Cinnamon', 'Tonka Bean'],
+    favoriteFamily: ['Amber Vanilla', 'Spicy Oriental', 'Warm Resinous'],
+    sweetness: 8,
+    freshness: 3,
+    intensity: 9,
+    season: 'Winter',
+    occasion: 'Date',
+    timeOfDay: 'Night',
+    originFilter: 'all',
+    formatFilter: 'all',
+    accentColor: '#C58B45', // rich amber
+    secondaryColor: '#FED7AA'
+  },
+  {
+    id: 'clean_calm',
+    title: 'Clean & Calm',
+    emoji: '🌿',
+    tagline: 'Crisp white musk, cedar shavings & tranquil green tea',
+    description: 'A soothing, second-skin aura that calms the senses. Airy musks, delicate iris, and fresh dewy leaves create a mindful sanctuary.',
+    preferredNotes: ['White Musk', 'Cedarwood', 'Iris', 'Lavender', 'Green Tea'],
+    favoriteFamily: ['Woody Aromatic', 'Musky Floral', 'Clean Skin'],
+    sweetness: 4,
+    freshness: 8,
+    intensity: 4,
+    season: 'Spring',
+    occasion: 'Office',
+    timeOfDay: 'Day',
+    originFilter: 'all',
+    formatFilter: 'all',
+    accentColor: '#10B981', // calming emerald/sage
+    secondaryColor: '#A7F3D0'
+  },
+  {
+    id: 'romantic_soft',
+    title: 'Romantic & Soft',
+    emoji: '🌹',
+    tagline: 'Velvety Damascena rose, jasmine sambac & powdery peach',
+    description: 'Tender floral petals unfurling in the morning mist, sweetened with juicy stone fruit and resting on a delicate bed of sandalwood.',
+    preferredNotes: ['Rose', 'Jasmine', 'Mogra', 'Peach', 'Sandalwood'],
+    favoriteFamily: ['Floral', 'Floral Fruity', 'Powdery Rose'],
+    sweetness: 7,
+    freshness: 6,
+    intensity: 6,
+    season: 'Spring',
+    occasion: 'Date',
+    timeOfDay: 'Evening',
+    originFilter: 'all',
+    formatFilter: 'all',
+    accentColor: '#C86D74', // antique dusty rose
+    secondaryColor: '#FECDD3'
+  },
+  {
+    id: 'dark_woody',
+    title: 'Dark & Woody',
+    emoji: '🪵',
+    tagline: 'Smoky Assam agarwood, aged vetiver & midnight leather',
+    description: 'Deep, resinous and brooding. A commanding composition of pure oudh, earthy khus roots, burnt incense, and smoked birch woods.',
+    preferredNotes: ['Oud', 'Agarwood', 'Vetiver', 'Patchouli', 'Leather'],
+    favoriteFamily: ['Woody Oriental', 'Earthy Leather', 'Smoky Resin'],
+    sweetness: 2,
+    freshness: 4,
+    intensity: 10,
+    season: 'Fall',
+    occasion: 'Special Event',
+    timeOfDay: 'Night',
+    originFilter: 'all',
+    formatFilter: 'all',
+    accentColor: '#78350F', // deep oud brown
+    secondaryColor: '#FDE68A'
+  },
+  {
+    id: 'indian_soul',
+    title: 'Indian Soul',
+    emoji: '🇮🇳',
+    tagline: 'Petrichor mitti attar, pure ruh khus, saffron & royal sandalwood',
+    description: 'The soul of Indian perfumery. The hypnotic scent of rain-soaked parched earth (geeli mitti), Kashmiri zafran, wild vetiver, and sacred temple woods.',
+    preferredNotes: ['Mitti Attar', 'Ruh Khus', 'Saffron', 'Sandalwood', 'Kewra'],
+    favoriteFamily: ['Traditional Attar', 'Earthy Petrichor', 'Heritage Indian'],
+    sweetness: 5,
+    freshness: 7,
+    intensity: 8,
+    season: 'Monsoon',
+    occasion: 'Festive / Puja',
+    timeOfDay: 'Any',
+    originFilter: 'indian',
+    formatFilter: 'attar',
+    accentColor: '#D6AA62', // regal Indian gold
+    secondaryColor: '#FEF3C7'
+  },
+  {
+    id: 'surprise_me',
+    title: 'Surprise Me',
+    emoji: '✨',
+    tagline: 'An adventurous cross-cultural chord pairing curated for you',
+    description: 'An unexpected harmonic dialogue between opposing worlds: an Indian distilled botanical attar married to an avant-garde international extrait.',
+    preferredNotes: ['Cardamom', 'Bergamot', 'Oud', 'Vanilla', 'Rose'],
+    favoriteFamily: ['Woody Aromatic', 'Oriental Floral', 'Amber Vanilla'],
+    sweetness: 6,
+    freshness: 6,
+    intensity: 7,
+    season: 'Summer',
+    occasion: 'Signature',
+    timeOfDay: 'Evening',
+    originFilter: 'all',
+    formatFilter: 'all',
+    accentColor: '#8B5CF6', // celestial purple
+    secondaryColor: '#DDD6FE'
+  }
+];

@@ -1,0 +1,6 @@
+{
+  "name": "Fragrance Layering AI",
+  "description": "Smart fragrance recommendation and layering engine with note compatibility analysis, K-Means clustering, and personalized olfactory pairings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
