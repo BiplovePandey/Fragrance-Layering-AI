@@ -104,7 +104,7 @@ async function startServer() {
   });
 
   // POST /api/layer - rank fragrance layering pairs
-  app.post('/api/layer', (req, res) => {
+  app.post(['/api/layer', '/api/layering/combinations'], (req, res) => {
     try {
       const {
         preferences,
@@ -173,22 +173,24 @@ async function startServer() {
   });
 
   // User preferences endpoints
-  app.get('/api/users/:id/preferences', (req, res) => {
+  app.get(['/api/preferences', '/api/users/:id/preferences'], (req, res) => {
     try {
-      const userId = parseInt(req.params.id, 10) || 1;
-      const prefs = dbService.getUserPreferences(userId);
+      const userId = req.params.id ? parseInt(req.params.id, 10) : 1;
+      const prefs = dbService.getUserPreferences(userId || 1);
       res.json(prefs || {});
     } catch (err: any) {
+      console.error('[API Error] GET preferences:', err);
       res.status(500).json({ error: err.message });
     }
   });
 
-  app.post('/api/users/:id/preferences', (req, res) => {
+  app.post(['/api/preferences', '/api/users/:id/preferences'], (req, res) => {
     try {
-      const userId = parseInt(req.params.id, 10) || 1;
-      dbService.saveUserPreferences(req.body, userId);
+      const userId = req.params.id ? parseInt(req.params.id, 10) : 1;
+      dbService.saveUserPreferences(req.body, userId || 1);
       res.json({ success: true, preferences: req.body });
     } catch (err: any) {
+      console.error('[API Error] POST preferences:', err);
       res.status(500).json({ error: err.message });
     }
   });

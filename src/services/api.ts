@@ -104,7 +104,10 @@ export const api = {
   // User Preferences
   async getUserPreferences(userId: number = 1): Promise<UserPreferences> {
     const res = await fetch(`/api/users/${userId}/preferences`);
-    if (!res.ok) throw new Error('Failed to fetch user preferences');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(`Failed to fetch user preferences: ${err.error || res.statusText}`);
+    }
     return res.json();
   },
 
@@ -114,7 +117,10 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(preferences),
     });
-    if (!res.ok) throw new Error('Failed to save preferences');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(`Failed to save preferences: ${err.error || res.statusText}`);
+    }
   },
 
   // Ratings

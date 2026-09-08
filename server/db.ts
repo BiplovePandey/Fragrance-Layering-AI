@@ -57,6 +57,24 @@ export class FragranceDatabase {
       // Table doesn't exist yet, proceed
     }
 
+    // Ensure user_preferences table has all necessary columns if created in earlier versions
+    try {
+      const checkPrefs = this.db.exec("PRAGMA table_info(user_preferences);");
+      if (checkPrefs[0]) {
+        const existingCols = checkPrefs[0].values.map(row => row[1]);
+        if (!existingCols.includes('brand_category_filter')) {
+          console.log('Migrating user_preferences table: adding brand_category_filter column...');
+          this.db.run("ALTER TABLE user_preferences ADD COLUMN brand_category_filter TEXT DEFAULT 'all';");
+        }
+        if (!existingCols.includes('owned_fragrance_id')) {
+          console.log('Migrating user_preferences table: adding owned_fragrance_id column...');
+          this.db.run("ALTER TABLE user_preferences ADD COLUMN owned_fragrance_id INTEGER;");
+        }
+      }
+    } catch (e) {
+      // Table doesn't exist yet, proceed
+    }
+
     this.db.run(`
       CREATE TABLE IF NOT EXISTS brands (
         id INTEGER PRIMARY KEY,
@@ -547,7 +565,8 @@ export class FragranceDatabase {
       time_of_day: data.time_of_day,
       origin_filter: data.origin_filter || 'all',
       format_filter: data.format_filter || 'all',
-      brand_category_filter: data.brand_category_filter || 'all'
+      brand_category_filter: data.brand_category_filter || 'all',
+      owned_fragrance_id: data.owned_fragrance_id ?? undefined
     };
   }
 
@@ -556,8 +575,8 @@ export class FragranceDatabase {
     this.db.run(
       `INSERT INTO user_preferences (
         user_id, favorite_family, preferred_notes, sweetness, freshness, intensity,
-        preferred_gender, season, occasion, time_of_day, origin_filter, format_filter, brand_category_filter
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        preferred_gender, season, occasion, time_of_day, origin_filter, format_filter, brand_category_filter, owned_fragrance_id
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(user_id) DO UPDATE SET
         favorite_family=excluded.favorite_family,
         preferred_notes=excluded.preferred_notes,
@@ -570,7 +589,8 @@ export class FragranceDatabase {
         time_of_day=excluded.time_of_day,
         origin_filter=excluded.origin_filter,
         format_filter=excluded.format_filter,
-        brand_category_filter=excluded.brand_category_filter`,
+        brand_category_filter=excluded.brand_category_filter,
+        owned_fragrance_id=excluded.owned_fragrance_id`,
       [
         userId,
         JSON.stringify(prefs.favorite_family || []),
@@ -584,7 +604,8 @@ export class FragranceDatabase {
         prefs.time_of_day || 'Evening',
         prefs.origin_filter || 'all',
         prefs.format_filter || 'all',
-        prefs.brand_category_filter || 'all'
+        prefs.brand_category_filter || 'all',
+        prefs.owned_fragrance_id ?? null
       ]
     );
     this.saveToFile();
