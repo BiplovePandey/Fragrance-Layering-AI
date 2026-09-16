@@ -59,10 +59,12 @@ export const BrandCatalogView: React.FC<BrandCatalogViewProps> = ({
           colls.forEach((frags, cName) => {
             if (cName.toLowerCase().includes(searchQuery.toLowerCase())) matchesFrags = true;
             if (frags.some(f => 
-              f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              f.top_notes.some(n => n.toLowerCase().includes(searchQuery.toLowerCase())) ||
-              f.middle_notes.some(n => n.toLowerCase().includes(searchQuery.toLowerCase())) ||
-              f.base_notes.some(n => n.toLowerCase().includes(searchQuery.toLowerCase()))
+              f && (
+                (f.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (f.top_notes || []).some(n => n.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                (f.middle_notes || []).some(n => n.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                (f.base_notes || []).some(n => n.toLowerCase().includes(searchQuery.toLowerCase()))
+              )
             )) {
               matchesFrags = true;
             }

@@ -49,7 +49,7 @@ export const ScentProfileView: React.FC<ScentProfileViewProps> = ({
   const discoveredCount = Math.max(allFragrances.length, 24);
   const indianCount = allFragrances.filter(f => f.is_indian_house).length;
   const uniqueNotes = Array.from(
-    new Set(allFragrances.flatMap(f => [...f.top_notes, ...f.middle_notes, ...f.base_notes]))
+    new Set(allFragrances.flatMap(f => f ? [...(f.top_notes || []), ...(f.middle_notes || []), ...(f.base_notes || [])] : []))
   ).length;
 
   const badges: ExplorerBadge[] = [

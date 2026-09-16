@@ -16,12 +16,13 @@ export const FragranceExplorer: React.FC<FragranceExplorerProps> = ({
   const [activeFragrance, setActiveFragrance] = useState<Fragrance | null>(fragrances[0] || null);
 
   const filtered = fragrances.filter(f => {
+    if (!f) return false;
     const matchesCluster = selectedCluster === 'all' || f.cluster_id === selectedCluster;
     const matchesSearch =
-      f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      f.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      f.fragrance_family.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      [...f.top_notes, ...f.middle_notes, ...f.base_notes].some(n => n.toLowerCase().includes(searchQuery.toLowerCase()));
+      (f.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (f.brand || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (f.fragrance_family || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      [...(f.top_notes || []), ...(f.middle_notes || []), ...(f.base_notes || [])].some(n => n.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCluster && matchesSearch;
   });
 
@@ -228,9 +229,9 @@ export const FragranceExplorer: React.FC<FragranceExplorerProps> = ({
                 <span className="font-bold text-stone-800 uppercase tracking-wider block">
                   Olfactory Pyramid
                 </span>
-                <div><span className="font-semibold text-stone-700">Top:</span> {activeFragrance.top_notes.join(', ')}</div>
-                <div><span className="font-semibold text-stone-700">Heart:</span> {activeFragrance.middle_notes.join(', ')}</div>
-                <div><span className="font-semibold text-stone-700">Base:</span> {activeFragrance.base_notes.join(', ')}</div>
+                <div><span className="font-semibold text-stone-700">Top:</span> {(activeFragrance.top_notes || []).join(', ')}</div>
+                <div><span className="font-semibold text-stone-700">Heart:</span> {(activeFragrance.middle_notes || []).join(', ')}</div>
+                <div><span className="font-semibold text-stone-700">Base:</span> {(activeFragrance.base_notes || []).join(', ')}</div>
               </div>
 
               {/* Data Provenance & Verification (Agnostic Pipeline Standard) */}

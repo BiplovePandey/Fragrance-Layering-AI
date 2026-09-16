@@ -1,95 +1,102 @@
 import React from 'react';
-import { Home, Compass, Sparkles, Wine, User, Layers } from 'lucide-react';
-
-export type MainTab = 'home' | 'explore' | 'layer' | 'collection' | 'profile';
+import { motion } from 'motion/react';
+import { Sparkles, FlaskConical, Compass, Layers, HeartHandshake } from 'lucide-react';
+import { MainNavId } from '../types.js';
+import { MOTION_SPRINGS } from '../motion/config.js';
 
 interface AppBottomNavProps {
-  activeTab: MainTab;
-  setActiveTab: (tab: MainTab) => void;
-  savedCount: number;
-  cabinetCount: number;
+  activeTab: MainNavId;
+  setActiveTab: (tab: MainNavId) => void;
+  wardrobeCount: number;
 }
 
 export const AppBottomNav: React.FC<AppBottomNavProps> = ({
   activeTab,
   setActiveTab,
-  savedCount,
-  cabinetCount
+  wardrobeCount
 }) => {
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#F0E6DD] px-3 py-2 shadow-lg sm:hidden">
+    <div className="fixed bottom-0 inset-x-0 z-40 bg-[#120F0D]/95 backdrop-blur-xl border-t border-white/[0.08] px-2 py-2 shadow-2xl md:hidden">
       <div className="max-w-md mx-auto flex items-center justify-around relative">
-        {/* Home */}
-        <button
-          id="bottom-nav-home"
+        {/* Atelier */}
+        <motion.button
+          id="bottom-nav-atelier"
           type="button"
-          onClick={() => setActiveTab('home')}
-          className={`flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-            activeTab === 'home' ? 'text-[#7B3F98]' : 'text-[#786F6A] hover:text-[#292323]'
+          whileTap={{ scale: 0.92 }}
+          onClick={() => setActiveTab('atelier')}
+          className={`flex flex-col items-center justify-center gap-1 transition cursor-pointer relative py-1 ${
+            activeTab === 'atelier' ? 'text-amber-400 font-medium' : 'text-stone-400 hover:text-stone-200'
           }`}
         >
-          <Home className={`w-5 h-5 ${activeTab === 'home' ? 'stroke-[2.5]' : ''}`} />
-          <span className="text-[10px] font-medium leading-none">Home</span>
-        </button>
+          <Sparkles className="w-4 h-4" />
+          <span className="text-[9px] font-mono uppercase tracking-wider">Atelier</span>
+        </motion.button>
 
         {/* Explore */}
-        <button
+        <motion.button
           id="bottom-nav-explore"
           type="button"
+          whileTap={{ scale: 0.92 }}
           onClick={() => setActiveTab('explore')}
-          className={`flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-            activeTab === 'explore' ? 'text-[#7B3F98]' : 'text-[#786F6A] hover:text-[#292323]'
+          className={`flex flex-col items-center justify-center gap-1 transition cursor-pointer relative py-1 ${
+            activeTab === 'explore' ? 'text-amber-400 font-medium' : 'text-stone-400 hover:text-stone-200'
           }`}
         >
-          <Compass className={`w-5 h-5 ${activeTab === 'explore' ? 'stroke-[2.5]' : ''}`} />
-          <span className="text-[10px] font-medium leading-none">Explore</span>
-        </button>
+          <Compass className="w-4 h-4" />
+          <span className="text-[9px] font-mono uppercase tracking-wider">Galaxy</span>
+        </motion.button>
 
-        {/* Center Prominent Layer Button */}
-        <div className="relative -top-5">
-          <button
+        {/* Center Prominent Layer Lab Button */}
+        <div className="relative -top-4">
+          <motion.button
             id="bottom-nav-layer-center"
             type="button"
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.92 }}
+            transition={MOTION_SPRINGS.tactilePress}
             onClick={() => setActiveTab('layer')}
-            className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#7B3F98] via-[#E86A92] to-[#F2A65A] text-white flex flex-col items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer border-4 border-[#FFF9F3]"
+            className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-600 via-rose-700 to-amber-700 text-stone-100 flex items-center justify-center shadow-xl border-2 border-[#1E1B18] cursor-pointer"
           >
-            <Sparkles className="w-6 h-6 text-white animate-pulse" />
-          </button>
-          <span className="text-[9px] font-bold text-[#7B3F98] block text-center mt-1">
-            Layer
-          </span>
+            <FlaskConical className="w-5 h-5 text-amber-200" />
+          </motion.button>
         </div>
 
-        {/* Collection */}
-        <button
-          id="bottom-nav-collection"
+        {/* Wardrobe */}
+        <motion.button
+          id="bottom-nav-wardrobe"
           type="button"
-          onClick={() => setActiveTab('collection')}
-          className={`relative flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-            activeTab === 'collection' ? 'text-[#7B3F98]' : 'text-[#786F6A] hover:text-[#292323]'
+          whileTap={{ scale: 0.92 }}
+          onClick={() => setActiveTab('wardrobe')}
+          className={`relative flex flex-col items-center justify-center gap-1 transition cursor-pointer py-1 ${
+            activeTab === 'wardrobe' ? 'text-amber-400 font-medium' : 'text-stone-400 hover:text-stone-200'
           }`}
         >
-          <Wine className={`w-5 h-5 ${activeTab === 'collection' ? 'stroke-[2.5]' : ''}`} />
-          <span className="text-[10px] font-medium leading-none">Collection</span>
-          {cabinetCount > 0 && (
-            <span className="absolute -top-1 right-1 w-4 h-4 rounded-full bg-[#E86A92] text-white text-[9px] font-bold flex items-center justify-center leading-none">
-              {cabinetCount}
-            </span>
+          <Layers className="w-4 h-4" />
+          <span className="text-[9px] font-mono uppercase tracking-wider">Vault</span>
+          {wardrobeCount > 0 && (
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -top-1 right-1 w-3.5 h-3.5 rounded-full bg-rose-600 text-[8px] font-bold text-white flex items-center justify-center"
+            >
+              {wardrobeCount}
+            </motion.span>
           )}
-        </button>
+        </motion.button>
 
-        {/* Profile */}
-        <button
-          id="bottom-nav-profile"
+        {/* Heritage */}
+        <motion.button
+          id="bottom-nav-heritage"
           type="button"
-          onClick={() => setActiveTab('profile')}
-          className={`flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-            activeTab === 'profile' ? 'text-[#7B3F98]' : 'text-[#786F6A] hover:text-[#292323]'
+          whileTap={{ scale: 0.92 }}
+          onClick={() => setActiveTab('heritage')}
+          className={`flex flex-col items-center justify-center gap-1 transition cursor-pointer py-1 ${
+            activeTab === 'heritage' ? 'text-amber-400 font-medium' : 'text-stone-400 hover:text-stone-200'
           }`}
         >
-          <User className={`w-5 h-5 ${activeTab === 'profile' ? 'stroke-[2.5]' : ''}`} />
-          <span className="text-[10px] font-medium leading-none">Profile</span>
-        </button>
+          <HeartHandshake className="w-4 h-4" />
+          <span className="text-[9px] font-mono uppercase tracking-wider">Heritage</span>
+        </motion.button>
       </div>
     </div>
   );

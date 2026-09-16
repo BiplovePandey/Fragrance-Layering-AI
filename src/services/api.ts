@@ -174,5 +174,114 @@ export const api = {
       method: 'DELETE',
     });
     if (!res.ok) throw new Error('Failed to delete saved combination');
+  },
+
+  // Brand Intelligence
+  async getBrandIntelligence(): Promise<any> {
+    const res = await fetch('/api/brand-intelligence');
+    if (!res.ok) throw new Error('Failed to fetch brand intelligence');
+    return res.json();
+  },
+
+  // Scent Battle
+  async runScentBattle(fragrance_a_id: number, fragrance_b_id: number): Promise<any> {
+    const res = await fetch('/api/scent-battles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fragrance_a_id, fragrance_b_id })
+    });
+    if (!res.ok) throw new Error('Failed to compute scent battle confrontation');
+    return res.json();
+  },
+
+  // Discovery Box
+  async configureDiscoveryBox(params: { budget_inr?: number; preferred_families?: string[] }): Promise<any> {
+    const res = await fetch('/api/discovery-box', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) throw new Error('Failed to curate discovery box');
+    return res.json();
+  },
+
+  // Retail Salesperson AI
+  async getRetailRecommendations(params: {
+    occasion?: string;
+    target_notes?: string[];
+    budget?: number;
+    customer_preference?: string;
+  }): Promise<any> {
+    const res = await fetch('/api/retail-recommendations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) throw new Error('Failed to generate retail consultation');
+    return res.json();
+  },
+
+  // Weather Recommendations
+  async getWeatherRecommendation(params: { temp?: number; condition?: string; time_of_day?: string }): Promise<any> {
+    const query = new URLSearchParams();
+    if (params.temp) query.set('temp', params.temp.toString());
+    if (params.condition) query.set('condition', params.condition);
+    if (params.time_of_day) query.set('time_of_day', params.time_of_day);
+
+    const res = await fetch(`/api/weather-recommendation?${query.toString()}`);
+    if (!res.ok) throw new Error('Failed to fetch weather scent recommendation');
+    return res.json();
+  },
+
+  // Journal
+  async getJournal(): Promise<any[]> {
+    const res = await fetch('/api/journal');
+    if (!res.ok) throw new Error('Failed to fetch scent journal');
+    return res.json();
+  },
+
+  async getJournalEntries(): Promise<any[]> {
+    return this.getJournal();
+  },
+
+  async addJournalEntry(entry: any): Promise<{ success: boolean; id: string }> {
+    const res = await fetch('/api/journal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry)
+    });
+    if (!res.ok) throw new Error('Failed to save journal entry');
+    return res.json();
+  },
+
+  // Ingestion Submissions
+  async getIngestionSubmissions(): Promise<any[]> {
+    const res = await fetch('/api/ingestion/submissions');
+    if (!res.ok) throw new Error('Failed to fetch submissions');
+    return res.json();
+  },
+
+  async submitProduct(submission: any): Promise<{ success: boolean; id: string }> {
+    const res = await fetch('/api/ingestion/submissions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(submission)
+    });
+    if (!res.ok) throw new Error('Failed to submit product');
+    return res.json();
+  },
+
+  async submitProductIngestion(submission: any): Promise<{ success: boolean; id: string }> {
+    return this.submitProduct(submission);
+  },
+
+  async reviewSubmission(id: string, status: 'approved' | 'rejected'): Promise<{ success: boolean }> {
+    const res = await fetch(`/api/ingestion/submissions/${id}/review`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    if (!res.ok) throw new Error('Failed to review submission');
+    return res.json();
   }
 };

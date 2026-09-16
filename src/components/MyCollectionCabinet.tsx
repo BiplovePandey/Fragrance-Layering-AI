@@ -154,10 +154,10 @@ export const MyCollectionCabinet: React.FC<MyCollectionCabinetProps> = ({
 
                 <div className="pt-2 border-t border-stone-100 text-[11px] space-y-1">
                   <div className="text-stone-500 truncate">
-                    <span className="font-medium text-stone-700">Top:</span> {frag.top_notes.join(', ')}
+                    <span className="font-medium text-stone-700">Top:</span> {(frag.top_notes || []).join(', ')}
                   </div>
                   <div className="text-stone-500 truncate">
-                    <span className="font-medium text-stone-700">Base:</span> {frag.base_notes.join(', ')}
+                    <span className="font-medium text-stone-700">Base:</span> {(frag.base_notes || []).join(', ')}
                   </div>
                 </div>
               </div>

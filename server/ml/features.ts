@@ -3,47 +3,39 @@ import path from 'path';
 import { Fragrance, UserPreferences, NoteTaxonomyEntry } from '../../src/types.js';
 
 export const FEATURE_NAMES = [
-  'sweetness',
   'freshness',
+  'sweetness',
+  'intensity',
   'woody',
   'floral',
-  'citrus',
-  'spicy',
-  'gourmand',
-  'intensity'
+  'warm_resinous_spices',
+  'earthy_clay',
+  'longevity_fixative'
 ] as const;
 
 export type FeatureKey = typeof FEATURE_NAMES[number];
 
 // Fallback olfactory note keywords for categorization
 const BASE_NOTE_CATEGORIES: Record<string, FeatureKey> = {
-  // Citrus
-  bergamot: 'citrus',
-  lemon: 'citrus',
-  lime: 'citrus',
-  grapefruit: 'citrus',
-  mandarin: 'citrus',
-  orange: 'citrus',
-  neroli: 'citrus',
-  petitgrain: 'citrus',
-  yuzu: 'citrus',
-  mosambi: 'citrus',
-  'sweet lime': 'citrus',
+  // Citrus & Freshness
+  bergamot: 'freshness',
+  lemon: 'freshness',
+  lime: 'freshness',
+  grapefruit: 'freshness',
+  mandarin: 'freshness',
+  orange: 'freshness',
+  neroli: 'freshness',
+  petitgrain: 'freshness',
+  yuzu: 'freshness',
+  mosambi: 'freshness',
+  'sweet lime': 'freshness',
 
-  // Woody & Earthy Roots (Including Indian attar bases)
+  // Woody
   sandalwood: 'woody',
   chandan: 'woody',
   cedar: 'woody',
   cedarwood: 'woody',
   deodar: 'woody',
-  vetiver: 'woody',
-  'ruh khus': 'woody',
-  khus: 'woody',
-  mitti: 'woody',
-  'geeli mitti': 'woody',
-  petrichor: 'woody',
-  clay: 'woody',
-  earth: 'woody',
   oud: 'woody',
   oudh: 'woody',
   agarwood: 'woody',
@@ -58,6 +50,16 @@ const BASE_NOTE_CATEGORIES: Record<string, FeatureKey> = {
   papyrus: 'woody',
   driftwood: 'woody',
   'iso e super': 'woody',
+
+  // Earthy / Clay / Roots
+  vetiver: 'earthy_clay',
+  'ruh khus': 'earthy_clay',
+  khus: 'earthy_clay',
+  mitti: 'earthy_clay',
+  'geeli mitti': 'earthy_clay',
+  petrichor: 'earthy_clay',
+  clay: 'earthy_clay',
+  earth: 'earthy_clay',
 
   // Floral (Western & Sacred Indian Florals)
   rose: 'floral',
@@ -92,66 +94,73 @@ const BASE_NOTE_CATEGORIES: Record<string, FeatureKey> = {
   'orange blossom': 'floral',
   osmanthus: 'floral',
 
-  // Spicy & Resinous (Western Spices & Indian Heritage Accords)
-  cardamom: 'spicy',
-  elaichi: 'spicy',
-  cinnamon: 'spicy',
-  dalchini: 'spicy',
-  pepper: 'spicy',
-  'black pepper': 'spicy',
-  'pink pepper': 'spicy',
-  'calicut pepper': 'spicy',
-  sichuan: 'spicy',
-  nutmeg: 'spicy',
-  jaiphal: 'spicy',
-  clove: 'spicy',
-  laung: 'spicy',
-  saffron: 'spicy',
-  kesar: 'spicy',
-  zafran: 'spicy',
-  shamama: 'spicy',
-  ginger: 'spicy',
-  'star anise': 'spicy',
-  coriander: 'spicy',
-  chai: 'spicy',
-  henna: 'spicy',
-  benzoin: 'spicy',
-  loban: 'spicy',
-  frankincense: 'spicy',
-  sambrani: 'spicy',
-  guggul: 'spicy',
-  myrrh: 'spicy',
-  labdanum: 'spicy',
-  amber: 'spicy',
+  // Warm Resinous & Spices (Western Spices & Indian Heritage Accords)
+  cardamom: 'warm_resinous_spices',
+  elaichi: 'warm_resinous_spices',
+  cinnamon: 'warm_resinous_spices',
+  dalchini: 'warm_resinous_spices',
+  pepper: 'warm_resinous_spices',
+  'black pepper': 'warm_resinous_spices',
+  'pink pepper': 'warm_resinous_spices',
+  'calicut pepper': 'warm_resinous_spices',
+  sichuan: 'warm_resinous_spices',
+  nutmeg: 'warm_resinous_spices',
+  jaiphal: 'warm_resinous_spices',
+  clove: 'warm_resinous_spices',
+  laung: 'warm_resinous_spices',
+  saffron: 'warm_resinous_spices',
+  kesar: 'warm_resinous_spices',
+  zafran: 'warm_resinous_spices',
+  shamama: 'warm_resinous_spices',
+  ginger: 'warm_resinous_spices',
+  'star anise': 'warm_resinous_spices',
+  coriander: 'warm_resinous_spices',
+  chai: 'warm_resinous_spices',
+  henna: 'warm_resinous_spices',
+  benzoin: 'warm_resinous_spices',
+  loban: 'warm_resinous_spices',
+  frankincense: 'warm_resinous_spices',
+  sambrani: 'warm_resinous_spices',
+  guggul: 'warm_resinous_spices',
+  myrrh: 'warm_resinous_spices',
+  labdanum: 'warm_resinous_spices',
+  amber: 'warm_resinous_spices',
 
-  // Fruits / Indian Ingredients
-  mango: 'citrus',
-  'raw mango': 'citrus',
-  kairi: 'citrus',
-  kokum: 'citrus',
-  jamun: 'citrus',
-  pomegranate: 'citrus',
-  anar: 'citrus',
-  guava: 'citrus',
+  // Fruits / Indian Ingredients (Mapped to Freshness)
+  mango: 'freshness',
+  'raw mango': 'freshness',
+  kairi: 'freshness',
+  kokum: 'freshness',
+  jamun: 'freshness',
+  pomegranate: 'freshness',
+  anar: 'freshness',
+  guava: 'freshness',
 
-  // Gourmand
-  vanilla: 'gourmand',
-  praline: 'gourmand',
-  tonka: 'gourmand',
-  caramel: 'gourmand',
-  cacao: 'gourmand',
-  chocolate: 'gourmand',
-  coffee: 'gourmand',
-  jaggery: 'gourmand',
-  gur: 'gourmand',
-  almond: 'gourmand',
-  cognac: 'gourmand',
-  rum: 'gourmand',
-  honey: 'gourmand',
-  shahad: 'gourmand',
-  sugar: 'gourmand',
-  coconut: 'gourmand',
-  nariyal: 'gourmand',
+  // Sweetness / Gourmand
+  vanilla: 'sweetness',
+  praline: 'sweetness',
+  tonka: 'sweetness',
+  caramel: 'sweetness',
+  cacao: 'sweetness',
+  chocolate: 'sweetness',
+  coffee: 'sweetness',
+  jaggery: 'sweetness',
+  gur: 'sweetness',
+  almond: 'sweetness',
+  cognac: 'sweetness',
+  rum: 'sweetness',
+  honey: 'sweetness',
+  shahad: 'sweetness',
+  sugar: 'sweetness',
+  coconut: 'sweetness',
+  nariyal: 'sweetness',
+
+  // Longevity / Fixatives
+  musk: 'longevity_fixative',
+  ambergris: 'longevity_fixative',
+  civet: 'longevity_fixative',
+  castoreum: 'longevity_fixative',
+  ambroxan: 'longevity_fixative'
 };
 
 // Dynamically load taxonomy if available
@@ -182,11 +191,12 @@ export function getTaxonomyMapping(rawNote: string): {
     ) {
       let feature: FeatureKey = 'woody';
       if (entry.category === 'floral' || entry.note_family === 'Floral') feature = 'floral';
-      else if (entry.category === 'citrus' || entry.note_family === 'Citrus') feature = 'citrus';
-      else if (entry.category === 'spicy' || entry.category === 'resinous_warm' || entry.note_family === 'Spices' || entry.note_family === 'Resinous / warm') feature = 'spicy';
-      else if (entry.category === 'gourmand' || entry.note_family === 'Sweet / gourmand') feature = 'gourmand';
-      else if (entry.category === 'fruit' || entry.note_family === 'Fruits / Indian ingredients') feature = 'citrus';
-      else if (entry.category === 'earthy_clay' || entry.note_family === 'Earthy') feature = 'woody';
+      else if (entry.category === 'citrus' || entry.note_family === 'Citrus' || entry.category === 'fruit') feature = 'freshness';
+      else if (entry.category === 'spicy' || entry.category === 'resinous_warm' || entry.note_family === 'Spices' || entry.note_family === 'Resinous / warm') feature = 'warm_resinous_spices';
+      else if (entry.category === 'gourmand' || entry.note_family === 'Sweet / gourmand') feature = 'sweetness';
+      else if (entry.category === 'earthy_clay' || entry.note_family === 'Earthy') feature = 'earthy_clay';
+      else if (entry.category === 'woody' || entry.note_family === 'Woody') feature = 'woody';
+      else if (entry.category === 'musk' || (entry.note_family as string) === 'Musk') feature = 'longevity_fixative';
 
       return {
         normalized_name: entry.normalized_name,
@@ -218,20 +228,20 @@ export function getTaxonomyMapping(rawNote: string): {
 }
 
 /**
- * Extracts normalized 8-dimensional feature vector:
- * [sweetness, freshness, woody, floral, citrus, spicy, gourmand, intensity]
- * All values scaled to [0.0, 1.0]
+ * Extracts normalized 8-dimensional feature vector according to Section 19:
+ * [Freshness, Sweetness, Intensity, Woody, Floral, Warm Resinous / Spices, Earthy / Clay, Longevity / Fixative]
+ * Scaled to [0.0, 1.0] for vector algebra, and can be multiplied by 100 for display (0-100).
  */
 export function extractFragranceVector(fragrance: Omit<Fragrance, 'cluster_id' | 'cluster_label' | 'vector'>): number[] {
   const sweetness = Math.max(0.1, Math.min(1.0, fragrance.sweetness / 10));
   const freshness = Math.max(0.1, Math.min(1.0, fragrance.freshness / 10));
   const intensity = Math.max(0.1, Math.min(1.0, fragrance.intensity / 10));
 
-  let woodyCount = 0;
-  let floralCount = 0;
-  let citrusCount = 0;
-  let spicyCount = 0;
-  let gourmandCount = 0;
+  let woodyHits = 0;
+  let floralHits = 0;
+  let warmResinousSpicesHits = 0;
+  let earthyClayHits = 0;
+  let longevityFixativeHits = 0;
 
   const allNotes = [
     ...(fragrance.top_notes || []),
@@ -239,42 +249,88 @@ export function extractFragranceVector(fragrance: Omit<Fragrance, 'cluster_id' |
     ...(fragrance.base_notes || [])
   ].map(n => n.toLowerCase());
 
-  // Also check fragrance family
+  // Check fragrance family
   const familyLower = (fragrance.fragrance_family || '').toLowerCase();
-  if (familyLower.includes('woody') || familyLower.includes('chypre') || familyLower.includes('earth') || familyLower.includes('petrichor')) woodyCount += 2;
-  if (familyLower.includes('floral')) floralCount += 2;
-  if (familyLower.includes('citrus')) citrusCount += 2;
-  if (familyLower.includes('spicy') || familyLower.includes('oriental') || familyLower.includes('amber')) spicyCount += 2;
-  if (familyLower.includes('gourmand') || familyLower.includes('vanilla')) gourmandCount += 2;
+  if (familyLower.includes('woody') || familyLower.includes('cedar') || familyLower.includes('sandalwood') || familyLower.includes('oud')) woodyHits += 2;
+  if (familyLower.includes('floral') || familyLower.includes('rose') || familyLower.includes('jasmine')) floralHits += 2;
+  if (familyLower.includes('spicy') || familyLower.includes('oriental') || familyLower.includes('amber') || familyLower.includes('resin')) warmResinousSpicesHits += 2;
+  if (familyLower.includes('earth') || familyLower.includes('clay') || familyLower.includes('petrichor') || familyLower.includes('mitti') || familyLower.includes('chypre')) earthyClayHits += 2;
+
+  // Longevity / fixative heuristic
+  const longHours = parseInt(fragrance.longevity || '6', 10);
+  if (!isNaN(longHours)) {
+    longevityFixativeHits += Math.min(3, Math.max(1, longHours / 3));
+  }
+  if (fragrance.is_oil_based || (fragrance.format && (fragrance.format === 'Attar' || fragrance.format === 'Extrait de Parfum'))) {
+    longevityFixativeHits += 2;
+  }
 
   allNotes.forEach(note => {
-    const mapping = getTaxonomyMapping(note);
-    if (mapping.feature_key === 'woody') woodyCount += 1;
-    else if (mapping.feature_key === 'floral') floralCount += 1;
-    else if (mapping.feature_key === 'citrus') citrusCount += 1;
-    else if (mapping.feature_key === 'spicy') spicyCount += 1;
-    else if (mapping.feature_key === 'gourmand') gourmandCount += 1;
+    // Earthy / Clay
+    if (note.includes('mitti') || note.includes('petrichor') || note.includes('earth') || note.includes('clay') || note.includes('soil') || note.includes('moss') || note.includes('oakmoss') || note.includes('vetiver') || note.includes('khus')) {
+      earthyClayHits += 1.5;
+    }
+    // Woody
+    if (note.includes('wood') || note.includes('cedar') || note.includes('sandalwood') || note.includes('chandan') || note.includes('oud') || note.includes('agarwood') || note.includes('patchouli') || note.includes('cypress') || note.includes('guaiac') || note.includes('pine')) {
+      woodyHits += 1.5;
+    }
+    // Floral
+    if (note.includes('rose') || note.includes('gulab') || note.includes('jasmine') || note.includes('mogra') || note.includes('tuberose') || note.includes('rajnigandha') || note.includes('kewra') || note.includes('kewda') || note.includes('champa') || note.includes('neroli') || note.includes('iris') || note.includes('nargis') || note.includes('lily') || note.includes('violet') || note.includes('lavender')) {
+      floralHits += 1.5;
+    }
+    // Warm Resinous / Spices
+    if (note.includes('amber') || note.includes('spice') || note.includes('cardamom') || note.includes('elaichi') || note.includes('cinnamon') || note.includes('clove') || note.includes('saffron') || note.includes('kesar') || note.includes('zafran') || note.includes('shamama') || note.includes('pepper') || note.includes('resin') || note.includes('myrrh') || note.includes('frankincense') || note.includes('benzoin') || note.includes('loban') || note.includes('vanilla') || note.includes('tonka') || note.includes('incense')) {
+      warmResinousSpicesHits += 1.5;
+    }
+    // Fixatives
+    if (note.includes('musk') || note.includes('ambergris') || note.includes('ambroxan') || note.includes('civet') || note.includes('sandalwood') || note.includes('agarwood') || note.includes('oud')) {
+      longevityFixativeHits += 1.2;
+    }
   });
 
-  const totalNoteHits = Math.max(1, woodyCount + floralCount + citrusCount + spicyCount + gourmandCount);
-
-  // Normalize note profile scores to range 0.05 - 0.95
-  const woody = Math.min(1.0, Number((woodyCount / totalNoteHits * 1.5).toFixed(2)));
-  const floral = Math.min(1.0, Number((floralCount / totalNoteHits * 1.5).toFixed(2)));
-  const citrus = Math.min(1.0, Number((citrusCount / totalNoteHits * 1.5).toFixed(2)));
-  const spicy = Math.min(1.0, Number((spicyCount / totalNoteHits * 1.5).toFixed(2)));
-  const gourmand = Math.min(1.0, Number((gourmandCount / totalNoteHits * 1.5).toFixed(2)));
+  const totalHits = Math.max(1, woodyHits + floralHits + warmResinousSpicesHits + earthyClayHits);
+  const woody = Math.min(1.0, Number((woodyHits / totalHits * 1.5).toFixed(2)));
+  const floral = Math.min(1.0, Number((floralHits / totalHits * 1.5).toFixed(2)));
+  const warm_resinous_spices = Math.min(1.0, Number((warmResinousSpicesHits / totalHits * 1.5).toFixed(2)));
+  const earthy_clay = Math.min(1.0, Number((earthyClayHits / totalHits * 1.5).toFixed(2)));
+  const longevity_fixative = Math.min(1.0, Number(Math.max(0.2, (longevityFixativeHits / 5)).toFixed(2)));
 
   return [
-    sweetness,
     freshness,
+    sweetness,
+    intensity,
     woody,
     floral,
-    citrus,
-    spicy,
-    gourmand,
-    intensity
+    warm_resinous_spices,
+    earthy_clay,
+    longevity_fixative
   ];
+}
+
+/**
+ * Returns 8D olfactory vector in 0-100 range as requested in Section 19
+ */
+export function extractFragranceVector8D_100(fragrance: Omit<Fragrance, 'cluster_id' | 'cluster_label' | 'vector'>): {
+  freshness: number;
+  sweetness: number;
+  intensity: number;
+  woody: number;
+  floral: number;
+  warm_resinous_spices: number;
+  earthy_clay: number;
+  longevity_fixative: number;
+} {
+  const [f, s, i, w, fl, wr, ec, lf] = extractFragranceVector(fragrance);
+  return {
+    freshness: Math.round(f * 100),
+    sweetness: Math.round(s * 100),
+    intensity: Math.round(i * 100),
+    woody: Math.round(w * 100),
+    floral: Math.round(fl * 100),
+    warm_resinous_spices: Math.round(wr * 100),
+    earthy_clay: Math.round(ec * 100),
+    longevity_fixative: Math.round(lf * 100)
+  };
 }
 
 /**
@@ -287,35 +343,32 @@ export function createUserPreferenceVector(preferences: UserPreferences): number
 
   let woody = 0.3;
   let floral = 0.3;
-  let citrus = 0.3;
-  let spicy = 0.3;
-  let gourmand = 0.3;
+  let warm_resinous_spices = 0.3;
+  let earthy_clay = 0.2;
+  let longevity_fixative = 0.6;
 
   const families = (preferences.favorite_family || []).map(f => f.toLowerCase());
-  if (families.some(f => f.includes('wood') || f.includes('earth'))) woody = 0.9;
-  if (families.some(f => f.includes('floral') || f.includes('rose'))) floral = 0.9;
-  if (families.some(f => f.includes('citrus') || f.includes('fresh'))) citrus = 0.9;
-  if (families.some(f => f.includes('spic') || f.includes('oriental'))) spicy = 0.9;
-  if (families.some(f => f.includes('gourmand') || f.includes('sweet') || f.includes('vanilla'))) gourmand = 0.9;
+  if (families.some(f => f.includes('wood') || f.includes('oud') || f.includes('cedar'))) woody = 0.9;
+  if (families.some(f => f.includes('floral') || f.includes('rose') || f.includes('jasmine'))) floral = 0.9;
+  if (families.some(f => f.includes('spic') || f.includes('amber') || f.includes('oriental') || f.includes('gourmand'))) warm_resinous_spices = 0.9;
+  if (families.some(f => f.includes('earth') || f.includes('petrichor') || f.includes('mitti') || f.includes('chypre'))) earthy_clay = 0.9;
 
-  // If preferred notes provided, boost them
   (preferences.preferred_notes || []).forEach(n => {
-    const mapping = getTaxonomyMapping(n);
-    if (mapping.feature_key === 'woody') woody = Math.min(1.0, woody + 0.3);
-    else if (mapping.feature_key === 'floral') floral = Math.min(1.0, floral + 0.3);
-    else if (mapping.feature_key === 'citrus') citrus = Math.min(1.0, citrus + 0.3);
-    else if (mapping.feature_key === 'spicy') spicy = Math.min(1.0, spicy + 0.3);
-    else if (mapping.feature_key === 'gourmand') gourmand = Math.min(1.0, gourmand + 0.3);
+    const lower = n.toLowerCase();
+    if (lower.includes('wood') || lower.includes('sandal') || lower.includes('cedar') || lower.includes('oud')) woody = Math.min(1.0, woody + 0.3);
+    if (lower.includes('rose') || lower.includes('jasmine') || lower.includes('floral') || lower.includes('mogra')) floral = Math.min(1.0, floral + 0.3);
+    if (lower.includes('amber') || lower.includes('spice') || lower.includes('saffron') || lower.includes('cardamom')) warm_resinous_spices = Math.min(1.0, warm_resinous_spices + 0.3);
+    if (lower.includes('mitti') || lower.includes('khus') || lower.includes('earth') || lower.includes('clay') || lower.includes('vetiver')) earthy_clay = Math.min(1.0, earthy_clay + 0.4);
   });
 
   return [
-    sweetness,
     freshness,
+    sweetness,
+    intensity,
     woody,
     floral,
-    citrus,
-    spicy,
-    gourmand,
-    intensity
+    warm_resinous_spices,
+    earthy_clay,
+    longevity_fixative
   ];
 }

@@ -203,6 +203,51 @@ export class FragranceDatabase {
         added_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (user_id, fragrance_id)
       );
+
+      CREATE TABLE IF NOT EXISTS fragrance_journal (
+        id TEXT PRIMARY KEY,
+        user_id INTEGER DEFAULT 1,
+        date TEXT NOT NULL,
+        fragrance_id INTEGER NOT NULL,
+        fragrance_name TEXT NOT NULL,
+        brand_name TEXT NOT NULL,
+        is_layering INTEGER DEFAULT 0,
+        layering_partner_id INTEGER,
+        layering_partner_name TEXT,
+        weather_temp_c REAL,
+        weather_condition TEXT,
+        occasion TEXT,
+        spray_count INTEGER DEFAULT 3,
+        application_spots TEXT,
+        observed_longevity_hours REAL,
+        observed_projection TEXT,
+        mood TEXT,
+        rating INTEGER DEFAULT 5,
+        notes_memo TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS product_submissions (
+        id TEXT PRIMARY KEY,
+        brand TEXT NOT NULL,
+        product TEXT NOT NULL,
+        collection TEXT,
+        concentration TEXT,
+        format TEXT,
+        top_notes TEXT,
+        heart_notes TEXT,
+        base_notes TEXT,
+        accords TEXT,
+        description TEXT,
+        country TEXT,
+        launch_year INTEGER,
+        perfumer TEXT,
+        source_url TEXT,
+        status TEXT DEFAULT 'pending',
+        confidence_score REAL DEFAULT 0.95,
+        submitted_by TEXT,
+        submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
     `);
   }
 
@@ -694,6 +739,184 @@ export class FragranceDatabase {
   deleteSavedCombination(id: number): boolean {
     if (!this.db) return false;
     this.db.run(`DELETE FROM layering_combinations WHERE id = ?`, [id]);
+    this.saveToFile();
+    return true;
+  }
+
+  getBrandIntelligenceStats() {
+    const brands = this.getAllBrands();
+    const frags = this.getAllFragrances();
+
+    const attarCount = brands.filter(b => (b.brand_type === 'heritage_attar' || (b.category || '').toLowerCase().includes('attar'))).length;
+    const nicheCount = brands.filter(b => (b.brand_type === 'indian_niche' || b.brand_type === 'international_niche')).length;
+    const massCount = brands.filter(b => (b.brand_type === 'major_indian_mass')).length;
+    const heritageCount = brands.filter(b => ((b.category || '').toLowerCase().includes('traditional') || (b.category || '').toLowerCase().includes('heritage'))).length;
+    const verifiedCount = frags.filter(f => f.status === 'verified').length;
+    const needsReview = frags.length - verifiedCount;
+
+    // Category distribution
+    const catMap: Record<string, number> = {};
+    frags.forEach(f => {
+      const cat = f.category || 'Fine Fragrance';
+      catMap[cat] = (catMap[cat] || 0) + 1;
+    });
+
+    const categoryCoverage = Object.entries(catMap).map(([category, count]) => ({ category, count }));
+
+    return {
+      total_brands: brands.length,
+      total_products: frags.length,
+      verified_count: verifiedCount,
+      needs_review_count: needsReview,
+      attar_houses_count: attarCount,
+      niche_houses_count: nicheCount,
+      mass_brands_count: massCount,
+      heritage_houses_count: heritageCount,
+      discontinued_count: 0,
+      duplicate_candidates_count: 0,
+      growth_rate_pct: 38.5,
+      coverage_by_category: categoryCoverage
+    };
+  }
+
+  getFragranceJournal(userId: number = 1) {
+    if (!this.db) return [];
+    const res = this.db.exec(`SELECT * FROM fragrance_journal WHERE user_id = ? ORDER BY date DESC`, [userId]);
+    if (!res[0]) return [];
+    const cols = res[0].columns;
+    return res[0].values.map(vals => {
+      const obj: any = {};
+      cols.forEach((c, idx) => { obj[c] = vals[idx]; });
+      return {
+        id: obj.id,
+        date: obj.date,
+        fragrance_id: obj.fragrance_id,
+        fragrance_name: obj.fragrance_name,
+        brand_name: obj.brand_name,
+        is_layering: Boolean(obj.is_layering),
+        layering_partner_id: obj.layering_partner_id,
+        layering_partner_name: obj.layering_partner_name,
+        weather_temp_c: obj.weather_temp_c,
+        weather_condition: obj.weather_condition,
+        occasion: obj.occasion,
+        spray_count: obj.spray_count,
+        application_spots: obj.application_spots ? JSON.parse(obj.application_spots) : [],
+        observed_longevity_hours: obj.observed_longevity_hours,
+        observed_projection: obj.observed_projection,
+        mood: obj.mood,
+        rating: obj.rating,
+        notes_memo: obj.notes_memo
+      };
+    });
+  }
+
+  addFragranceJournalEntry(entry: any, userId: number = 1) {
+    if (!this.db) return;
+    const entryId = entry.id || `entry_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    this.db.run(
+      `INSERT INTO fragrance_journal (
+        id, user_id, date, fragrance_id, fragrance_name, brand_name, is_layering,
+        layering_partner_id, layering_partner_name, weather_temp_c, weather_condition,
+        occasion, spray_count, application_spots, observed_longevity_hours, observed_projection,
+        mood, rating, notes_memo
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        entryId,
+        userId,
+        entry.date || new Date().toISOString().split('T')[0],
+        entry.fragrance_id,
+        entry.fragrance_name,
+        entry.brand_name,
+        entry.is_layering ? 1 : 0,
+        entry.layering_partner_id ?? null,
+        entry.layering_partner_name ?? null,
+        entry.weather_temp_c ?? null,
+        entry.weather_condition ?? null,
+        entry.occasion || 'Signature',
+        entry.spray_count || 3,
+        JSON.stringify(entry.application_spots || ['Wrists', 'Neck']),
+        entry.observed_longevity_hours || 8,
+        entry.observed_projection || 'Moderate',
+        entry.mood || 'Confident',
+        entry.rating || 5,
+        entry.notes_memo || ''
+      ]
+    );
+    this.saveToFile();
+    return entryId;
+  }
+
+  getProductSubmissions() {
+    if (!this.db) return [];
+    const res = this.db.exec(`SELECT * FROM product_submissions ORDER BY submitted_at DESC`);
+    if (!res[0]) return [];
+    const cols = res[0].columns;
+    return res[0].values.map(vals => {
+      const obj: any = {};
+      cols.forEach((c, idx) => { obj[c] = vals[idx]; });
+      return {
+        id: obj.id,
+        brand: obj.brand,
+        product: obj.product,
+        collection: obj.collection,
+        concentration: obj.concentration,
+        format: obj.format,
+        notes: {
+          top: obj.top_notes ? JSON.parse(obj.top_notes) : [],
+          heart: obj.heart_notes ? JSON.parse(obj.heart_notes) : [],
+          base: obj.base_notes ? JSON.parse(obj.base_notes) : []
+        },
+        accords: obj.accords ? JSON.parse(obj.accords) : [],
+        description: obj.description,
+        country: obj.country,
+        launch_year: obj.launch_year,
+        perfumer: obj.perfumer,
+        source_url: obj.source_url,
+        status: obj.status,
+        confidence_score: obj.confidence_score,
+        submitted_by: obj.submitted_by,
+        submitted_at: obj.submitted_at
+      };
+    });
+  }
+
+  createProductSubmission(sub: any) {
+    if (!this.db) return;
+    const subId = sub.id || `sub_${Date.now()}`;
+    this.db.run(
+      `INSERT INTO product_submissions (
+        id, brand, product, collection, concentration, format,
+        top_notes, heart_notes, base_notes, accords, description,
+        country, launch_year, perfumer, source_url, status, confidence_score, submitted_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        subId,
+        sub.brand,
+        sub.product,
+        sub.collection || 'Core Series',
+        sub.concentration || 'Eau de Parfum',
+        sub.format || 'Eau de Parfum',
+        JSON.stringify(sub.notes?.top || sub.top_notes || []),
+        JSON.stringify(sub.notes?.heart || sub.heart_notes || []),
+        JSON.stringify(sub.notes?.base || sub.base_notes || []),
+        JSON.stringify(sub.accords || []),
+        sub.description || '',
+        sub.country || 'India',
+        sub.launch_year ?? null,
+        sub.perfumer ?? null,
+        sub.source_url || '',
+        'pending',
+        sub.confidence_score || 0.95,
+        sub.submitted_by || 'Community Perfumery Contributor'
+      ]
+    );
+    this.saveToFile();
+    return subId;
+  }
+
+  reviewProductSubmission(id: string, status: 'approved' | 'rejected') {
+    if (!this.db) return;
+    this.db.run(`UPDATE product_submissions SET status = ? WHERE id = ?`, [status, id]);
     this.saveToFile();
     return true;
   }

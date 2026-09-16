@@ -103,7 +103,8 @@ export const IndianSoulSection: React.FC<IndianSoulSectionProps> = ({
   // Filter Indian fragrances by selected note or return top curated
   const displayedFrags = selectedNoteFilter
     ? indianFragrances.filter(f => {
-        const allNotes = [...f.top_notes, ...f.middle_notes, ...f.base_notes].join(' ').toLowerCase();
+        if (!f) return false;
+        const allNotes = [...(f.top_notes || []), ...(f.middle_notes || []), ...(f.base_notes || [])].join(' ').toLowerCase();
         return allNotes.includes(selectedNoteFilter.toLowerCase());
       })
     : indianFragrances.slice(0, 6);
@@ -225,10 +226,10 @@ export const IndianSoulSection: React.FC<IndianSoulSectionProps> = ({
 
                 <div className="space-y-1 text-xs pt-2 border-t border-stone-100">
                   <div className="text-stone-500 truncate">
-                    <span className="font-medium text-[#292323]">Key Chords:</span> {[...frag.top_notes.slice(0, 2), ...frag.base_notes.slice(0, 1)].join(', ')}
+                    <span className="font-medium text-[#292323]">Key Chords:</span> {[...(frag.top_notes?.slice(0, 2) || []), ...(frag.base_notes?.slice(0, 1) || [])].join(', ')}
                   </div>
                   <div className="text-stone-400 text-[11px] truncate">
-                    Seasons: {frag.season.join(', ')}
+                    Seasons: {(frag.season || []).join(', ')}
                   </div>
                 </div>
               </div>

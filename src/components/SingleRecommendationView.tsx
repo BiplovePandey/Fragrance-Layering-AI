@@ -93,9 +93,9 @@ export const SingleRecommendationView: React.FC<SingleRecommendationViewProps> =
 
               {/* Note Pyramid */}
               <div className="bg-stone-50/70 p-3 rounded-xl border border-stone-200/60 text-xs space-y-1">
-                <div><span className="font-semibold text-stone-700">Top:</span> {fragrance.top_notes.join(', ')}</div>
-                <div><span className="font-semibold text-stone-700">Heart:</span> {fragrance.middle_notes.join(', ')}</div>
-                <div><span className="font-semibold text-stone-700">Base:</span> {fragrance.base_notes.join(', ')}</div>
+                <div><span className="font-semibold text-stone-700">Top:</span> {(fragrance?.top_notes || []).join(', ')}</div>
+                <div><span className="font-semibold text-stone-700">Heart:</span> {(fragrance?.middle_notes || []).join(', ')}</div>
+                <div><span className="font-semibold text-stone-700">Base:</span> {(fragrance?.base_notes || []).join(', ')}</div>
               </div>
 
               {/* Criteria score bar */}

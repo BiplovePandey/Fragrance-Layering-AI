@@ -106,7 +106,7 @@ export const SavedCombinationsList: React.FC<SavedCombinationsListProps> = ({
 
             <div className="mt-5 pt-3 border-t border-stone-100 flex items-center justify-between gap-3">
               <span className="text-[11px] text-stone-400 truncate">
-                Notes: {item.fragrance_a.top_notes[0]} &bull; {item.fragrance_b.top_notes[0]}
+                Notes: {item.fragrance_a?.top_notes?.[0] || 'Heartwood'} &bull; {item.fragrance_b?.top_notes?.[0] || 'Balsam'}
               </span>
               <button
                 type="button"

@@ -113,18 +113,18 @@ export function performKMeansClustering(
     const dominant2 = rankedFeatures[1];
 
     let clusterName = `${dominant1.feature.charAt(0).toUpperCase() + dominant1.feature.slice(1)} & ${dominant2.feature.charAt(0).toUpperCase() + dominant2.feature.slice(1)}`;
-    if (dominant1.feature === 'sweetness' && dominant2.feature === 'gourmand') {
+    if (dominant1.feature === 'sweetness' && dominant2.feature === 'warm_resinous_spices') {
       clusterName = 'Warm Amber & Gourmand Indulgence';
-    } else if (dominant1.feature === 'citrus' || dominant2.feature === 'citrus') {
-      clusterName = 'Sparkling Citrus & Crisp Aromatic';
+    } else if (dominant1.feature === 'freshness') {
+      clusterName = 'Solar Freshness & Marine Breeze';
     } else if (dominant1.feature === 'woody' || dominant2.feature === 'woody') {
       clusterName = 'Noble Woods & Earthy Depths';
     } else if (dominant1.feature === 'floral' || dominant2.feature === 'floral') {
       clusterName = 'Opulent Floral Bouquet';
-    } else if (dominant1.feature === 'freshness') {
-      clusterName = 'Solar Freshness & Marine Breeze';
-    } else if (dominant1.feature === 'spicy') {
+    } else if (dominant1.feature === 'warm_resinous_spices') {
       clusterName = 'Exotic Spices & Smoked Woods';
+    } else if (dominant1.feature === 'earthy_clay') {
+      clusterName = 'Petrichor Earth & Sacral Roots';
     }
 
     const members = fragrances.filter(f => assignments.get(f.id) === c);
