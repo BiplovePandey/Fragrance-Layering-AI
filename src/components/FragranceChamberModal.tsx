@@ -7,13 +7,17 @@ import {
   FlaskConical,
   Bookmark,
   Thermometer,
-  Layers
+  Layers,
+  Activity,
+  ShieldCheck,
+  Compass
 } from 'lucide-react';
 import { Fragrance, WeatherCondition } from '../types.js';
 import { calculateWeatherAlignmentScore } from '../services/weatherEngine.js';
 import { MotionModal, MotionNumber, MotionButton } from '../motion/components.js';
 import { getFlaconLayoutId, SHARED_FLACON_TRANSITION } from '../motion/sharedElements.js';
 import { MOTION_SPRINGS, MOTION_DURATIONS, MOTION_EASINGS } from '../motion/config.js';
+import { EvaporationTimeline } from './EvaporationTimeline.js';
 
 interface FragranceChamberModalProps {
   fragrance: Fragrance | null;
@@ -23,6 +27,7 @@ interface FragranceChamberModalProps {
   onAddToWardrobe: (frag: Fragrance) => void;
   weather: WeatherCondition;
   allFragrances: Fragrance[];
+  onImmerseAtmosphere?: (frag: Fragrance) => void;
 }
 
 export const FragranceChamberModal: React.FC<FragranceChamberModalProps> = ({
@@ -32,12 +37,14 @@ export const FragranceChamberModal: React.FC<FragranceChamberModalProps> = ({
   onSendToLab,
   onAddToWardrobe,
   weather,
-  allFragrances
+  allFragrances,
+  onImmerseAtmosphere
 }) => {
   if (!isOpen || !fragrance) return null;
 
   const [activeTab, setActiveTab] = useState<'dna' | 'pyramid' | 'timeline' | 'layering'>('dna');
   const [inWardrobe, setInWardrobe] = useState(false);
+  const [hasImmersed, setHasImmersed] = useState(false);
 
   const weatherFit = calculateWeatherAlignmentScore(fragrance, weather);
 
@@ -79,7 +86,7 @@ export const FragranceChamberModal: React.FC<FragranceChamberModalProps> = ({
       onClose={onClose}
       maxWidth="max-w-4xl"
     >
-      <div className="relative w-full max-h-[90vh] overflow-y-auto rounded-3xl bg-[#12100E] border border-amber-600/30 text-stone-200 shadow-2xl p-6 sm:p-8">
+      <div className="relative w-full max-h-[90vh] overflow-y-auto rounded-3xl bg-[#14110E]/90 border border-white/20 text-stone-200 shadow-[0_30px_90px_rgba(0,0,0,0.6)] backdrop-blur-3xl p-6 sm:p-8 liquid-specular-rim">
         {/* Atmospheric Scent Aura Glow */}
         <div
           className={`absolute -top-12 -right-12 w-96 h-96 rounded-full bg-gradient-to-br ${getAuraGradient()} blur-3xl pointer-events-none opacity-70`}
@@ -234,7 +241,7 @@ export const FragranceChamberModal: React.FC<FragranceChamberModalProps> = ({
               </motion.div>
             )}
 
-            {/* Tab 2: Note Pyramid */}
+            {/* Tab 2: Note Pyramid & Haute Chemical Classification */}
             {activeTab === 'pyramid' && (
               <motion.div
                 key="pyramid"
@@ -244,49 +251,52 @@ export const FragranceChamberModal: React.FC<FragranceChamberModalProps> = ({
                 transition={{ duration: MOTION_DURATIONS.standard, ease: MOTION_EASINGS.luxuryDecel }}
                 className="space-y-4"
               >
-                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] relative overflow-hidden">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono uppercase text-amber-400 font-semibold flex items-center gap-1.5">
-                      <Droplets className="w-3.5 h-3.5" /> Top Notes (0m – 30m)
+                    <span className="text-xs font-mono-lab uppercase text-amber-300 font-semibold flex items-center gap-1.5">
+                      <Droplets className="w-3.5 h-3.5" /> Top Volatiles &bull; Vapor Pressure (0m – 30m)
                     </span>
-                    <span className="text-[10px] text-stone-400 font-mono">Volatile Flash</span>
+                    <span className="text-[10px] text-stone-400 font-mono">Boiling Pt: &lt; 250°C</span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mt-2">
                     {fragrance.top_notes?.map(n => (
-                      <span key={n} className="px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200">
-                        {n}
+                      <span key={n} className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-200 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                        <span className="font-medium">{n}</span>
                       </span>
                     )) || <span className="text-xs text-stone-500">Not recorded</span>}
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] relative overflow-hidden">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono uppercase text-rose-400 font-semibold flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5" /> Heart / Middle Notes (30m – 3h)
+                    <span className="text-xs font-mono-lab uppercase text-rose-300 font-semibold flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5" /> Heart Accord &bull; Core Diffusion (30m – 3h)
                     </span>
-                    <span className="text-[10px] text-stone-400 font-mono">Core Signature</span>
+                    <span className="text-[10px] text-stone-400 font-mono">Boiling Pt: 250°C – 320°C</span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mt-2">
                     {fragrance.middle_notes?.map(n => (
-                      <span key={n} className="px-3 py-1 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-200">
-                        {n}
+                      <span key={n} className="px-3 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-200 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                        <span className="font-medium">{n}</span>
                       </span>
                     )) || <span className="text-xs text-stone-500">Not recorded</span>}
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] relative overflow-hidden">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono uppercase text-amber-600 font-semibold flex items-center gap-1.5">
-                      <Layers className="w-3.5 h-3.5" /> Base Notes (3h – 10h+)
+                    <span className="text-xs font-mono-lab uppercase text-amber-400 font-semibold flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5" /> Base Fixatives &bull; Macromolecular Anchors (3h – 12h+)
                     </span>
-                    <span className="text-[10px] text-stone-400 font-mono">Persistent Heartwood</span>
+                    <span className="text-[10px] text-stone-400 font-mono">Boiling Pt: &gt; 320°C</span>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 mt-2">
                     {fragrance.base_notes?.map(n => (
-                      <span key={n} className="px-3 py-1 rounded-xl bg-amber-600/10 border border-amber-600/30 text-xs text-amber-300">
-                        {n}
+                      <span key={n} className="px-3 py-1.5 rounded-xl bg-amber-600/10 border border-amber-600/30 text-xs text-amber-300 flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                        <span className="font-medium">{n}</span>
                       </span>
                     )) || <span className="text-xs text-stone-500">Not recorded</span>}
                   </div>
@@ -294,7 +304,7 @@ export const FragranceChamberModal: React.FC<FragranceChamberModalProps> = ({
               </motion.div>
             )}
 
-            {/* Tab 3: Timeline Curve */}
+            {/* Tab 3: Timeline Curve & Interactive Evaporation */}
             {activeTab === 'timeline' && (
               <motion.div
                 key="timeline"
@@ -304,26 +314,7 @@ export const FragranceChamberModal: React.FC<FragranceChamberModalProps> = ({
                 transition={{ duration: MOTION_DURATIONS.standard, ease: MOTION_EASINGS.luxuryDecel }}
                 className="space-y-4"
               >
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                    <span className="text-[10px] font-mono text-stone-400">Opening (0–30 min)</span>
-                    <p className="text-xs text-stone-200 mt-1">
-                      Vigorous aromatic burst with maximum sillage radius (~5.5 ft).
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                    <span className="text-[10px] font-mono text-stone-400">Heart (1–4 hrs)</span>
-                    <p className="text-xs text-stone-200 mt-1">
-                      Balanced projection envelope (~3.2 ft) as floral and spice molecules bloom.
-                    </p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                    <span className="text-[10px] font-mono text-stone-400">Drydown (4–10+ hrs)</span>
-                    <p className="text-xs text-stone-200 mt-1">
-                      Intimate second-skin resonance anchored by deep heartwood resins.
-                    </p>
-                  </div>
-                </div>
+                <EvaporationTimeline fragrance={fragrance} />
               </motion.div>
             )}
 
@@ -374,17 +365,37 @@ export const FragranceChamberModal: React.FC<FragranceChamberModalProps> = ({
 
         {/* Footer Actions */}
         <div className="pt-6 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
-          <MotionButton
-            variant="tactile"
-            onClick={() => {
-              onAddToWardrobe(fragrance);
-              setInWardrobe(true);
-            }}
-            className="px-4 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] text-stone-200 text-xs font-medium transition cursor-pointer flex items-center gap-2"
-          >
-            <Bookmark className="w-3.5 h-3.5 text-amber-400" />
-            <span>{inWardrobe ? 'Added to Wardrobe!' : 'Add to Digital Wardrobe'}</span>
-          </MotionButton>
+          <div className="flex items-center gap-2">
+            <MotionButton
+              variant="tactile"
+              onClick={() => {
+                onAddToWardrobe(fragrance);
+                setInWardrobe(true);
+              }}
+              className="px-4 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.09] text-stone-200 text-xs font-medium transition cursor-pointer flex items-center gap-2"
+            >
+              <Bookmark className="w-3.5 h-3.5 text-amber-400" />
+              <span>{inWardrobe ? 'Added to Wardrobe!' : 'Add to Digital Wardrobe'}</span>
+            </MotionButton>
+
+            {onImmerseAtmosphere && (
+              <MotionButton
+                variant="tactile"
+                onClick={() => {
+                  onImmerseAtmosphere(fragrance);
+                  setHasImmersed(true);
+                }}
+                className={`px-3.5 py-2.5 rounded-xl border text-xs font-medium transition cursor-pointer flex items-center gap-2 ${
+                  hasImmersed
+                    ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
+                    : 'bg-white/[0.04] border-white/[0.08] hover:bg-white/[0.08] text-stone-300'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                <span>{hasImmersed ? 'Ambiance Immersed' : 'Immerse Room Ambiance'}</span>
+              </MotionButton>
+            )}
+          </div>
 
           <MotionButton
             variant="primary"

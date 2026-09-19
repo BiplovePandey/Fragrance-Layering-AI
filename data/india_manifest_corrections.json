@@ -1,0 +1,1255 @@
+[
+  {
+    "record_id": "IN-FRAG-005",
+    "field": "heritage",
+    "previous_value": {
+      "is_heritage": true,
+      "category": "A",
+      "heritage_materials": [
+        "Rose",
+        "Sandalwood",
+        "Vetiver"
+      ],
+      "distillation_method": "Standard fine perfumery extraction",
+      "region": "Haryana",
+      "heritage_relationship": "D2C accessible luxury fine perfumes utilizing imported French fragrance oils formulated at 18-22% concentration."
+    },
+    "corrected_value": {
+      "is_heritage": false,
+      "category": null,
+      "heritage_materials": [],
+      "distillation_method": null,
+      "region": "Haryana",
+      "heritage_relationship": null
+    },
+    "reason": "Removed unsupported heritage classification. Modern FMCG/mass-market commercial fragrances were improperly tagged as heritage by automated heuristic.",
+    "source_evidence": "Brand and product are modern commercial fine fragrances produced with modern compounding; no traditional Deg-Bhapka, GI-tag, or generational heritage distillation.",
+    "correction_type": "HERITAGE_CLASSIFICATION_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-008",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Khus / Vetiver",
+        "Petrichor"
+      ],
+      "middle_notes": [
+        "Wild Green Vetiver Root",
+        "Mitti"
+      ],
+      "base_notes": [
+        "Earth",
+        "Chandan"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Khus / Vetiver",
+        "Petrichor",
+        "Wild Green Vetiver Root",
+        "Mitti",
+        "Earth",
+        "Chandan"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-016",
+    "field": "heritage",
+    "previous_value": {
+      "is_heritage": true,
+      "category": "A",
+      "heritage_materials": [
+        "Saffron",
+        "Rose",
+        "Oud"
+      ],
+      "distillation_method": "Standard fine perfumery extraction",
+      "region": "Gujarat",
+      "heritage_relationship": "Intense, dark, masculine EDP blends focused on agarwood, leather, and spicy resins."
+    },
+    "corrected_value": {
+      "is_heritage": false,
+      "category": null,
+      "heritage_materials": [],
+      "distillation_method": null,
+      "region": "Gujarat",
+      "heritage_relationship": null
+    },
+    "reason": "Removed unsupported heritage classification. Modern FMCG/mass-market commercial fragrances were improperly tagged as heritage by automated heuristic.",
+    "source_evidence": "Brand and product are modern commercial fine fragrances produced with modern compounding; no traditional Deg-Bhapka, GI-tag, or generational heritage distillation.",
+    "correction_type": "HERITAGE_CLASSIFICATION_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-017",
+    "field": "heritage",
+    "previous_value": {
+      "is_heritage": true,
+      "category": "A",
+      "heritage_materials": [
+        "Rose",
+        "Chandan",
+        "Jasmine"
+      ],
+      "distillation_method": "Standard fine perfumery extraction",
+      "region": "Gujarat",
+      "heritage_relationship": "Accessible luxury beauty EDPs blending floral and oriental oudh accords."
+    },
+    "corrected_value": {
+      "is_heritage": false,
+      "category": null,
+      "heritage_materials": [],
+      "distillation_method": null,
+      "region": "Gujarat",
+      "heritage_relationship": null
+    },
+    "reason": "Removed unsupported heritage classification. Modern FMCG/mass-market commercial fragrances were improperly tagged as heritage by automated heuristic.",
+    "source_evidence": "Brand and product are modern commercial fine fragrances produced with modern compounding; no traditional Deg-Bhapka, GI-tag, or generational heritage distillation.",
+    "correction_type": "HERITAGE_CLASSIFICATION_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-018",
+    "field": "heritage",
+    "previous_value": {
+      "is_heritage": true,
+      "category": "A",
+      "heritage_materials": [
+        "Rose",
+        "Jasmine"
+      ],
+      "distillation_method": "Standard fine perfumery extraction",
+      "region": "West Bengal",
+      "heritage_relationship": "Women's fine fragrance EDPs engineered for all-day floral and chypre wear."
+    },
+    "corrected_value": {
+      "is_heritage": false,
+      "category": null,
+      "heritage_materials": [],
+      "distillation_method": null,
+      "region": "West Bengal",
+      "heritage_relationship": null
+    },
+    "reason": "Removed unsupported heritage classification. Modern FMCG/mass-market commercial fragrances were improperly tagged as heritage by automated heuristic.",
+    "source_evidence": "Brand and product are modern commercial fine fragrances produced with modern compounding; no traditional Deg-Bhapka, GI-tag, or generational heritage distillation.",
+    "correction_type": "HERITAGE_CLASSIFICATION_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-031",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Mitti (Baked Earth)",
+        "Geeli Mitti"
+      ],
+      "middle_notes": [
+        "Clay (Terracotta)",
+        "Petrichor"
+      ],
+      "base_notes": [
+        "Chandan",
+        "Sandalwood"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Mitti (Baked Earth)",
+        "Geeli Mitti",
+        "Clay (Terracotta)",
+        "Petrichor",
+        "Chandan",
+        "Sandalwood"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-037",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Mitti (Baked Earth)",
+        "Geeli Mitti"
+      ],
+      "middle_notes": [
+        "Petrichor",
+        "Clay"
+      ],
+      "base_notes": [
+        "Chandan",
+        "Sandalwood"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Mitti (Baked Earth)",
+        "Geeli Mitti",
+        "Petrichor",
+        "Clay",
+        "Chandan",
+        "Sandalwood"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-038",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Ruh Khus (Wild Vetiver)",
+        "Sweet Lime"
+      ],
+      "middle_notes": [
+        "Khus / Vetiver",
+        "Green Vetiver Root"
+      ],
+      "base_notes": [
+        "Vetiver",
+        "Chandan"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Ruh Khus (Wild Vetiver)",
+        "Green Vetiver Root"
+      ]
+    },
+    "reason": "Removed unsupported notes ('Sweet Lime', 'Chandan') and converted artificial 3-tier pyramid into linear single-botanical profile.",
+    "source_evidence": "Authentic Kannauj Ruh Khus is 100% wild vetiver root hydro-distillate in copper degs; source documentation contains neither lime nor sandalwood.",
+    "correction_type": "PYRAMID_AND_NOTE_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-045",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Kewda / Kewra",
+        "Sweet Lime"
+      ],
+      "middle_notes": [
+        "Mitti (Baked Earth)",
+        "Ruh Khus (Wild Vetiver)",
+        "Rose"
+      ],
+      "base_notes": [
+        "Chandan",
+        "Musk"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Kewda / Kewra",
+        "Sweet Lime",
+        "Mitti (Baked Earth)",
+        "Ruh Khus (Wild Vetiver)",
+        "Rose",
+        "Chandan",
+        "Musk"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-046",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Kesar / Saffron",
+        "Cardamom"
+      ],
+      "middle_notes": [
+        "Gulab",
+        "Nutmeg"
+      ],
+      "base_notes": [
+        "Chandan (Sandalwood)",
+        "Benzoin (Loban)"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Kesar / Saffron",
+        "Cardamom",
+        "Gulab",
+        "Nutmeg",
+        "Chandan (Sandalwood)",
+        "Benzoin (Loban)"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-047",
+    "field": "heritage",
+    "previous_value": {
+      "is_heritage": true,
+      "category": "A",
+      "heritage_materials": [
+        "Rose",
+        "Jasmine"
+      ],
+      "distillation_method": "Standard fine perfumery extraction",
+      "region": "Karnataka",
+      "heritage_relationship": "Master-perfumer formulated European-grade fine fragrances (Firmenich, Givaudan) tailored for the Indian climate and skin chemistry; IFRA certified."
+    },
+    "corrected_value": {
+      "is_heritage": false,
+      "category": null,
+      "heritage_materials": [],
+      "distillation_method": null,
+      "region": "Karnataka",
+      "heritage_relationship": null
+    },
+    "reason": "Removed unsupported heritage classification. Modern FMCG/mass-market commercial fragrances were improperly tagged as heritage by automated heuristic.",
+    "source_evidence": "Brand and product are modern commercial fine fragrances produced with modern compounding; no traditional Deg-Bhapka, GI-tag, or generational heritage distillation.",
+    "correction_type": "HERITAGE_CLASSIFICATION_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-050",
+    "field": "heritage",
+    "previous_value": {
+      "is_heritage": true,
+      "category": "A",
+      "heritage_materials": [
+        "Rose",
+        "Sandalwood"
+      ],
+      "distillation_method": "Standard fine perfumery extraction",
+      "region": "Karnataka",
+      "heritage_relationship": "Master-perfumer formulated European-grade fine fragrances (Firmenich, Givaudan) tailored for the Indian climate and skin chemistry; IFRA certified."
+    },
+    "corrected_value": {
+      "is_heritage": false,
+      "category": null,
+      "heritage_materials": [],
+      "distillation_method": null,
+      "region": "Karnataka",
+      "heritage_relationship": null
+    },
+    "reason": "Removed unsupported heritage classification. Modern FMCG/mass-market commercial fragrances were improperly tagged as heritage by automated heuristic.",
+    "source_evidence": "Brand and product are modern commercial fine fragrances produced with modern compounding; no traditional Deg-Bhapka, GI-tag, or generational heritage distillation.",
+    "correction_type": "HERITAGE_CLASSIFICATION_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-057",
+    "field": "heritage",
+    "previous_value": {
+      "is_heritage": true,
+      "category": "A",
+      "heritage_materials": [
+        "Sandalwood",
+        "Jasmine"
+      ],
+      "distillation_method": "Standard fine perfumery extraction",
+      "region": "Haryana",
+      "heritage_relationship": "D2C accessible luxury fine perfumes utilizing imported French fragrance oils formulated at 18-22% concentration."
+    },
+    "corrected_value": {
+      "is_heritage": false,
+      "category": null,
+      "heritage_materials": [],
+      "distillation_method": null,
+      "region": "Haryana",
+      "heritage_relationship": null
+    },
+    "reason": "Removed unsupported heritage classification. Modern FMCG/mass-market commercial fragrances were improperly tagged as heritage by automated heuristic.",
+    "source_evidence": "Brand and product are modern commercial fine fragrances produced with modern compounding; no traditional Deg-Bhapka, GI-tag, or generational heritage distillation.",
+    "correction_type": "HERITAGE_CLASSIFICATION_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-060",
+    "field": "heritage",
+    "previous_value": {
+      "is_heritage": true,
+      "category": "A",
+      "heritage_materials": [
+        "Agarwood",
+        "Rose"
+      ],
+      "distillation_method": "Standard fine perfumery extraction",
+      "region": "Haryana",
+      "heritage_relationship": "D2C accessible luxury fine perfumes utilizing imported French fragrance oils formulated at 18-22% concentration."
+    },
+    "corrected_value": {
+      "is_heritage": false,
+      "category": null,
+      "heritage_materials": [],
+      "distillation_method": null,
+      "region": "Haryana",
+      "heritage_relationship": null
+    },
+    "reason": "Removed unsupported heritage classification. Modern FMCG/mass-market commercial fragrances were improperly tagged as heritage by automated heuristic.",
+    "source_evidence": "Brand and product are modern commercial fine fragrances produced with modern compounding; no traditional Deg-Bhapka, GI-tag, or generational heritage distillation.",
+    "correction_type": "HERITAGE_CLASSIFICATION_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-061",
+    "field": "heritage",
+    "previous_value": {
+      "is_heritage": true,
+      "category": "A",
+      "heritage_materials": [
+        "Agarwood",
+        "Rose"
+      ],
+      "distillation_method": "Standard fine perfumery extraction",
+      "region": "Haryana",
+      "heritage_relationship": "D2C accessible luxury fine perfumes utilizing imported French fragrance oils formulated at 18-22% concentration."
+    },
+    "corrected_value": {
+      "is_heritage": false,
+      "category": null,
+      "heritage_materials": [],
+      "distillation_method": null,
+      "region": "Haryana",
+      "heritage_relationship": null
+    },
+    "reason": "Removed unsupported heritage classification. Modern FMCG/mass-market commercial fragrances were improperly tagged as heritage by automated heuristic.",
+    "source_evidence": "Brand and product are modern commercial fine fragrances produced with modern compounding; no traditional Deg-Bhapka, GI-tag, or generational heritage distillation.",
+    "correction_type": "HERITAGE_CLASSIFICATION_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-065",
+    "field": "heritage",
+    "previous_value": {
+      "is_heritage": true,
+      "category": "F",
+      "heritage_materials": [
+        "Rose"
+      ],
+      "distillation_method": "Standard fine perfumery extraction",
+      "region": "Assam / Maharashtra",
+      "heritage_relationship": "Pioneering Indian agarwood empire originating from Assam; vertically integrated sustainable agarwood plantations and world-class distillations."
+    },
+    "corrected_value": {
+      "is_heritage": false,
+      "category": null,
+      "heritage_materials": [],
+      "distillation_method": null,
+      "region": "Assam / Maharashtra",
+      "heritage_relationship": null
+    },
+    "reason": "Removed unsupported heritage classification. Modern FMCG/mass-market commercial fragrances were improperly tagged as heritage by automated heuristic.",
+    "source_evidence": "Brand and product are modern commercial fine fragrances produced with modern compounding; no traditional Deg-Bhapka, GI-tag, or generational heritage distillation.",
+    "correction_type": "HERITAGE_CLASSIFICATION_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-066",
+    "field": "heritage",
+    "previous_value": {
+      "is_heritage": true,
+      "category": "F",
+      "heritage_materials": [
+        "Rose",
+        "Sandalwood"
+      ],
+      "distillation_method": "Standard fine perfumery extraction",
+      "region": "Assam / Maharashtra",
+      "heritage_relationship": "Pioneering Indian agarwood empire originating from Assam; vertically integrated sustainable agarwood plantations and world-class distillations."
+    },
+    "corrected_value": {
+      "is_heritage": false,
+      "category": null,
+      "heritage_materials": [],
+      "distillation_method": null,
+      "region": "Assam / Maharashtra",
+      "heritage_relationship": null
+    },
+    "reason": "Removed unsupported heritage classification. Modern FMCG/mass-market commercial fragrances were improperly tagged as heritage by automated heuristic.",
+    "source_evidence": "Brand and product are modern commercial fine fragrances produced with modern compounding; no traditional Deg-Bhapka, GI-tag, or generational heritage distillation.",
+    "correction_type": "HERITAGE_CLASSIFICATION_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-067",
+    "field": "heritage",
+    "previous_value": {
+      "is_heritage": true,
+      "category": "F",
+      "heritage_materials": [
+        "Vetiver"
+      ],
+      "distillation_method": "Standard fine perfumery extraction",
+      "region": "Assam / Maharashtra",
+      "heritage_relationship": "Pioneering Indian agarwood empire originating from Assam; vertically integrated sustainable agarwood plantations and world-class distillations."
+    },
+    "corrected_value": {
+      "is_heritage": false,
+      "category": null,
+      "heritage_materials": [],
+      "distillation_method": null,
+      "region": "Assam / Maharashtra",
+      "heritage_relationship": null
+    },
+    "reason": "Removed unsupported heritage classification. Modern FMCG/mass-market commercial fragrances were improperly tagged as heritage by automated heuristic.",
+    "source_evidence": "Brand and product are modern commercial fine fragrances produced with modern compounding; no traditional Deg-Bhapka, GI-tag, or generational heritage distillation.",
+    "correction_type": "HERITAGE_CLASSIFICATION_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-068",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Sun-Baked Earthen Clay",
+        "First Rain Droplets"
+      ],
+      "middle_notes": [
+        "Wet Alluvial Soil",
+        "Damp River Mud"
+      ],
+      "base_notes": [
+        "Mysore Sandalwood Base"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Sun-Baked Earthen Clay",
+        "First Rain Droplets",
+        "Wet Alluvial Soil",
+        "Damp River Mud",
+        "Mysore Sandalwood Base"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-069",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Damask Rose Petals",
+        "Morning Dew"
+      ],
+      "middle_notes": [
+        "Kannauj Desi Gulab Essence"
+      ],
+      "base_notes": [
+        "Chandan Base Oil"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Damask Rose Petals",
+        "Morning Dew",
+        "Kannauj Desi Gulab Essence",
+        "Chandan Base Oil"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-075",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.skinn.in) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-077",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.forestessentialsindia.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-078",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Fresh Dewy Motiya Blossoms"
+      ],
+      "middle_notes": [
+        "Creamy Indian Jasmine Sambac"
+      ],
+      "base_notes": [
+        "Pure Mysore Sandalwood Oil"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Fresh Dewy Motiya Blossoms",
+        "Creamy Indian Jasmine Sambac",
+        "Pure Mysore Sandalwood Oil"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-079",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Crushed Green Vetiver Grass"
+      ],
+      "middle_notes": [
+        "Moist Riverbed Roots",
+        "Woody Balsam"
+      ],
+      "base_notes": [
+        "Deep Earthy Vetiver Fixative"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Crushed Green Vetiver Grass",
+        "Moist Riverbed Roots",
+        "Woody Balsam",
+        "Deep Earthy Vetiver Fixative"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-080",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Pampore Golden Saffron Threads"
+      ],
+      "middle_notes": [
+        "Warm Bittersweet Honeyed Spice"
+      ],
+      "base_notes": [
+        "Rich Creamy Sandalwood"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Pampore Golden Saffron Threads",
+        "Warm Bittersweet Honeyed Spice",
+        "Rich Creamy Sandalwood"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-081",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Crisp Night Blooming Sambac"
+      ],
+      "middle_notes": [
+        "Rich Indolic Bela Petals",
+        "Green Tea Facets"
+      ],
+      "base_notes": [
+        "Narcotic Floral Nectar"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Crisp Night Blooming Sambac",
+        "Rich Indolic Bela Petals",
+        "Green Tea Facets",
+        "Narcotic Floral Nectar"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-081",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.gulabsinghjohrimal.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-082",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Kadamb Flower Nectar"
+      ],
+      "middle_notes": [
+        "Honeyed Tropical Blossoms",
+        "Monsoon Breeze"
+      ],
+      "base_notes": [
+        "Aged Sandalwood"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Kadamb Flower Nectar",
+        "Honeyed Tropical Blossoms",
+        "Monsoon Breeze",
+        "Aged Sandalwood"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-082",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.gulabsinghjohrimal.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-083",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Freshly Cut Wet Rose Petals"
+      ],
+      "middle_notes": [
+        "Rich Honeyed Desi Damask Rose Absolute"
+      ],
+      "base_notes": [
+        "Deep Balsamic Rosy Undertone"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Freshly Cut Wet Rose Petals",
+        "Rich Honeyed Desi Damask Rose Absolute",
+        "Deep Balsamic Rosy Undertone"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-083",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.gulabsinghjohrimal.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-084",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Fresh Ozone",
+        "Wet Terracotta"
+      ],
+      "middle_notes": [
+        "Baked Alluvial Clay",
+        "Rain-kissed Soil"
+      ],
+      "base_notes": [
+        "Pure Sandalwood",
+        "Grounding Earthy Musk"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Fresh Ozone",
+        "Wet Terracotta",
+        "Baked Alluvial Clay",
+        "Rain-kissed Soil",
+        "Pure Sandalwood",
+        "Grounding Earthy Musk"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-084",
+    "field": "status",
+    "previous_value": "POSSIBLE_DUPLICATE",
+    "corrected_value": "DUPLICATE_OF",
+    "reason": "Explicitly marked as duplicate of IN-FRAG-031 (existing SQLite ID 35) to prevent duplicate import while preserving record for audit history.",
+    "source_evidence": "Same product ('First Rain / Mitti' by Isak Fragrances) already cataloged under IN-FRAG-031.",
+    "correction_type": "DUPLICATE_RESOLUTION"
+  },
+  {
+    "record_id": "IN-FRAG-085",
+    "field": "status",
+    "previous_value": "EXISTING_MATCH",
+    "corrected_value": "DUPLICATE_OF",
+    "reason": "Explicitly marked as duplicate of IN-FRAG-032 (existing SQLite ID 36) to avoid creating duplicate record for SQLite ID 36.",
+    "source_evidence": "Same product ('1854' by Isak Fragrances) already cataloged under IN-FRAG-032.",
+    "correction_type": "DUPLICATE_RESOLUTION"
+  },
+  {
+    "record_id": "IN-FRAG-087",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.33north.in) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-088",
+    "field": "provenance.sources[0].url",
+    "previous_value": "https://www.33north.in",
+    "corrected_value": "https://www.33north.in/products/bad-influence",
+    "reason": "Upgraded root domain URL to verified official product-detail URL.",
+    "source_evidence": "Verified live product page on https://www.33north.in/products/bad-influence",
+    "correction_type": "PROVENANCE_PDP_RECOVERY"
+  },
+  {
+    "record_id": "IN-FRAG-089",
+    "field": "provenance.sources[0].url",
+    "previous_value": "https://www.33north.in",
+    "corrected_value": "https://www.33north.in/products/siente",
+    "reason": "Upgraded root domain URL to verified official product-detail URL.",
+    "source_evidence": "Verified live product page on https://www.33north.in/products/siente",
+    "correction_type": "PROVENANCE_PDP_RECOVERY"
+  },
+  {
+    "record_id": "IN-FRAG-093",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://scentedelic.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-094",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Indian Blue Lotus",
+        "Dewy Greens"
+      ],
+      "middle_notes": [
+        "Earthy Dark Patchouli",
+        "Herbal Resin"
+      ],
+      "base_notes": [
+        "Mysore Sandalwood Base",
+        "Botanical Musk"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Indian Blue Lotus",
+        "Dewy Greens",
+        "Earthy Dark Patchouli",
+        "Herbal Resin",
+        "Mysore Sandalwood Base",
+        "Botanical Musk"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-094",
+    "field": "provenance.sources[0].url",
+    "previous_value": "https://www.kastoorperfumery.com",
+    "corrected_value": "https://kastoorperfumery.com/products/mystique",
+    "reason": "Upgraded root domain URL to verified official product-detail URL.",
+    "source_evidence": "Verified live product page on https://kastoorperfumery.com/products/mystique",
+    "correction_type": "PROVENANCE_PDP_RECOVERY"
+  },
+  {
+    "record_id": "IN-FRAG-095",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Cool Garden Mint",
+        "Ozone"
+      ],
+      "middle_notes": [
+        "Moonlit Jasmine Sambac",
+        "Bela Blossoms"
+      ],
+      "base_notes": [
+        "Kannauj Mitti (Petrichor)",
+        "Sandalwood"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Cool Garden Mint",
+        "Ozone",
+        "Moonlit Jasmine Sambac",
+        "Bela Blossoms",
+        "Kannauj Mitti (Petrichor)",
+        "Sandalwood"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-095",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.kastoorperfumery.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-096",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.adilqadri.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-097",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.adilqadri.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-098",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://al-nuaim.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-099",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://al-nuaim.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-100",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://aromeworld.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-101",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://aromeworld.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-105",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://beardo.in) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-107",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.wildstone.in) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-108",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.themancompany.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-109",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.themancompany.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-111",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://www.reneecosmetics.in) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-119",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Alpine Wildflowers",
+        "Mountain Herbs"
+      ],
+      "middle_notes": [
+        "Himalayan Rhododendron",
+        "Kadamb Nectar"
+      ],
+      "base_notes": [
+        "Aged Sandalwood",
+        "Herbal Musk"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Alpine Wildflowers",
+        "Mountain Herbs",
+        "Himalayan Rhododendron",
+        "Kadamb Nectar",
+        "Aged Sandalwood",
+        "Herbal Musk"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-120",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Green Stems",
+        "Nocturnal Ozone"
+      ],
+      "middle_notes": [
+        "Raat-Ki-Rani (Night Blooming Jasmine) Absolute"
+      ],
+      "base_notes": [
+        "Mysore Sandalwood Base"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Green Stems",
+        "Nocturnal Ozone",
+        "Raat-Ki-Rani (Night Blooming Jasmine) Absolute",
+        "Mysore Sandalwood Base"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-120",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://rayhan.in) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-121",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Balsamic Amber"
+      ],
+      "middle_notes": [
+        "Benzoin Resin",
+        "Warm Spices"
+      ],
+      "base_notes": [
+        "Resinous Earthy Musk",
+        "Cedarwood"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Balsamic Amber",
+        "Benzoin Resin",
+        "Warm Spices",
+        "Resinous Earthy Musk",
+        "Cedarwood"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-122",
+    "field": "scent_structure",
+    "previous_value": {
+      "top_notes": [
+        "Citrus Zest",
+        "Fresh Greens",
+        "Crisp Spice"
+      ],
+      "middle_notes": [
+        "Light Florals",
+        "Mild Sweetness",
+        "Aromatic Herbs"
+      ],
+      "base_notes": [
+        "Soft Musk",
+        "Gentle Woods",
+        "Balsamic Amber"
+      ],
+      "notes_general": []
+    },
+    "corrected_value": {
+      "top_notes": [],
+      "middle_notes": [],
+      "base_notes": [],
+      "notes_general": [
+        "Citrus Zest",
+        "Fresh Greens",
+        "Crisp Spice",
+        "Light Florals",
+        "Mild Sweetness",
+        "Aromatic Herbs",
+        "Soft Musk",
+        "Gentle Woods",
+        "Balsamic Amber"
+      ]
+    },
+    "reason": "Converted synthetic 3-tier pyramid to linear/general note profile because source documents materials without explicit top/middle/base hierarchy.",
+    "source_evidence": "Product formulation documentation describes single-botanical ruh, deg-bhapka attar, or linear blend without tiered olfactory pyramid.",
+    "correction_type": "PYRAMID_CORRECTION"
+  },
+  {
+    "record_id": "IN-FRAG-123",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://indinoir.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  },
+  {
+    "record_id": "IN-FRAG-124",
+    "field": "provenance.source_status",
+    "previous_value": "UNFLAGGED_ROOT",
+    "corrected_value": "SOURCE_REVIEW_REQUIRED",
+    "reason": "Flagged as SOURCE_REVIEW_REQUIRED with calibrated confidence (0.85) because only root homepage domain was verified; product-specific PDP URL is required.",
+    "source_evidence": "Root domain (https://indinoir.com) does not explicitly verify specific composition notes.",
+    "correction_type": "PROVENANCE_AUDIT_FLAG"
+  }
+]

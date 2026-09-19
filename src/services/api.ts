@@ -7,7 +7,15 @@ import {
   LayeringResult,
   SavedCombination,
   ClusterInfo,
-  UserRating
+  UserRating,
+  CanonicalFragranceImport,
+  RawOlfactoryContextInput,
+  NormalizedContextResponse,
+  WearRecommendationRequest,
+  WearRecommendationResponse,
+  OlfactoryBehaviorEvent,
+  OlfactoryMemorySnapshot,
+  FragranceBehaviorSummary
 } from '../types.js';
 
 export const api = {
@@ -24,10 +32,84 @@ export const api = {
     return res.json();
   },
 
+  async createBrand(brand: Partial<Brand>): Promise<Brand> {
+    const res = await fetch('/api/brands', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(brand)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to create brand');
+    }
+    return res.json();
+  },
+
+  async updateBrand(id: number, brand: Partial<Brand>): Promise<Brand> {
+    const res = await fetch(`/api/brands/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(brand)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to update brand');
+    }
+    return res.json();
+  },
+
+  async deleteBrand(id: number): Promise<{ success: boolean; id: number }> {
+    const res = await fetch(`/api/brands/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to delete brand');
+    }
+    return res.json();
+  },
+
   // Taxonomy
   async getTaxonomy(): Promise<NoteTaxonomyEntry[]> {
     const res = await fetch('/api/taxonomy');
     if (!res.ok) throw new Error('Failed to fetch note taxonomy');
+    return res.json();
+  },
+
+  async createTaxonomyEntry(entry: Partial<NoteTaxonomyEntry>): Promise<NoteTaxonomyEntry> {
+    const res = await fetch('/api/taxonomy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to create note taxonomy entry');
+    }
+    return res.json();
+  },
+
+  async updateTaxonomyEntry(id: number, entry: Partial<NoteTaxonomyEntry>): Promise<NoteTaxonomyEntry> {
+    const res = await fetch(`/api/taxonomy/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to update note taxonomy entry');
+    }
+    return res.json();
+  },
+
+  async deleteTaxonomyEntry(id: number): Promise<{ success: boolean; id: number }> {
+    const res = await fetch(`/api/taxonomy/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to delete note taxonomy entry');
+    }
     return res.json();
   },
 
@@ -41,6 +123,43 @@ export const api = {
   async getFragranceById(id: number): Promise<Fragrance> {
     const res = await fetch(`/api/fragrances/${id}`);
     if (!res.ok) throw new Error('Failed to fetch fragrance details');
+    return res.json();
+  },
+
+  async createFragrance(fragrance: Partial<Fragrance>): Promise<Fragrance> {
+    const res = await fetch('/api/fragrances', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fragrance)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to create fragrance');
+    }
+    return res.json();
+  },
+
+  async updateFragrance(id: number, fragrance: Partial<Fragrance>): Promise<Fragrance> {
+    const res = await fetch(`/api/fragrances/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fragrance)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to update fragrance');
+    }
+    return res.json();
+  },
+
+  async deleteFragrance(id: number): Promise<{ success: boolean; id: number }> {
+    const res = await fetch(`/api/fragrances/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to delete fragrance');
+    }
     return res.json();
   },
 
@@ -282,6 +401,153 @@ export const api = {
       body: JSON.stringify({ status })
     });
     if (!res.ok) throw new Error('Failed to review submission');
+    return res.json();
+  },
+
+  // Canonical Fragrance Import
+  async importCanonicalFragrance(payload: CanonicalFragranceImport): Promise<any> {
+    const res = await fetch('/api/canonical-import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to import canonical fragrance');
+    }
+    return res.json();
+  },
+
+  // Central Olfactory Context Normalization
+  async normalizeContext(input: RawOlfactoryContextInput): Promise<NormalizedContextResponse> {
+    const res = await fetch('/api/context/normalize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to normalize olfactory context');
+    }
+    return res.json();
+  },
+
+  // What Should I Wear? Olfactory Recommendation Engine
+  async recommendWear(request: WearRecommendationRequest): Promise<WearRecommendationResponse> {
+    const res = await fetch('/api/recommend/wear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to generate wear recommendations');
+    }
+    return res.json();
+  },
+
+  // ================= OLFACTORY MEMORY & BEHAVIORAL TELEMETRY (STEP 6D) =================
+
+  async recordBehaviorEvent(event: Partial<OlfactoryBehaviorEvent> & { eventType: OlfactoryBehaviorEvent['eventType']; source: string }): Promise<{ success: boolean; eventId: string; inserted: boolean; duplicate: boolean }> {
+    const payload: OlfactoryBehaviorEvent = {
+      id: event.id || `ev_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      userId: event.userId || 1,
+      eventType: event.eventType,
+      fragranceId: event.fragranceId ?? null,
+      contextSnapshot: event.contextSnapshot ?? null,
+      metadata: event.metadata ?? null,
+      source: event.source,
+      timestamp: event.timestamp || new Date().toISOString(),
+      sessionId: event.sessionId ?? null
+    };
+
+    const res = await fetch('/api/behavior/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to record olfactory behavior event');
+    }
+    return res.json();
+  },
+
+  async recordBehaviorEvents(events: (Partial<OlfactoryBehaviorEvent> & { eventType: OlfactoryBehaviorEvent['eventType']; source: string })[]): Promise<{ success: boolean; count: number; inserted: number; duplicates: number }> {
+    const payloads: OlfactoryBehaviorEvent[] = events.map(ev => ({
+      id: ev.id || `ev_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      userId: ev.userId || 1,
+      eventType: ev.eventType,
+      fragranceId: ev.fragranceId ?? null,
+      contextSnapshot: ev.contextSnapshot ?? null,
+      metadata: ev.metadata ?? null,
+      source: ev.source,
+      timestamp: ev.timestamp || new Date().toISOString(),
+      sessionId: ev.sessionId ?? null
+    }));
+
+    const res = await fetch('/api/behavior/events/batch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ events: payloads })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to record behavior events batch');
+    }
+    return res.json();
+  },
+
+  async getOlfactoryMemory(userId: number = 1): Promise<OlfactoryMemorySnapshot> {
+    const res = await fetch(`/api/behavior/memory?userId=${userId}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to fetch olfactory memory snapshot');
+    }
+    return res.json();
+  },
+
+  async getBehaviorHistory(params: {
+    userId?: number;
+    limit?: number;
+    offset?: number;
+    eventType?: string;
+    source?: string;
+    fragranceId?: number;
+  } = {}): Promise<{ events: OlfactoryBehaviorEvent[]; total: number }> {
+    const query = new URLSearchParams();
+    if (params.userId) query.set('userId', String(params.userId));
+    if (params.limit) query.set('limit', String(params.limit));
+    if (params.offset) query.set('offset', String(params.offset));
+    if (params.eventType) query.set('eventType', params.eventType);
+    if (params.source) query.set('source', params.source);
+    if (params.fragranceId) query.set('fragranceId', String(params.fragranceId));
+
+    const res = await fetch(`/api/behavior/history?${query.toString()}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to fetch behavior history');
+    }
+    return res.json();
+  },
+
+  async getFragranceBehavior(id: number, userId: number = 1): Promise<FragranceBehaviorSummary> {
+    const res = await fetch(`/api/behavior/fragrance/${id}?userId=${userId}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Failed to fetch behavior for fragrance ${id}`);
+    }
+    return res.json();
+  },
+
+  async clearBehaviorHistory(userId: number = 1): Promise<{ success: boolean; message: string; deletedCount: number }> {
+    const res = await fetch(`/api/behavior/history?userId=${userId}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Failed to clear behavior history');
+    }
     return res.json();
   }
 };

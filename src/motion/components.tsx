@@ -148,7 +148,7 @@ export const MotionModal: React.FC<{
             animate="visible"
             exit="exit"
             onClick={onClose}
-            className={`fixed inset-0 bg-[#0A0908]/85 ${backdropClassName}`}
+            className={`fixed inset-0 bg-[#1A1613]/40 backdrop-blur-xl ${backdropClassName}`}
             style={GPU_ACCELERATED_STYLE}
           />
 

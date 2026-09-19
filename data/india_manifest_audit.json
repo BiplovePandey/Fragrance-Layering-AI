@@ -1,0 +1,136 @@
+{
+  "audit_timestamp": "2026-09-17T16:22:38.700575Z",
+  "total_records_reviewed": 126,
+  "pyramid_classification": {
+    "category_a_explicit": 105,
+    "category_b_general_split": 21,
+    "category_c_accord_only": 0,
+    "category_d_insufficient": 0
+  },
+  "source_validation": {
+    "valid_provenance": 29,
+    "missing_provenance": 0,
+    "questionable_provenance": 25
+  },
+  "duplicates_detected": {
+    "exact_duplicates": 0,
+    "possible_duplicates": 1,
+    "variant_duplicates": 2
+  },
+  "heritage_classification": {
+    "category_a_explicit": 33,
+    "category_b_unclear": 15,
+    "category_c_unsupported": 12
+  },
+  "taxonomy_review": {
+    "proposals_reviewed": 10,
+    "proposals_recommended": 5,
+    "proposals_redundant": 5
+  },
+  "confidence_audit": {
+    "valid_confidence": 23,
+    "suspicious_confidence": 103
+  },
+  "existing_match_audit": {
+    "total_existing_matches": 72,
+    "valid_matches": 70,
+    "problematic_matches": 2
+  },
+  "database_safety": {
+    "sqlite_fragrance_count": 93,
+    "sqlite_brand_count": 79,
+    "database_modified": false
+  },
+  "findings": [
+    {
+      "category": "DUPLICATE_AUDIT",
+      "severity": "HIGH",
+      "record": "IN-FRAG-084",
+      "field": "status, existing_id, identity.name",
+      "current_value": "status: POSSIBLE_DUPLICATE, existing_id: 35, name: First Rain (Mitti), concentration: Extrait de Parfum / Attar",
+      "source_evidence": "Matches SQLite fragrance ID 35 (\"Isak Fragrances - First Rain (Mitti)\", Pure Extrait Oil, mapped to IN-FRAG-031).",
+      "problem": "Duplicate entry in manifest representing the same physical product already existing in production database (ID 35) and in manifest (IN-FRAG-031).",
+      "recommended_correction": "Do NOT import as a new record. Consolidate notes and attributes into existing ID 35 / IN-FRAG-031."
+    },
+    {
+      "category": "DUPLICATE_AUDIT",
+      "severity": "HIGH",
+      "record": "IN-FRAG-085",
+      "field": "status, existing_id, identity.name, identity.concentration",
+      "current_value": "status: EXISTING_MATCH, existing_id: 36, name: 1854, concentration: Eau de Parfum",
+      "source_evidence": "Existing SQLite fragrance ID 36 (\"Isak Fragrances - 1854\") is already mapped to manifest record IN-FRAG-032 (concentration: EDP (15-20%)).",
+      "problem": "Two distinct manifest records (IN-FRAG-032 and IN-FRAG-085) point to the same existing_id 36. IN-FRAG-085 was created from the new research batch without deduplicating against the baseline.",
+      "recommended_correction": "Remove IN-FRAG-085 from manifest or mark it as DUPLICATE_OF_IN-FRAG-032; do not execute an update or insert for ID 36 using IN-FRAG-085."
+    },
+    {
+      "category": "PYRAMID_AUDIT",
+      "severity": "MEDIUM",
+      "record": "IN-FRAG-081 (Gulabsingh Johrimal - Ruh Motia) & 20 other Category B traditional records",
+      "field": "scent_structure.top_notes, scent_structure.middle_notes, scent_structure.base_notes",
+      "current_value": "Artificially separated 3-tier pyramid (e.g. Ruh Motia: Top: [\"Crisp Night Blooming Sambac\"], Mid: [\"Rich Indolic Bela Petals\", \"Green Tea Facets\"], Base: [\"Narcotic Floral Nectar\"]).",
+      "source_evidence": "Manufacturer documentation confirms Ruh Motia is a 100% pure steam/hydro-distillate of Jasminum sambac flowers. Pure ruhs and traditional attars are linear single distillates or clay/sandalwood absorptions, not compound multi-tier perfumes.",
+      "problem": "The manifest artificially synthesized top, heart, and base stages out of descriptive sensory facets for 21 single-botanical ruhs and linear attars.",
+      "recommended_correction": "Store traditional single-botanical distillates with linear note profiles in notes_general or accords rather than imposing an artificial top/heart/base pyramid structure."
+    },
+    {
+      "category": "PYRAMID_AUDIT",
+      "severity": "MEDIUM",
+      "record": "IN-FRAG-038",
+      "field": "scent_structure.top_notes, scent_structure.base_notes",
+      "current_value": "Top notes: [\"Ruh Khus (Wild Vetiver)\", \"Sweet Lime\"]; Base notes: [\"Vetiver\", \"Chandan\"]",
+      "source_evidence": "M.L. Ramnarain Kannauj Ruh Khus is 100% pure wild green vetiver root hydro-distillate. Pure Ruh Khus contains no Sweet Lime or Sandalwood.",
+      "problem": "Inaccurate notes injected into the pyramid for a pure single-ingredient vetiver hydro-distillate.",
+      "recommended_correction": "Correct notes to pure Vetiver root profile and remove unverified \"Sweet Lime\" and \"Chandan\" from Kannauj Ruh Khus."
+    },
+    {
+      "category": "HERITAGE_AUDIT",
+      "severity": "MEDIUM",
+      "record": "12 Category C modern mass-market records (IN-FRAG-005, 016, 017, 018, 047, 050, 057, 060, 061, 065, 066, 067)",
+      "field": "heritage.is_heritage",
+      "current_value": "true",
+      "source_evidence": "Brands are modern commercial FMCG or mass-market D2C fragrance producers (e.g. SKINN by Titan, Bella Vita Luxury, Villain, Renee, Secret Temptation, modern Ajmal EDP sprays).",
+      "problem": "Records were flagged as is_heritage=True by an automated heuristic (triggering on len(heritage_materials) >= 2 or Indian brand origin) despite having no traditional artisanal distillation, GI registration, or heritage legacy.",
+      "recommended_correction": "Set is_heritage = false and remove distillation_method/heritage_relationship claims for modern commercial perfumes."
+    },
+    {
+      "category": "SOURCE_AUDIT",
+      "severity": "LOW",
+      "record": "25 NEW records with root domain URLs (e.g. IN-FRAG-075, 077, 081, 082, 083, 087-089, 094-101, 105, 107-109, 111, 120, 123-124)",
+      "field": "provenance.sources[0].url",
+      "current_value": "Generic homepage URL (e.g. https://www.gulabsinghjohrimal.com, https://scentedelic.com, https://www.33north.in)",
+      "source_evidence": "Brand e-commerce sites exist but URLs lack specific product slugs / deep PDP links.",
+      "problem": "Lack of specific product URLs reduces reproducibility and precise audit verification.",
+      "recommended_correction": "Update sources with deep product detail page (PDP) URLs prior to any production catalog merge."
+    },
+    {
+      "category": "TAXONOMY_AUDIT",
+      "severity": "MEDIUM",
+      "record": "5 redundant taxonomy proposals (TAX-IN-003, TAX-IN-005, TAX-IN-006, TAX-IN-008, TAX-IN-010)",
+      "field": "proposed_term, proposed_normalized_name",
+      "current_value": "Proposed new taxonomy additions for Genda/Marigold, Ruh Motia/Bela, Shamama, Kewra, and Kashmiri Kesar.",
+      "source_evidence": "SQLite table `note_taxonomy` already has existing entries for Marigold (id 28, 29), Jasmine/Bela/Mogra (id 17, 22), Shamama (id 60), Kewra (id 19, 20), and Saffron/Kesar (id 30, 31).",
+      "problem": "Importing these 5 proposals would introduce redundant or conflicting duplicate taxonomy records into the production note_taxonomy table.",
+      "recommended_correction": "Retain existing taxonomy terms for the 5 redundant items, and only accept the 5 genuinely novel botanical proposals (TAX-IN-001 Kadamb, TAX-IN-002 Sugandh Mantri, TAX-IN-004 Bhimseni Kapoor, TAX-IN-007 Nagarmotha, TAX-IN-009 Jatamansi)."
+    },
+    {
+      "category": "EXISTING_MATCH_AUDIT",
+      "severity": "MEDIUM",
+      "record": "IN-FRAG-085",
+      "field": "identity.concentration vs db concentration",
+      "current_value": "Manifest lists \"Eau de Parfum\"; existing SQLite record 36 lists \"EDP (15-20%)\"",
+      "source_evidence": "SQLite database row 36 contains concentration = \"EDP (15-20%)\".",
+      "problem": "Minor string formatting divergence between research batch and database baseline.",
+      "recommended_correction": "Retain database canonical concentration format \"EDP (15-20%)\" and consolidate duplicate record."
+    },
+    {
+      "category": "CONFIDENCE_AUDIT",
+      "severity": "LOW",
+      "record": "105 records with confidence >= 0.95 but non-deep sources or heuristic heritage",
+      "field": "provenance.data_confidence",
+      "current_value": "0.95 to 0.99",
+      "source_evidence": "Presence of root homepage URLs, heuristic heritage tags, or artificially decomposed pyramids.",
+      "problem": "High confidence scores (>= 0.95) should be reserved strictly for records with verified deep PDP links, authentic unmanipulated pyramids, and validated heritage.",
+      "recommended_correction": "Calibrate confidence scoring scale to reflect source granularity: 0.95-0.99 for deep-verified PDPs, 0.85 for root domain catalog checks, 0.80 for records with inferred attributes."
+    }
+  ]
+}

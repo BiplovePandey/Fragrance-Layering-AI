@@ -1,18 +1,19 @@
-// Design System Tokens for "Scent Universe"
-// Aesthetics: Warm Ivory + Plum + Rose + Amber + Mint + Terracotta
-// Inspos: Pinterest + Sephora + Modern Indian Perfumery + Spotify Wrapped
+// OLFACTORY AI — DESIGN SYSTEM v1.0
+// Central theme system harmonized with luxury digital fragrance atelier palette.
+
+export * from './styles/tokens';
 
 export const SCENT_PALETTE = {
-  background: '#FFF9F3', // Warm Ivory
-  primary: '#7B3F98',    // Plum
-  secondary: '#E86A92',  // Rose
-  accent: '#F2A65A',     // Amber
-  fresh: '#55BFA3',      // Mint
+  background: '#F8F5EF', // Parchment
+  primary: '#D97706',    // Primary Amber
+  secondary: '#C9953B',  // Warm Gold
+  accent: '#B45309',     // Deep Amber
+  fresh: '#55BFA3',      // Botanical Green
   indian: '#D95D39',     // Terracotta
-  darkText: '#292323',   // Deep Charcoal
-  softText: '#786F6A',   // Warm Muted Gray
+  darkText: '#1A1613',   // Primary Espresso
+  softText: '#7A6F66',   // Muted Taupe
   cardBg: '#FFFFFF',
-  border: '#F0E6DD'
+  border: '#DCD4C8'      // Subtle Warm Border
 };
 
 export interface MoodColorConfig {
@@ -26,19 +27,19 @@ export interface MoodColorConfig {
 
 export const FRAGRANCE_FAMILY_THEMES: Record<string, MoodColorConfig> = {
   Floral: {
-    gradient: 'from-[#FFEBF2] via-[#FFD6E5] to-[#FCE4EC]',
-    badgeBg: '#FFE4EE',
+    gradient: 'from-[#FFF1F5] via-[#FCE4EC] to-[#F8D5E2]',
+    badgeBg: '#FCE4EE',
     badgeText: '#991B4C',
-    borderColor: '#F8B4CB',
-    shadowColor: 'rgba(232, 106, 146, 0.18)',
-    iconBg: '#FCE7F0'
+    borderColor: '#F3B4C9',
+    shadowColor: 'rgba(232, 106, 146, 0.12)',
+    iconBg: '#FDF0F4'
   },
   Fresh: {
     gradient: 'from-[#EBFBFA] via-[#D8F8EE] to-[#E6FAF4]',
     badgeBg: '#D6F7EE',
     badgeText: '#0F766E',
     borderColor: '#99E6D5',
-    shadowColor: 'rgba(85, 191, 163, 0.18)',
+    shadowColor: 'rgba(85, 191, 163, 0.12)',
     iconBg: '#E0F7F2'
   },
   Sweet: {
@@ -46,7 +47,7 @@ export const FRAGRANCE_FAMILY_THEMES: Record<string, MoodColorConfig> = {
     badgeBg: '#FEE8CC',
     badgeText: '#9A3412',
     borderColor: '#FDBA74',
-    shadowColor: 'rgba(242, 166, 90, 0.18)',
+    shadowColor: 'rgba(217, 119, 6, 0.12)',
     iconBg: '#FEF3E2'
   },
   Woody: {
@@ -54,16 +55,16 @@ export const FRAGRANCE_FAMILY_THEMES: Record<string, MoodColorConfig> = {
     badgeBg: '#EDE0CE',
     badgeText: '#634226',
     borderColor: '#D4B896',
-    shadowColor: 'rgba(181, 138, 88, 0.18)',
+    shadowColor: 'rgba(181, 138, 88, 0.12)',
     iconBg: '#F2E7D9'
   },
   Oriental: {
-    gradient: 'from-[#F9F3FC] via-[#E9D9F3] to-[#DEC6EE]',
-    badgeBg: '#E9D6F5',
-    badgeText: '#5B2186',
-    borderColor: '#C79FE2',
-    shadowColor: 'rgba(123, 63, 152, 0.20)',
-    iconBg: '#EFE2F8'
+    gradient: 'from-[#FFF8ED] via-[#FCECD7] to-[#F5D8B4]',
+    badgeBg: '#FCE7CC',
+    badgeText: '#854D0E',
+    borderColor: '#E8C496',
+    shadowColor: 'rgba(180, 83, 9, 0.14)',
+    iconBg: '#FDF1E2'
   },
   Earthy: {
     gradient: 'from-[#FCF4EE] via-[#FCE3D8] to-[#FAD4C0]',

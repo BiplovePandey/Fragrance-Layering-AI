@@ -99,7 +99,87 @@ export interface Fragrance {
   cluster_id?: number;
   cluster_label?: string;
   vector?: number[];
+  vector_confidence?: number;
+  vector_generation_source?: 'rule_based_taxonomy' | 'manual' | 'expert_consensus' | 'hybrid';
+  accords?: string[];
+  projection?: 'intimate' | 'moderate' | 'strong' | 'room-filling' | string | null;
+  time_of_day?: string[];
+  heritage_materials?: string[];
+  distillation_method?: string | null;
+  heritage_relationship?: string | null;
   image_url?: string;
+}
+
+export interface CanonicalFragranceImport {
+  identity: {
+    name: string;
+    brand_name: string;
+    brand_country?: string;
+    brand_type?: string;
+    collection?: string;
+    gender?: 'unisex' | 'masculine' | 'feminine';
+    concentration?: string;
+    format?: string;
+    is_oil_based?: boolean;
+    volume_ml?: number | null;
+    price_inr?: number | null;
+    currency?: string;
+    description?: string;
+  };
+  scent_structure: {
+    fragrance_family: string;
+    top_notes?: string[];
+    middle_notes?: string[];
+    base_notes?: string[];
+    notes_general?: string[];
+    accords?: string[];
+  };
+  performance?: {
+    intensity?: number;
+    freshness?: number;
+    sweetness?: number;
+    longevity?: string;
+    projection?: 'intimate' | 'moderate' | 'strong' | 'room-filling' | null;
+  };
+  context?: {
+    seasons?: string[];
+    occasions?: string[];
+    time_of_day?: string[];
+  };
+  heritage?: {
+    is_heritage?: boolean;
+    origin_style?: string;
+    heritage_materials?: string[];
+    heritage_region?: string;
+    region?: string;
+    distillation_method?: string | null;
+    heritage_relationship?: string | null;
+  };
+  provenance?: {
+    source?: string;
+    source_url?: string | null;
+    source_date?: string;
+    last_verified?: string;
+    data_confidence?: number;
+    status?: 'verified' | 'needs_verification';
+  };
+  ml_metadata?: {
+    vector?: number[];
+    vector_confidence?: number;
+    vector_generation_source?: 'rule_based_taxonomy' | 'manual' | 'expert_consensus' | 'hybrid';
+  };
+}
+
+export interface CanonicalImportValidationResult {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+export interface CanonicalImportResolution {
+  action: 'insert' | 'update' | 'skip';
+  existingFragrance?: Fragrance;
+  reason: string;
 }
 
 export interface MasterCatalogSchemaRow {
@@ -124,7 +204,7 @@ export interface Note {
 }
 
 export type Season = 'Spring' | 'Summer' | 'Monsoon' | 'Fall' | 'Winter';
-export type Occasion = 'Office' | 'Date' | 'Casual' | 'Evening' | 'Signature' | 'Special Event' | 'Wedding' | 'Festive / Puja' | 'Meditation / Spiritual';
+export type Occasion = 'Office' | 'Date' | 'Casual' | 'Evening' | 'Signature' | 'Special Event' | 'Formal' | 'Festive / Wedding' | 'Wedding' | 'Festive / Puja' | 'Meditation / Spiritual';
 
 export interface UserPreferences {
   favorite_family?: string[];
@@ -246,6 +326,7 @@ export interface ClusterInfo {
 
 export type MainNavId =
   | 'atelier'
+  | 'wear'
   | 'layer'
   | 'explore'
   | 'wardrobe'
@@ -752,4 +833,316 @@ export interface RecentWearItem {
   timestamp: string;
 }
 
+// ================= STEP 6A: CENTRAL OLFACTORY CONTEXT ENGINE =================
+
+export type TemperatureCategory = 'freezing' | 'cold' | 'cool' | 'mild' | 'warm' | 'hot' | 'scorching';
+export type HumidityCategory = 'dry' | 'moderate' | 'humid' | 'tropical';
+export type TimeOfDayCategory = 'Morning' | 'Afternoon' | 'Evening' | 'Night';
+
+export interface WeatherContext {
+  temperatureC?: number;
+  temperatureCategory?: TemperatureCategory;
+  humidityPercent?: number;
+  humidityCategory?: HumidityCategory;
+  condition?: string;
+  precipitation?: boolean;
+  windSpeedKph?: number;
+}
+
+export interface TemporalContext {
+  timestamp?: string;
+  timeOfDay?: TimeOfDayCategory;
+  season?: Season;
+  dayType?: 'weekday' | 'weekend';
+  isoDate?: string;
+}
+
+export interface OccasionContext {
+  type?: Occasion | string;
+  rawInput?: string;
+  formality?: 'casual' | 'smart_casual' | 'business' | 'formal' | 'festive' | 'spiritual';
+  duration?: 'brief' | 'workday' | 'evening_event' | 'all_day';
+}
+
+export interface MoodContext {
+  primary?: DailyMoodId | string;
+  primaryLabel?: string;
+  secondary?: string;
+  rawInput?: string;
+}
+
+export interface OutfitContext {
+  description?: string;
+  formality?: 'casual' | 'smart_casual' | 'business_casual' | 'formal' | 'festive' | 'athleisure';
+  color?: string;
+  style?: string;
+  rawInput?: string;
+}
+
+export interface EnvironmentContext {
+  indoorOutdoor?: 'indoor' | 'outdoor' | 'mixed';
+  locationType?: 'air_conditioned_office' | 'open_air' | 'closed_venue' | 'home' | 'transit' | string;
+  crowdLevel?: 'intimate' | 'small_group' | 'crowded' | 'public_transit' | string;
+}
+
+export interface UserContext {
+  preferenceVector?: number[];
+  wardrobeFragranceIds?: (number | string)[];
+  dislikedFragranceIds?: (number | string)[];
+  favoriteFragranceIds?: (number | string)[];
+  preferences?: UserPreferences;
+  userId?: number;
+}
+
+export interface ContextConstraints {
+  projectionPreference?: 'intimate' | 'moderate' | 'strong' | 'beast_mode' | string;
+  longevityPreference?: 'fleeting' | 'moderate' | 'long_lasting' | 'all_day' | string;
+  fragranceIntensityPreference?: 'subtle' | 'balanced' | 'bold' | string;
+  avoidNotes?: string[];
+  preferredNotes?: string[];
+}
+
+export interface ContextConfidence {
+  overall: number; // 0 - 1
+  weather?: number; // 0 - 1
+  temporal?: number; // 0 - 1
+  occasion?: number; // 0 - 1
+  mood?: number; // 0 - 1
+  outfit?: number; // 0 - 1
+}
+
+export interface ContextExplanation {
+  summary: string;
+  factors: string[];
+}
+
+export interface NormalizedOlfactoryContext {
+  weather: WeatherContext;
+  temporal: TemporalContext;
+  occasion: OccasionContext;
+  mood: MoodContext;
+  outfit: OutfitContext;
+  environment: EnvironmentContext;
+  user: UserContext;
+  constraints: ContextConstraints;
+  confidence: ContextConfidence;
+  explanation: ContextExplanation;
+}
+
+export interface RawOlfactoryContextInput {
+  weather?: {
+    temperature_c?: number;
+    temperatureC?: number;
+    humidity_pct?: number;
+    humidityPercent?: number;
+    condition?: string;
+    precipitation?: boolean;
+    wind_kph?: number;
+    windSpeedKph?: number;
+  };
+  temporal?: {
+    timestamp?: string;
+    timeOfDay?: string;
+    season?: string;
+    dayType?: string;
+  };
+  timestamp?: string;
+  timeOfDay?: string;
+  season?: string;
+  occasion?: string | { type?: string; formality?: string; duration?: string };
+  mood?: string | { primary?: string; secondary?: string };
+  outfit?: string | { description?: string; formality?: string; color?: string; style?: string };
+  environment?: {
+    indoorOutdoor?: string;
+    locationType?: string;
+    crowdLevel?: string;
+  };
+  user?: {
+    preferenceVector?: number[];
+    wardrobeFragranceIds?: (number | string)[];
+    dislikedFragranceIds?: (number | string)[];
+    favoriteFragranceIds?: (number | string)[];
+    preferences?: UserPreferences;
+    userId?: number;
+  };
+  constraints?: {
+    projectionPreference?: string;
+    longevityPreference?: string;
+    fragranceIntensityPreference?: string;
+    avoidNotes?: string[];
+    preferredNotes?: string[];
+  };
+}
+
+export interface NormalizedContextResponse {
+  context: NormalizedOlfactoryContext;
+  explanation: ContextExplanation;
+  confidence: ContextConfidence;
+}
+
+// ==========================================
+// STEP 6B: WEAR RECOMMENDATION TYPES
+// ==========================================
+
+export interface WearRecommendationSource {
+  wardrobeOnly?: boolean;
+  includeCatalog?: boolean;
+}
+
+export interface WearRecommendationRequest {
+  context: NormalizedOlfactoryContext | RawOlfactoryContextInput;
+  source?: WearRecommendationSource;
+  limit?: number;
+  excludeFragranceIds?: (number | string)[];
+}
+
+export interface WearRecommendationMatchBreakdown {
+  preference?: number;
+  weather?: number;
+  season?: number;
+  occasion?: number;
+  timeOfDay?: number;
+  mood?: number;
+  performance?: number;
+  wardrobe?: number;
+  olfactory?: number;
+}
+
+export interface WearRecommendation {
+  fragranceId: number;
+  fragrance: Fragrance & { vector: number[] };
+  rank: number;
+  score: number;
+  match: WearRecommendationMatchBreakdown;
+  reasons: string[];
+  negativeExplanations?: string[];
+  contextSummary: string[];
+  ownership?: {
+    owned: boolean;
+    favorite?: boolean;
+  };
+}
+
+export interface WearRecommendationResponse {
+  recommendations: WearRecommendation[];
+  contextSummary: {
+    summary: string;
+    factors: string[];
+  };
+  metadata: {
+    totalCandidatesConsidered: number;
+    filteredCount: number;
+    sourceMode: 'wardrobe_only' | 'full_catalog';
+    executionTimeMs: number;
+    diversityApplied: boolean;
+    confidence: ContextConfidence;
+  };
+}
+
+// ==========================================
+// STEP 6D: OLFACTORY MEMORY & BEHAVIORAL LEARNING TYPES
+// ==========================================
+
+export type OlfactoryBehaviorEventType =
+  | 'RECOMMENDATION_SHOWN'
+  | 'RECOMMENDATION_OPENED'
+  | 'RECOMMENDATION_SAVED'
+  | 'RECOMMENDATION_DISMISSED'
+  | 'FRAGRANCE_VIEWED'
+  | 'FRAGRANCE_WORN'
+  | 'FRAGRANCE_RATED'
+  | 'FRAGRANCE_ADDED_TO_WARDROBE'
+  | 'FRAGRANCE_REMOVED_FROM_WARDROBE'
+  | 'SOTD_SELECTED'
+  | 'LAYERING_EXPERIMENT_CREATED'
+  | 'LAYERING_EXPERIMENT_RATED'
+  | 'JOURNAL_ENTRY_CREATED'
+  | 'FRAGRANCE_SHARED'
+  | 'USER_PREFERENCE_UPDATED';
+
+export type OlfactoryBehaviorEventSource =
+  | 'wear_today'
+  | 'wardrobe'
+  | 'fragrance_detail'
+  | 'sotd'
+  | 'layer_lab'
+  | 'community'
+  | 'dna'
+  | 'discovery'
+  | (string & {});
+
+export interface OlfactoryBehaviorEvent {
+  id: string; // Unique UUID or client idempotency key
+  userId: number;
+  eventType: OlfactoryBehaviorEventType;
+  fragranceId?: number | null;
+  contextSnapshot?: NormalizedOlfactoryContext | null;
+  metadata?: Record<string, any> | null;
+  source: OlfactoryBehaviorEventSource;
+  timestamp: string; // ISO 8601 string
+  sessionId?: string | null;
+}
+
+export type EvidenceType = 'EXPLICIT' | 'IMPLICIT' | 'SYSTEM';
+export type EvidenceDirection = 'positive' | 'negative';
+
+export interface OlfactoryPreferenceEvidence {
+  userId: number;
+  dimension: string; // e.g. "woody", "freshness", "evening", "formal", "fragrance_family:Woody"
+  value: string | number; // e.g. "positive", "high", 8.5
+  direction: EvidenceDirection;
+  evidenceType: EvidenceType;
+  evidenceStrength: number; // 0.0 - 1.0 deterministic score
+  confidence: number; // 0.0 - 1.0 confidence based on sample volume
+  evidenceCount: number;
+  lastObserved: string;
+  source: string; // explanatory source string e.g. "FRAGRANCE_WORN x4"
+}
+
+export interface FragranceBehaviorSummary {
+  fragranceId: number;
+  fragranceName: string;
+  brandName: string;
+  fragranceFamily: string;
+  views: number;
+  opens: number;
+  saves: number;
+  wears: number;
+  ratingsCount: number;
+  averageRating?: number;
+  sotdCount: number;
+  isOwned: boolean;
+  lastInteracted: string;
+  observedVector?: number[];
+}
+
+export interface ContextualBehaviorPattern {
+  dimension: 'weather_band' | 'season' | 'occasion' | 'time_of_day' | 'outfit_formality' | 'environment';
+  value: string;
+  associatedFamilies: { family: string; count: number }[];
+  dominantNotes: { note: string; count: number }[];
+  totalOccurrences: number;
+  lastObserved: string;
+}
+
+export interface OlfactoryMemorySnapshot {
+  userId: number;
+  generatedAt: string;
+  totalEvents: number;
+  explicitSignals: OlfactoryPreferenceEvidence[];
+  implicitSignals: OlfactoryPreferenceEvidence[];
+  topPositiveSignals: OlfactoryPreferenceEvidence[];
+  topNegativeSignals: OlfactoryPreferenceEvidence[];
+  contextPatterns: ContextualBehaviorPattern[];
+  frequentlyWornFragrances: FragranceBehaviorSummary[];
+  frequentlySavedFragrances: FragranceBehaviorSummary[];
+  recentlyRejectedFragrances: FragranceBehaviorSummary[];
+  confidence: number;
+  diagnostics?: {
+    eventsProcessed: number;
+    durationMs: number;
+    oldestEventAt?: string;
+    newestEventAt?: string;
+  };
+}
 

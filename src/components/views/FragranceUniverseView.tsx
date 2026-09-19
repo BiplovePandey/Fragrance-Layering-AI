@@ -122,27 +122,27 @@ export const FragranceUniverseView: React.FC<FragranceUniverseViewProps> = ({
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono mb-2">
-            <Compass className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 backdrop-blur-md border border-white text-amber-900 text-xs font-mono-lab mb-2 shadow-2xs">
+            <Compass className="w-3.5 h-3.5 text-amber-700" />
             <span>Fragrance Universe &bull; Master Catalog</span>
           </div>
-          <h1 className="font-serif text-3xl sm:text-4xl font-medium text-stone-100">
+          <h1 className="font-serif text-3xl sm:text-4xl font-medium text-[#1A1613]">
             Olfactory Galaxy &amp; Catalogue
           </h1>
-          <p className="text-xs sm:text-sm text-stone-400 mt-1">
+          <p className="text-xs sm:text-sm text-[#5A5046] mt-1">
             Navigate {fragrances?.length || 0} verified fine fragrances mapped across multi-dimensional olfactory coordinates.
           </p>
         </div>
 
         {/* View Toggle */}
-        <div className="flex items-center gap-2 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.08] self-start sm:self-center">
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl liquid-glass-pill self-start sm:self-center">
           <button
             type="button"
             onClick={() => setViewMode('galaxy')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono uppercase tracking-wider transition cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono-lab uppercase tracking-wider transition cursor-pointer ${
               viewMode === 'galaxy'
-                ? 'bg-amber-500/25 text-amber-200 border border-amber-500/50 font-bold'
-                : 'text-stone-400 hover:text-stone-200'
+                ? 'bg-white/95 text-amber-950 font-bold border border-white shadow-2xs'
+                : 'text-[#6B6056] hover:text-[#1A1613]'
             }`}
           >
             🌌 Olfactory Galaxy
@@ -150,10 +150,10 @@ export const FragranceUniverseView: React.FC<FragranceUniverseViewProps> = ({
           <button
             type="button"
             onClick={() => setViewMode('catalog')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono uppercase tracking-wider transition cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-mono-lab uppercase tracking-wider transition cursor-pointer ${
               viewMode === 'catalog'
-                ? 'bg-amber-500/25 text-amber-200 border border-amber-500/50 font-bold'
-                : 'text-stone-400 hover:text-stone-200'
+                ? 'bg-white/95 text-amber-950 font-bold border border-white shadow-2xs'
+                : 'text-[#6B6056] hover:text-[#1A1613]'
             }`}
           >
             📋 Master Catalog
@@ -162,15 +162,15 @@ export const FragranceUniverseView: React.FC<FragranceUniverseViewProps> = ({
       </div>
 
       {/* Filter & Search Bar */}
-      <div className="p-4 rounded-3xl bg-[#14120F]/90 border border-white/[0.08] backdrop-blur-md flex flex-wrap items-center justify-between gap-4">
+      <div className="p-4 rounded-3xl liquid-glass flex flex-wrap items-center justify-between gap-4">
         <div className="relative flex-1 min-w-[240px]">
-          <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[#7A6F66] absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by perfume, house, bergamot, sandalwood, mitti..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-stone-200 text-xs placeholder:text-stone-500 focus:outline-none focus:border-amber-500/60"
+            className="w-full pl-10 pr-4 py-2.5 rounded-2xl liquid-glass-inset text-[#1A1613] text-xs placeholder:text-[#8A7E74] focus:outline-none"
           />
         </div>
 
@@ -179,22 +179,22 @@ export const FragranceUniverseView: React.FC<FragranceUniverseViewProps> = ({
           <select
             value={selectedOrigin}
             onChange={(e) => setSelectedOrigin(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-stone-300 font-mono focus:outline-none"
+            className="px-3.5 py-2 rounded-xl liquid-glass-pill text-[#2E2620] font-mono-lab focus:outline-none"
           >
-            <option value="all" className="bg-[#181512]">All Origins</option>
-            <option value="indian" className="bg-[#181512]">🇮🇳 Indian Heritage &amp; Niche</option>
-            <option value="international" className="bg-[#181512]">🌍 International Luxury</option>
+            <option value="all" className="bg-white text-[#1A1613]">All Origins</option>
+            <option value="indian" className="bg-white text-[#1A1613]">🇮🇳 Indian Heritage &amp; Niche</option>
+            <option value="international" className="bg-white text-[#1A1613]">🌍 International Luxury</option>
           </select>
 
           {/* Family Filter */}
           <select
             value={selectedFamily}
             onChange={(e) => setSelectedFamily(e.target.value)}
-            className="px-3 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] text-stone-300 font-mono focus:outline-none max-w-[180px] truncate"
+            className="px-3.5 py-2 rounded-xl liquid-glass-pill text-[#2E2620] font-mono-lab focus:outline-none max-w-[180px] truncate"
           >
-            <option value="all" className="bg-[#181512]">All Fragrance Families</option>
+            <option value="all" className="bg-white text-[#1A1613]">All Fragrance Families</option>
             {families.slice(0, 8).map(f => (
-              <option key={f} value={f} className="bg-[#181512]">{f}</option>
+              <option key={f} value={f} className="bg-white text-[#1A1613]">{f}</option>
             ))}
           </select>
         </div>
@@ -202,15 +202,15 @@ export const FragranceUniverseView: React.FC<FragranceUniverseViewProps> = ({
 
       {/* VIEW 1: Olfactory Galaxy (Interactive Celestial Map) */}
       {viewMode === 'galaxy' && (
-        <div className="relative rounded-3xl bg-[#0F0D0B] border border-white/[0.08] p-4 sm:p-6 overflow-hidden shadow-2xl">
+        <div className="relative rounded-3xl bg-[#120F0D]/90 border border-white/20 p-4 sm:p-6 overflow-hidden shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] backdrop-blur-2xl liquid-specular-rim">
           {/* Subtle Grid Background */}
-          <div className="absolute inset-0 bg-[radial-gradient(#ffffff08_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
 
           <div className="relative z-10 flex items-center justify-between mb-4">
-            <span className="text-xs font-mono text-stone-400">
+            <span className="text-xs font-mono-lab text-stone-300">
               Showing {galaxyNodes?.length || 0} nodes &bull; Click any star to enter its Fragrance Chamber
             </span>
-            <div className="flex items-center gap-3 text-[10px] font-mono text-stone-400">
+            <div className="flex items-center gap-3 text-[10px] font-mono-lab text-stone-400">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-rose-400 inline-block" /> Floral</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" /> Fresh</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple-400 inline-block" /> Woody / Oud</span>
@@ -219,11 +219,11 @@ export const FragranceUniverseView: React.FC<FragranceUniverseViewProps> = ({
           </div>
 
           {/* SVG Interactive Canvas */}
-          <div className="relative w-full h-[500px] overflow-hidden rounded-2xl bg-black/40 border border-white/[0.04]">
+          <div className="relative w-full h-[500px] overflow-hidden rounded-2xl bg-black/40 border border-white/10">
             <svg viewBox="0 0 800 480" className="w-full h-full cursor-crosshair">
               {/* Center Orbit rings */}
-              <circle cx="400" cy="240" r="120" fill="none" stroke="rgba(255,255,255,0.04)" strokeDasharray="4,4" />
-              <circle cx="400" cy="240" r="220" fill="none" stroke="rgba(255,255,255,0.03)" strokeDasharray="6,6" />
+              <circle cx="400" cy="240" r="120" fill="none" stroke="rgba(255,255,255,0.06)" strokeDasharray="4,4" />
+              <circle cx="400" cy="240" r="220" fill="none" stroke="rgba(255,255,255,0.04)" strokeDasharray="6,6" />
 
               {/* Nodes */}
               {galaxyNodes.map((node) => {
@@ -264,7 +264,7 @@ export const FragranceUniverseView: React.FC<FragranceUniverseViewProps> = ({
                       x={node.x}
                       y={node.y + node.size + 10}
                       textAnchor="middle"
-                      fill={isHovered ? '#FFFFFF' : '#A8A29E'}
+                      fill={isHovered ? '#FFFFFF' : '#D6D3D1'}
                       fontSize="9"
                       fontFamily="sans-serif"
                       className="pointer-events-none select-none"
@@ -280,7 +280,7 @@ export const FragranceUniverseView: React.FC<FragranceUniverseViewProps> = ({
             {hoveredNode && (
               <div className="absolute bottom-4 left-4 p-4 rounded-2xl bg-[#161310]/95 border border-amber-500/40 text-stone-200 text-xs shadow-2xl backdrop-blur-md max-w-sm pointer-events-none animate-in fade-in duration-200">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-300">
+                  <span className="text-[9px] font-mono-lab uppercase px-2 py-0.5 rounded bg-amber-500/10 text-amber-300">
                     {hoveredNode.brand}
                   </span>
                   <span className="text-[10px] text-stone-400">{hoveredNode.fragrance_family}</span>
@@ -291,7 +291,7 @@ export const FragranceUniverseView: React.FC<FragranceUniverseViewProps> = ({
                 <p className="text-[11px] text-stone-300 line-clamp-2 mt-1">
                   {hoveredNode.description}
                 </p>
-                <div className="mt-2 text-[10px] text-amber-400 font-mono">
+                <div className="mt-2 text-[10px] text-amber-400 font-mono-lab">
                   Click to enter Fragrance Chamber &rarr;
                 </div>
               </div>
@@ -306,38 +306,38 @@ export const FragranceUniverseView: React.FC<FragranceUniverseViewProps> = ({
           {filteredFragrances.map((frag) => (
             <div
               key={frag.id}
-              className="rounded-3xl bg-[#14120F]/90 border border-white/[0.08] p-5 sm:p-6 backdrop-blur-md hover:border-amber-500/40 transition flex flex-col justify-between group shadow-xl"
+              className="rounded-3xl liquid-glass p-5 sm:p-6 transition flex flex-col justify-between group"
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded bg-white/[0.04] text-stone-400 border border-white/[0.06]">
+                  <span className="text-[10px] font-mono-lab uppercase tracking-wider px-2.5 py-0.5 rounded-lg bg-white/80 text-[#5A5046] border border-white shadow-2xs">
                     {frag.brand}
                   </span>
-                  <span className="text-[10px] font-mono text-amber-400">
+                  <span className="text-[10px] font-mono-lab text-amber-800 font-bold">
                     {frag.concentration || 'Fine Parfum'}
                   </span>
                 </div>
 
-                <h3 className="font-serif text-2xl font-medium text-stone-100 group-hover:text-amber-200 transition">
+                <h3 className="font-serif text-2xl font-medium text-[#1A1613] group-hover:text-amber-900 transition">
                   {frag.name}
                 </h3>
-                <p className="text-xs text-amber-400/80 font-sans mt-0.5">
+                <p className="text-xs text-amber-800 font-sans mt-0.5 font-semibold">
                   {frag.fragrance_family}
                 </p>
 
-                <p className="text-xs text-stone-300 line-clamp-3 mt-3 leading-relaxed">
+                <p className="text-xs text-[#5A5046] line-clamp-3 mt-3 leading-relaxed">
                   {frag.description}
                 </p>
 
                 {/* Notes Pills */}
                 <div className="flex flex-wrap gap-1.5 mt-4">
-                  {frag.top_notes?.slice(0, 2).map((n) => (
-                    <span key={n} className="px-2 py-0.5 rounded-lg bg-white/[0.02] border border-white/[0.06] text-[10px] text-stone-400">
+                  {(frag.top_notes || []).slice(0, 2).map((n) => (
+                    <span key={n} className="px-2 py-0.5 rounded-lg bg-white/70 border border-white text-[10px] text-[#3D352E]">
                       🌿 {n}
                     </span>
                   ))}
-                  {frag.base_notes?.slice(0, 1).map((n) => (
-                    <span key={n} className="px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-300">
+                  {(frag.base_notes || []).slice(0, 1).map((n) => (
+                    <span key={n} className="px-2 py-0.5 rounded-lg bg-amber-100/70 border border-amber-200 text-[10px] text-amber-900 font-medium">
                       🪵 {n}
                     </span>
                   ))}
@@ -345,22 +345,22 @@ export const FragranceUniverseView: React.FC<FragranceUniverseViewProps> = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="mt-5 pt-4 border-t border-white/[0.06] flex items-center justify-between gap-2">
+              <div className="mt-5 pt-4 border-t border-white/60 flex items-center justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => onSelectFragranceForChamber(frag)}
-                  className="text-xs font-semibold text-stone-300 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
+                  className="text-xs font-semibold text-[#5A5046] hover:text-[#1A1613] flex items-center gap-1 cursor-pointer"
                 >
-                  <Eye className="w-3.5 h-3.5" />
+                  <Eye className="w-3.5 h-3.5 text-amber-700" />
                   <span>Inspect</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => onSendToLab(frag)}
-                  className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 text-xs font-medium transition cursor-pointer flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-xl bg-amber-100/80 hover:bg-amber-200 border border-amber-300 text-amber-950 text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
                 >
-                  <FlaskConical className="w-3 h-3" />
+                  <FlaskConical className="w-3 h-3 text-amber-800" />
                   <span>Layer</span>
                 </button>
               </div>

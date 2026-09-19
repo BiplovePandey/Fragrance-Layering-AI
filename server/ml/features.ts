@@ -174,6 +174,12 @@ try {
   // Use fallback base map
 }
 
+export function setDynamicTaxonomy(taxonomy: NoteTaxonomyEntry[]) {
+  if (Array.isArray(taxonomy) && taxonomy.length > 0) {
+    DYNAMIC_TAXONOMY = taxonomy;
+  }
+}
+
 export function getTaxonomyMapping(rawNote: string): {
   normalized_name: string;
   category: string;
@@ -228,6 +234,76 @@ export function getTaxonomyMapping(rawNote: string): {
 }
 
 /**
+ * Resolves a raw note against documented taxonomy.
+ * Returns mapped: true if matched with confidence against the dynamic or base taxonomy,
+ * or mapped: false if retained as raw term for taxonomy review.
+ */
+export function resolveTaxonomyNote(rawNote: string): {
+  raw_note: string;
+  normalized_name: string;
+  mapped: boolean;
+  category: string;
+  note_family: string;
+  feature_key: FeatureKey;
+} {
+  const lower = rawNote.toLowerCase().trim();
+
+  // Search dynamic taxonomy first
+  for (const entry of DYNAMIC_TAXONOMY) {
+    if (
+      lower === entry.raw_term.toLowerCase() ||
+      lower === entry.original_note.toLowerCase() ||
+      lower === entry.normalized_name.toLowerCase() ||
+      lower.includes(entry.raw_term.toLowerCase()) ||
+      lower.includes(entry.original_note.toLowerCase()) ||
+      lower.includes(entry.normalized_name.toLowerCase())
+    ) {
+      let feature: FeatureKey = 'woody';
+      if (entry.category === 'floral' || entry.note_family === 'Floral') feature = 'floral';
+      else if (entry.category === 'citrus' || entry.note_family === 'Citrus' || entry.category === 'fruit') feature = 'freshness';
+      else if (entry.category === 'spicy' || entry.category === 'resinous_warm' || entry.note_family === 'Spices' || entry.note_family === 'Resinous / warm') feature = 'warm_resinous_spices';
+      else if (entry.category === 'gourmand' || entry.note_family === 'Sweet / gourmand') feature = 'sweetness';
+      else if (entry.category === 'earthy_clay' || entry.note_family === 'Earthy') feature = 'earthy_clay';
+      else if (entry.category === 'woody' || entry.note_family === 'Woody') feature = 'woody';
+      else if (entry.category === 'musk' || (entry.note_family as string) === 'Musk') feature = 'longevity_fixative';
+
+      return {
+        raw_note: rawNote,
+        normalized_name: entry.normalized_name,
+        mapped: true,
+        category: entry.category,
+        note_family: entry.note_family,
+        feature_key: feature
+      };
+    }
+  }
+
+  // Search base note categories
+  for (const [key, category] of Object.entries(BASE_NOTE_CATEGORIES)) {
+    if (lower.includes(key)) {
+      return {
+        raw_note: rawNote,
+        normalized_name: key.charAt(0).toUpperCase() + key.slice(1),
+        mapped: true,
+        category: category,
+        note_family: category.charAt(0).toUpperCase() + category.slice(1),
+        feature_key: category
+      };
+    }
+  }
+
+  // Unmapped: preserve raw cultural terminology
+  return {
+    raw_note: rawNote,
+    normalized_name: rawNote,
+    mapped: false,
+    category: 'unclassified',
+    note_family: 'Unclassified',
+    feature_key: 'woody'
+  };
+}
+
+/**
  * Extracts normalized 8-dimensional feature vector according to Section 19:
  * [Freshness, Sweetness, Intensity, Woody, Floral, Warm Resinous / Spices, Earthy / Clay, Longevity / Fixative]
  * Scaled to [0.0, 1.0] for vector algebra, and can be multiplied by 100 for display (0-100).
@@ -246,7 +322,8 @@ export function extractFragranceVector(fragrance: Omit<Fragrance, 'cluster_id' |
   const allNotes = [
     ...(fragrance.top_notes || []),
     ...(fragrance.middle_notes || []),
-    ...(fragrance.base_notes || [])
+    ...(fragrance.base_notes || []),
+    ...((fragrance as any).notes_general || [])
   ].map(n => n.toLowerCase());
 
   // Check fragrance family

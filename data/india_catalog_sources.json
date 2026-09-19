@@ -1,0 +1,428 @@
+[
+  {
+    "source_id": "SRC-001",
+    "domain": "skinn.in",
+    "organization": "SKINN by Titan (Titan Company Ltd / Tata Group)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.skinn.in",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["SKINN by Titan"],
+    "products_verified": [
+      "Raw", "Verge", "Amalfi Bleu", "Amalfi Riviera", "Sea Breeze", 
+      "Noura Iris", "Aura", "Steele", "Celeste", "Nude", "Tales Rio", "Escapade Forest Rouge"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "concentration", "gender", "official_description", "perfumer_credits", "ifra_certification"],
+    "notes": "Primary official manufacturer e-commerce site with complete top/heart/base breakdowns, master perfumer signatures (Alberto Morillas, Olivier Pescheux, Harry Fremont), and IFRA certification data."
+  },
+  {
+    "source_id": "SRC-002",
+    "domain": "forestessentialsindia.com",
+    "organization": "Forest Essentials (Mountain Valley Springs India Pvt Ltd)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.forestessentialsindia.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Forest Essentials"],
+    "products_verified": [
+      "Mysore Sandalwood & Vetiver", "Nargis", "Madurai Jasmine & Mogra", "Rose & Cardamom", "Som Rasa"
+    ],
+    "fields_supported": ["name", "botanical_ingredients", "distillation_method", "origin_region", "concentration", "official_description"],
+    "notes": "Official brand portal detailing Ayurvedic pure grain alcohol fermentation, hydro-distilled floral essential oils, and heritage botanical sourcing from Madurai, Kannauj, and Mysore."
+  },
+  {
+    "source_id": "SRC-003",
+    "domain": "kamaayurveda.in",
+    "organization": "Kama Ayurveda (Kama Ayurveda Pvt Ltd / Puig)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.kamaayurveda.in",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Kama Ayurveda"],
+    "products_verified": [
+      "Pure Vetiver Water / Khus Cologne", "Pure Rose Water Distillate", "Pure Mogra Water Distillate"
+    ],
+    "fields_supported": ["name", "botanical_origin", "steam_distillation", "concentration", "description"],
+    "notes": "Official Ayurvedic beauty catalog documenting steam distillation of North Indian wild vetiver, Kannauj Damask rose, and Madurai Mogra."
+  },
+  {
+    "source_id": "SRC-004",
+    "domain": "bombayperfumery.com",
+    "organization": "Bombay Perfumery (Manan Gandhi)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.bombayperfumery.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Bombay Perfumery"],
+    "products_verified": [
+      "Chai Musk", "Calicut", "Moire", "Sulawesi", "Les Cayes", "Seven Islands", "1020"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "concentration", "gender", "olfactive_family", "ingredient_provenance"],
+    "notes": "Official progressive Indian niche house website providing detailed pyramid notes, perfumer compositions, and Indian heritage spice/vetiver sourcing."
+  },
+  {
+    "source_id": "SRC-005",
+    "domain": "nasoprofumi.com",
+    "organization": "Naso Profumi (Astha Suri)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.nasoprofumi.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Naso Profumi"],
+    "products_verified": [
+      "Mud & Coriander", "Gardenia in Marigold", "Tabac", "Basil Infused in Sambac", 
+      "Saffron Infused in Musk & Amber", "Mint Infused in Rose & Lemon", "Tamarind Infused in Bergamot"
+    ],
+    "fields_supported": ["name", "top_heart_base_notes", "concentration_extrait", "botanical_extractions", "geeli_mitti_attar"],
+    "notes": "Official artisanal house catalog featuring 100% pure oil and green-extracted extraits integrating Kannauj Geeli Mitti, Marigold, and Indian Sambac."
+  },
+  {
+    "source_id": "SRC-006",
+    "domain": "boondfragrances.com",
+    "organization": "Boond Fragrances (Krati & Varun Tandon)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.boondfragrances.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Boond Fragrances"],
+    "products_verified": [
+      "Maati", "Gulabi", "Motiya", "Khus", "Kesar"
+    ],
+    "fields_supported": ["name", "deg_bhapka_method", "gi_tag_kannauj", "alcohol_free_status", "longevity", "artisan_provenance"],
+    "notes": "Direct official artisan Kannauj brand source with authentic Geographical Indication (GI) certification documentation, Deg-Bhapka hydro-distillation logs, and pure attar compositions."
+  },
+  {
+    "source_id": "SRC-007",
+    "domain": "gulabsinghjohrimal.com",
+    "organization": "Gulabsingh Johrimal (Est. 1816, Dariba Kalan, Delhi / Kannauj)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.gulabsinghjohrimal.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Gulabsingh Johrimal"],
+    "products_verified": [
+      "Mitti Attar", "Ruh Khus No. 1", "Shamama Gold", "Ruh Motia", 
+      "Ruh Gulab Pure", "Attar Kadamb", "Shamamatul Amber", "Hina Attar", "Musk Amber Attar"
+    ],
+    "fields_supported": ["name", "traditional_formulation", "sandalwood_base", "deg_bhapka_distillation", "heritage_status_1816"],
+    "notes": "Oldest continuously operating Indian perfumery house (founded 1816); official historical catalog with authentic attar designations, sandalwood hydro-distillations, and classical formulations."
+  },
+  {
+    "source_id": "SRC-008",
+    "domain": "ramnarain.com",
+    "organization": "M.L. Ramnarain Perfumers (Kannauj, Est. 1880)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.ramnarain.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["M.L. Ramnarain Perfumers"],
+    "products_verified": [
+      "Mitti Deg-Bhapka", "Kannauj Ruh Khus", "Ruh Chameli", "Traditional Shamama", 
+      "Attar Gil", "Gulab Bari", "Ruh Genda"
+    ],
+    "fields_supported": ["name", "botanical_names", "deg_bhapka_distillation", "copper_stills", "heritage_documentation_1880"],
+    "notes": "Fourth-generation master attar distillers of Kannauj. Detailed botanical source listings, wood-fired copper deg processing records, and export-grade purity specifications."
+  },
+  {
+    "source_id": "SRC-009",
+    "domain": "neeshperfumes.com",
+    "organization": "Neesh Perfumes / Neesh Haute Parfumerie",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://neeshperfumes.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Neesh"],
+    "products_verified": [
+      "Glazed Water", "Haute Tobacco", "Milky Way", "Luxe Hayat", "Signature Scent", "Splendid Rose", "Mehr"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "concentration_extrait", "aged_orris_root", "perfumer_credits"],
+    "notes": "Official brand e-commerce portal providing complete note hierarchies, aged botanical distillations (orris root, Indian sandalwood oil, Halfeti rose), and concentration metrics."
+  },
+  {
+    "source_id": "SRC-010",
+    "domain": "isakfragrances.com",
+    "organization": "ISAK Fragrances (Vidushi Vijayvergiya, Lucknow / Kannauj)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.isakfragrances.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Isak Fragrances"],
+    "products_verified": [
+      "First Rain (Mitti)", "1854", "Forest Rain", "Rain Kissed Rose", "Sugandh Mantri"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "concentration", "deg_bhapka_process", "family_legacy_1850s"],
+    "notes": "Sixth-generation Awadh/Lucknow perfumery legacy brand with documented Deg-Bhapka hydro-distillation of parched alluvial clay and botanical extraits."
+  },
+  {
+    "source_id": "SRC-011",
+    "domain": "kastoorperfumery.com",
+    "organization": "Kastoor (Esha Tiwari)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.kastoorperfumery.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Kastoor"],
+    "products_verified": [
+      "1984 Golden Hour", "Mystique", "Frozen Jasmine", "Rain", "Love Ittar"
+    ],
+    "fields_supported": ["name", "traditional_attar_notes", "sandalwood_base", "deg_bhapka_artisans"],
+    "notes": "Contemporary Indian artisanal house reinventing traditional attars; verified natural attar blends of lotus, patchouli, pure sandalwood, and petrichor."
+  },
+  {
+    "source_id": "SRC-012",
+    "domain": "bellavitaorganic.com",
+    "organization": "Bella Vita Luxury (IDAM House of Brands)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://bellavitaorganic.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Bella Vita Luxury"],
+    "products_verified": [
+      "White Oud", "CEO Man", "CEO Man Intense", "Hot Mess", "CEO Woman", 
+      "KLUB Man", "BLU Man", "OUD Parfum", "HONEY Oud", "DATE Woman", "G.O.A.T. Man", "Glam Woman", "Skai Aquatic"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "concentration", "gender", "description", "ifra_compliance"],
+    "notes": "Official catalog of India's largest D2C fine fragrance player with verified pyramid structures, fragrance oil percentages (18-22%), and IFRA compliance notes."
+  },
+  {
+    "source_id": "SRC-013",
+    "domain": "wildstone.in",
+    "organization": "Wild Stone / CODE Grooming (McNROE Consumer Products)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.wildstone.in",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Wild Stone"],
+    "products_verified": [
+      "Edge", "CODE Titanium", "CODE Steel", "CODE Copper", "CODE Platinum", "Ultra Sensual", "Forest Spice"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "concentration_parfum", "description"],
+    "notes": "Official brand site for McNROE's fine fragrance and premium CODE lines documenting exact top, middle, and base pyramids."
+  },
+  {
+    "source_id": "SRC-014",
+    "domain": "themancompany.com",
+    "organization": "The Man Company (Helios Lifestyle / Emami)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.themancompany.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["The Man Company"],
+    "products_verified": [
+      "Blanc", "Noir", "Black", "Fire", "Privilege Bold"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "concentration", "olfactive_notes"],
+    "notes": "Official men's grooming brand e-commerce platform detailing fine fragrance EDPs and EDTs."
+  },
+  {
+    "source_id": "SRC-015",
+    "domain": "beardo.in",
+    "organization": "Beardo (Zed Lifestyle / Marico)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.beardo.in",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Beardo"],
+    "products_verified": [
+      "Godfather", "Dark Side", "Whisky Smoke", "Mariner", "Origin"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "key_ingredients", "concentration", "description"],
+    "notes": "Official Marico subsidiary portal providing verified fine fragrance EDP compositions."
+  },
+  {
+    "source_id": "SRC-016",
+    "domain": "ustraa.com",
+    "organization": "Ustraa (Happily Unmarried Marketing Pvt Ltd)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.ustraa.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Ustraa"],
+    "products_verified": [
+      "Base Camp", "Ammunition", "Scuba", "After Dark"
+    ],
+    "fields_supported": ["name", "top_middle_base_notes", "concentration", "scent_family"],
+    "notes": "Official brand portal with explicit three-tiered note pyramid documentation for all men's colognes and EDPs."
+  },
+  {
+    "source_id": "SRC-017",
+    "domain": "allgoodscents.com",
+    "organization": "All Good Scents (Rajiv Sheth, Ahmedabad)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.allgoodscents.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["All Good Scents"],
+    "products_verified": [
+      "Flirty", "Arise", "Urbane Nights"
+    ],
+    "fields_supported": ["name", "french_perfumery_notes", "pyramid", "concentration", "perfumer_credits"],
+    "notes": "ISIPCA-trained Indian perfumer brand portal verifying official note breakdowns and European fine fragrance standards."
+  },
+  {
+    "source_id": "SRC-018",
+    "domain": "adilqadri.com",
+    "organization": "AdilQadri (Adil Qadri E-Commerce Pvt Ltd)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.adilqadri.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["AdilQadri"],
+    "products_verified": [
+      "Shanaya Luxury Attar", "Safwan Luxury Attar", "Lavish Musk", "Oudh Al Hashmi", "Shanaya EDP"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "pure_perfume_oil_status", "alcohol_free", "concentration"],
+    "notes": "Official Indian D2C attar brand site detailing non-alcoholic concentrated perfume oils and modern EDP spray adaptations."
+  },
+  {
+    "source_id": "SRC-019",
+    "domain": "ajmal.com",
+    "organization": "Ajmal Perfumes (Ajmal Group, Est. 1951, Hojai, Assam)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.ajmal.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Ajmal"],
+    "products_verified": [
+      "Oudhy 1001 Nights Attar", "Musk Khas", "Wisal", "Kuro", 
+      "Aristocrat for Him", "Amber Wood", "Mukhallat Al Shams", "Dahn Al Oudh Moattaq"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "assam_agarwood_sourcing", "concentration", "heritage_status_1951"],
+    "notes": "Founded by Haji Ajmal Ali in Assam; official catalog documenting wild Assam agarwood distillations, traditional mukhallats, and global fine fragrances."
+  },
+  {
+    "source_id": "SRC-020",
+    "domain": "33north.in",
+    "organization": "33North Fragrances",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.33north.in",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["33North"],
+    "products_verified": [
+      "Western Ghats Mist", "Monsoon Rain & Cedar", "Valley 33", "Bad Influence", "Siente"
+    ],
+    "fields_supported": ["name", "notes_breakdown", "extrait_concentration_25_35", "unisex_designation"],
+    "notes": "Official artisanal Indian house site detailing 20-30% parfum extrait concentrations inspired by Indian biodiversity zones."
+  },
+  {
+    "source_id": "SRC-021",
+    "domain": "fraganote.com",
+    "organization": "Fraganote",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://fraganote.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Fraganote"],
+    "products_verified": [
+      "Persian Saffron & Oud", "Persian Oud", "Black Listed", "Drunken Cake", "London Bar", "Alpha Spade"
+    ],
+    "fields_supported": ["name", "top_heart_base_notes", "concentration_edp", "accord_details"],
+    "notes": "Official brand site documenting explicit olfactory pyramid notes and accord hierarchies."
+  },
+  {
+    "source_id": "SRC-022",
+    "domain": "scentedelic.com",
+    "organization": "Scentedelic (Saurabh Shandilya)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://scentedelic.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Scentedelic"],
+    "products_verified": [
+      "Dopamine", "Timeless 20.0", "Timeless 23.0", "Lucifer"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "extrait_concentration", "seasonal_context"],
+    "notes": "Official website for independent Indian extrait perfumery documenting full notes pyramids and fragrance accords."
+  },
+  {
+    "source_id": "SRC-023",
+    "domain": "al-nuaim.com",
+    "organization": "Al-Nuaim (Al-Nuaim Fragrances Pvt Ltd)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://al-nuaim.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Al-Nuaim"],
+    "products_verified": [
+      "White Oudh", "Jannet El Firdaus", "Blue Wave", "Chocolate Musk"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "pure_attar_oil", "alcohol_free"],
+    "notes": "Official website for India's mass attar house detailing fragrance notes and olfactory pyramids."
+  },
+  {
+    "source_id": "SRC-024",
+    "domain": "aromeworld.com",
+    "organization": "Arochem / Arome World (Ratlam / Kannauj)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://aromeworld.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Arochem"],
+    "products_verified": [
+      "Aro Magnet", "Ice Blue", "Black Oudh", "Arome Royal Oud"
+    ],
+    "fields_supported": ["name", "top_heart_base_notes", "roll_on_attar", "essential_oil_blends"],
+    "notes": "Official fragrance catalog for Arochem / Arome World with verified top, middle, and base notes."
+  },
+  {
+    "source_id": "SRC-025",
+    "domain": "nematperfumes.com",
+    "organization": "Nemat Perfumes (Attarwala Family, Est. 1920)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://nematperfumes.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Nemat Perfumes"],
+    "products_verified": [
+      "Amber Fragrance Oil", "Majmua 96", "Musk Amber", "Sandal Wood Oil", "Jannatul Firdaus"
+    ],
+    "fields_supported": ["name", "notes_breakdown", "perfume_oil", "attar_heritage_1920", "description"],
+    "notes": "Official site of legendary Attarwala heritage house (founded 1920); detailed formulations of historical Majmua and amber oils."
+  },
+  {
+    "source_id": "SRC-026",
+    "domain": "reneecosmetics.in",
+    "organization": "Renee Cosmetics",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://www.reneecosmetics.in",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Renee Cosmetics"],
+    "products_verified": [
+      "Bloom", "Dark Desire", "Oud Aspire"
+    ],
+    "fields_supported": ["name", "top_middle_base_notes", "concentration_edp", "gender"],
+    "notes": "Official beauty brand e-commerce site with explicit pyramid disclosures for all EDP fragrances."
+  },
+  {
+    "source_id": "SRC-027",
+    "domain": "secrettemptation.in",
+    "organization": "Secret Temptation (McNROE Consumer Products)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://secrettemptation.in",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Secret Temptation"],
+    "products_verified": [
+      "Romance", "Dream", "Adore"
+    ],
+    "fields_supported": ["name", "top_heart_base_notes", "concentration_edp", "olfactive_profile"],
+    "notes": "Official e-commerce website documenting notes pyramids for women's fine fragrance EDPs."
+  },
+  {
+    "source_id": "SRC-028",
+    "domain": "plumgoodness.com",
+    "organization": "Plum BodyLovin' (Pureplay Skin Sciences)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://plumgoodness.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Plum BodyLovin"],
+    "products_verified": [
+      "Vanilla Caramello EDP", "Hawaiian Rumba EDP", "Smokin' Vanilla", "Trippin' Mimosas"
+    ],
+    "fields_supported": ["name", "top_heart_base_notes", "concentration_edp", "gender", "vegan_cruelty_free"],
+    "notes": "Official portal documenting full top/middle/base pyramids and fragrance concentrations."
+  },
+  {
+    "source_id": "SRC-029",
+    "domain": "carltonlondonbeauty.com",
+    "organization": "Carlton London India (Carlton London Beauty)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://carltonlondonbeauty.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["Carlton London India"],
+    "products_verified": [
+      "Incense", "Escape", "Blush"
+    ],
+    "fields_supported": ["name", "notes_pyramid", "concentration_edp", "gender"],
+    "notes": "Official portal with verified top, middle, and base notes pyramids."
+  },
+  {
+    "source_id": "SRC-030",
+    "domain": "indinoir.com",
+    "organization": "IndiNoir (Kogent Design Pvt Ltd)",
+    "tier": "Tier 1 — Official Brand Source",
+    "url": "https://indinoir.com",
+    "verified_at": "2026-09-17",
+    "brands_covered": ["IndiNoir"],
+    "products_verified": [
+      "Goan Water", "Brunch at Tiffany's", "Seriously Sandalwood"
+    ],
+    "fields_supported": ["name", "notes_breakdown", "concentration_edp", "performance"],
+    "notes": "Official site detailing EDP compositions engineered specifically for Indian climatic performance."
+  }
+]

@@ -1,0 +1,259 @@
+[
+  {
+    "id": "TAX-IN-001",
+    "proposed_term": "Kadamb Blossom (Neolamarckia cadamba)",
+    "raw_synonyms": [
+      "kadam",
+      "kadamb",
+      "attar kadamb",
+      "neolamarckia cadamba",
+      "kadam phool"
+    ],
+    "proposed_normalized_name": "Kadamb",
+    "note_family": "Floral",
+    "vector_category": "floral",
+    "origin": "Indian Heritage Botanical",
+    "english_equivalent": "Burflower Tree Blossom",
+    "justification": "Kadamb blossom is a foundational classical Indian monsoon blossom celebrated in Sanskrit literature (Kalidasa's Meghaduta) and traditional Kannauj hydro-distillation. It possesses a uniquely honeyed, deep yellow-floral aroma with delicate balsamic and woody facets that cannot be captured by generic 'Floral' or Western blossoms like Magnolia or Orange Blossom.",
+    "sample_manifest_occurrences": [
+      "Gulabsingh Johrimal - Attar Kadamb",
+      "Purandas Ranchhoddas - Pahadi Phool Attar"
+    ],
+    "cultural_significance": "Sacred flower deeply tied to Lord Krishna in Vrindavan and the onset of the Indian monsoon showers, distilled in traditional copper degs.",
+    "proposal_status": "PROPOSAL_PENDING_REVIEW",
+    "audit_action": "RECOMMENDED_PROPOSAL_ONLY",
+    "redundancy_notes": "Novel Indian indigenous botanical; not currently present in SQLite note_taxonomy."
+  },
+  {
+    "id": "TAX-IN-002",
+    "proposed_term": "Sugandh Mantri (Homalomena aromatica)",
+    "raw_synonyms": [
+      "sugandh mantri",
+      "gandh kachari",
+      "homalomena aromatica",
+      "sugandha mantri"
+    ],
+    "proposed_normalized_name": "Sugandh Mantri",
+    "note_family": "Aromatic / Spicy",
+    "vector_category": "warm_resinous_spices",
+    "origin": "Indian Indigenous Botanical (Northeast India)",
+    "english_equivalent": "Fragrant Swamp Arum Root",
+    "justification": "Sugandh Mantri is a prized aromatic rhizome native to Assam and the northeastern rainforests of India. Its chemical profile (rich in linalool, terpinen-4-ol, and patchouli alcohol) produces a serene, spicy-camphorous, calming floral-herbal aroma used in classical ayurvedic attars that has no Western equivalent.",
+    "sample_manifest_occurrences": [
+      "Isak Fragrances - Sugandh Mantri",
+      "M.L. Ramnarain Perfumers - Traditional Shamama"
+    ],
+    "cultural_significance": "Widely utilized in spiritual and therapeutic blends for grounding mental clarity and emotional peace; an indispensable secret constituent of high-grade Shamama attars.",
+    "proposal_status": "PROPOSAL_PENDING_REVIEW",
+    "audit_action": "RECOMMENDED_PROPOSAL_ONLY",
+    "redundancy_notes": "Novel Indian indigenous botanical; not currently present in SQLite note_taxonomy."
+  },
+  {
+    "id": "TAX-IN-003",
+    "proposed_term": "Genda / Marigold (Tagetes erecta)",
+    "raw_synonyms": [
+      "genda",
+      "marigold",
+      "ruh genda",
+      "tagetes erecta",
+      "zard genda"
+    ],
+    "proposed_normalized_name": "Marigold (Genda)",
+    "note_family": "Floral / Herbaceous",
+    "vector_category": "floral",
+    "origin": "Indian Traditional Floral",
+    "english_equivalent": "Sacred Marigold Blossom",
+    "justification": "Marigold in Indian perfumery is hydro-distilled directly into sandalwood base, creating a distinctive bittersweet, intensely aromatic herbal-floral note with tangy green facets. Existing Western palettes treat tagetes purely as an industrial green apple/acetophenone modifier, completely missing its warm, golden ceremonial incense aspect.",
+    "sample_manifest_occurrences": [
+      "Naso Profumi - Gardenia in Marigold",
+      "M.L. Ramnarain Perfumers - Ruh Genda",
+      "Forest Essentials - Som Rasa"
+    ],
+    "cultural_significance": "The quintessential floral garland of Indian temples, festive celebrations, Diwali, and auspicious occasions symbolizing the sun, purity, and devotion.",
+    "proposal_status": "REDUNDANT",
+    "audit_action": "KEEP_EXISTING_TAXONOMY",
+    "redundancy_notes": "Mapped in SQLite note_taxonomy ID 28, 29 (Marigold)"
+  },
+  {
+    "id": "TAX-IN-004",
+    "proposed_term": "Bhimseni Kapoor (Natural Edible Camphor)",
+    "raw_synonyms": [
+      "bhimseni kapoor",
+      "bhimsen",
+      "pure camphor",
+      "edible camphor",
+      "pacha karpooram"
+    ],
+    "proposed_normalized_name": "Natural Camphor (Bhimseni)",
+    "note_family": "Aromatic / Fresh",
+    "vector_category": "freshness",
+    "origin": "Indian Ayurvedic Mineral/Botanical",
+    "english_equivalent": "Sacred Crystalline White Camphor",
+    "justification": "Bhimseni Kapoor is 100% natural, unadulterated crystalline flake camphor extracted from Cinnamomum camphora. Unlike synthetic medicinal camphor, Bhimseni possesses an ethereal, sweet, uplifting, sacred cooling aura that purifies top notes and lifts sandalwood bases.",
+    "sample_manifest_occurrences": [
+      "The Perfume Library - Bhimsen",
+      "The Perfume Library - This Space in Between You & Me"
+    ],
+    "cultural_significance": "Used across South Indian temple pujas (Tirupati laddus, aarti flames) as a sacred offering that burns completely without leaving ash, symbolizing the dissolution of the ego.",
+    "proposal_status": "PROPOSAL_PENDING_REVIEW",
+    "audit_action": "RECOMMENDED_PROPOSAL_ONLY",
+    "redundancy_notes": "Novel Indian indigenous botanical; not currently present in SQLite note_taxonomy."
+  },
+  {
+    "id": "TAX-IN-005",
+    "proposed_term": "Ruh Motia / Bela (Jasminum sambac)",
+    "raw_synonyms": [
+      "ruh motia",
+      "motia",
+      "bela",
+      "mogra pure",
+      "jasminum sambac"
+    ],
+    "proposed_normalized_name": "Mogra / Motia (Jasmine Sambac)",
+    "note_family": "Floral",
+    "vector_category": "floral",
+    "origin": "Indian Heritage Floral",
+    "english_equivalent": "Arabian Jasmine / Sambac",
+    "justification": "Currently mapped broadly as generic 'Jasmine'. In Indian perfumery, Motia/Mogra represents the specific thick-petaled double-flowered Jasminum sambac harvested in Kannauj and Madurai. It delivers an intensely sweet, indolic, narcotic green-tea floral aroma vastly distinct from French Jasminum grandiflorum.",
+    "sample_manifest_occurrences": [
+      "Gulabsingh Johrimal - Ruh Motia",
+      "Boond Fragrances - Motiya",
+      "Forest Essentials - Madurai Jasmine & Mogra",
+      "Kama Ayurveda - Pure Mogra Water"
+    ],
+    "cultural_significance": "Known as the Queen of the Night; woven into fragrant hair venis and wedding canopies across coastal and southern India.",
+    "proposal_status": "REDUNDANT",
+    "audit_action": "KEEP_EXISTING_TAXONOMY",
+    "redundancy_notes": "Mapped in SQLite note_taxonomy ID 17, 22 (Jasmine / Mogra / Bela)"
+  },
+  {
+    "id": "TAX-IN-006",
+    "proposed_term": "Shamama Herbaceous Compound Base",
+    "raw_synonyms": [
+      "shamama",
+      "shamamatul amber",
+      "shamama gold",
+      "shamama qadeem",
+      "hina shamama"
+    ],
+    "proposed_normalized_name": "Shamama Accord",
+    "note_family": "Resinous / Spicy",
+    "vector_category": "warm_resinous_spices",
+    "origin": "Traditional Kannauj Masterwork",
+    "english_equivalent": "Kannauj Poly-Botanical Herbal Attar",
+    "justification": "Existing systems lack a dedicated category for Kannauj's 100+ herb compound distillations. Shamama is neither a single spice nor standard amber; it is an artisanal synergy of saffron, nagarmotha, sugandh mantri, mace, cinnamon, spikenard, and resins slow-cooked over 14 days into sandalwood.",
+    "sample_manifest_occurrences": [
+      "Gulabsingh Johrimal - Shamama Gold",
+      "M.L. Ramnarain Perfumers - Traditional Shamama",
+      "Purandas Ranchhoddas - Shamama Qadeem",
+      "Attar Mohamed Dawood - Shamamatul Amber Dawoodi"
+    ],
+    "cultural_significance": "Kannauj's most closely guarded hereditary recipe, created during the Mughal and Awadh court eras as a warming winter fragrance and body tonic.",
+    "proposal_status": "REDUNDANT",
+    "audit_action": "KEEP_EXISTING_TAXONOMY",
+    "redundancy_notes": "Mapped in SQLite note_taxonomy ID 60 (Shamama)"
+  },
+  {
+    "id": "TAX-IN-007",
+    "proposed_term": "Nagarmotha / Cypriol (Cyperus scariosus)",
+    "raw_synonyms": [
+      "nagarmotha",
+      "cypriol",
+      "cyperus scariosus",
+      "nutgrass root"
+    ],
+    "proposed_normalized_name": "Nagarmotha (Cypriol)",
+    "note_family": "Woody / Earthy",
+    "vector_category": "woody",
+    "origin": "Indian Native Rhizome",
+    "english_equivalent": "Cypriol / Indian River Sedge Root",
+    "justification": "Currently often conflated with vetiver or patchouli. Nagarmotha has a completely unique smoky, dry-leathery, medicinal woody character with balsamic cedar-like undertones. It forms the backbone of traditional Indian incense and heavy orientals.",
+    "sample_manifest_occurrences": [
+      "33North - Siente",
+      "Isak Fragrances - 1854",
+      "Neesh - Haute Tobacco"
+    ],
+    "cultural_significance": "Used in Vashikaran and ancient Indian smudging rituals for attraction, grounding, and persistent sillage fixative power.",
+    "proposal_status": "PROPOSAL_PENDING_REVIEW",
+    "audit_action": "RECOMMENDED_PROPOSAL_ONLY",
+    "redundancy_notes": "Novel Indian indigenous botanical; not currently present in SQLite note_taxonomy."
+  },
+  {
+    "id": "TAX-IN-008",
+    "proposed_term": "Kewra / Pandanus (Pandanus odoratissimus)",
+    "raw_synonyms": [
+      "kewra",
+      "kewda",
+      "keora",
+      "pandanus",
+      "ruh kewda"
+    ],
+    "proposed_normalized_name": "Kewra (Pandanus)",
+    "note_family": "Floral / Exotic",
+    "vector_category": "floral",
+    "origin": "Indian Coastal (Odisha GI)",
+    "english_equivalent": "Screwpine Blossom Water",
+    "justification": "Kewra has an extraordinarily powerful, diffusive sweet honey-floral aroma with green, hyacinth, and fermented ripe fruit nuances. No synthetic or Western note replicates its distinct diffusive sweet herbal punch.",
+    "sample_manifest_occurrences": [
+      "Desi Attar - Sandali Kewra Attar",
+      "Gulabsingh Johrimal - Kewda Attar",
+      "M.L. Ramnarain Perfumers - Kewra Attar"
+    ],
+    "cultural_significance": "Harvested almost exclusively in the Ganjam district of Odisha along the Bay of Bengal; indispensable in Royal Mughlai cuisine and Awadhi summer perfumery.",
+    "proposal_status": "REDUNDANT",
+    "audit_action": "KEEP_EXISTING_TAXONOMY",
+    "redundancy_notes": "Mapped in SQLite note_taxonomy ID 19, 20 (Kewra)"
+  },
+  {
+    "id": "TAX-IN-009",
+    "proposed_term": "Jatamansi / Indian Spikenard (Nardostachys jatamansi)",
+    "raw_synonyms": [
+      "jatamansi",
+      "spikenard",
+      "indian nard",
+      "nardostachys jatamansi"
+    ],
+    "proposed_normalized_name": "Jatamansi (Spikenard)",
+    "note_family": "Earthy / Aromatic",
+    "vector_category": "earthy_clay",
+    "origin": "Himalayan Alpine Botanical",
+    "english_equivalent": "Himalayan Spikenard Rhizome",
+    "justification": "An alpine rhizome harvested at high altitudes in Himachal, Uttarakhand, and Nepal. Its scent is intensely earthy, pungent, animalic-musky, mossy, and balsamic, serving as an ancient botanical musk replacement and profound grounding agent.",
+    "sample_manifest_occurrences": [
+      "Gulabsingh Johrimal - Shamama Gold",
+      "Desi Attar - Majmua Attar",
+      "Kastoor - Mystique"
+    ],
+    "cultural_significance": "Mentioned in the Charaka Samhita, Atharva Veda, and biblical texts as anointment oil of utmost sanctity and restorative calm.",
+    "proposal_status": "PROPOSAL_PENDING_REVIEW",
+    "audit_action": "RECOMMENDED_PROPOSAL_ONLY",
+    "redundancy_notes": "Novel Indian indigenous botanical; not currently present in SQLite note_taxonomy."
+  },
+  {
+    "id": "TAX-IN-010",
+    "proposed_term": "Kashmiri Kesar (Crocus sativus Pampore)",
+    "raw_synonyms": [
+      "kesar",
+      "kashmiri saffron",
+      "zafran",
+      "crocus sativus",
+      "pampore saffron"
+    ],
+    "proposed_normalized_name": "Kashmiri Saffron (Kesar)",
+    "note_family": "Spicy / Leathery",
+    "vector_category": "warm_resinous_spices",
+    "origin": "Kashmiri Terroir (GI Protected)",
+    "english_equivalent": "Kashmir Golden Saffron Stigmas",
+    "justification": "Kashmiri saffron boasts the world's highest natural safranal and crocin content, rendering it intensely bittersweet, rich, warm, and radiant with subtle honeyed-leather nuances compared to leaner Iranian or Spanish varieties.",
+    "sample_manifest_occurrences": [
+      "Boond Fragrances - Kesar",
+      "Naso Profumi - Saffron Infused in Musk & Amber",
+      "Fraganote - Persian Saffron & Oud",
+      "Purandas Ranchhoddas - Kesar Chandan Attar"
+    ],
+    "cultural_significance": "Culinary, cosmetic, and perfumery crown jewel cultivated in the saffron fields of Pampore since the 1st millennium BCE.",
+    "proposal_status": "REDUNDANT",
+    "audit_action": "KEEP_EXISTING_TAXONOMY",
+    "redundancy_notes": "Mapped in SQLite note_taxonomy ID 30, 31 (Saffron / Kesar)"
+  }
+]

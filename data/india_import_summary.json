@@ -1,0 +1,163 @@
+{
+  "manifest_total": 126,
+  "eligible_count": 102,
+  "excluded_count": 24,
+  "inserted_count": 31,
+  "updated_count": 1,
+  "preserved_count": 70,
+  "duplicates_skipped_count": 2,
+  "source_review_excluded_count": 22,
+  "database_metrics": {
+    "fragrance_count_before": 93,
+    "fragrance_count_after": 124,
+    "brand_count_before": 79,
+    "brand_count_after": 80,
+    "taxonomy_count_before": 60,
+    "taxonomy_count_after": 60,
+    "fragrance_notes_count_before": 754,
+    "fragrance_notes_count_after": 1024
+  },
+  "brands": {
+    "existing_reused": [
+      "33North",
+      "AdilQadri",
+      "Ajmal",
+      "Al-Nuaim",
+      "All Good Scents",
+      "Arochem",
+      "Beardo",
+      "Bella Vita Luxury",
+      "Bombay Perfumery",
+      "Boond Fragrances",
+      "Carlton London India",
+      "Denver",
+      "Fogg",
+      "Forest Essentials",
+      "Fraganote",
+      "Gulabsingh Johrimal",
+      "Isak Fragrances",
+      "Kama Ayurveda",
+      "Kastoor",
+      "M.L. Ramnarain Perfumers",
+      "Muzna Fragrances",
+      "Naso Profumi",
+      "Neesh",
+      "Nemat Perfumes",
+      "Park Avenue",
+      "Plum BodyLovin",
+      "Purandas Ranchhoddas",
+      "Renee Cosmetics",
+      "SKINN by Titan",
+      "Scentedelic",
+      "Secret Temptation",
+      "The Man Company",
+      "Ustraa",
+      "Villain",
+      "Wild Stone"
+    ],
+    "newly_created": [
+      "All Good Scents"
+    ],
+    "duplicates_prevented": 30
+  },
+  "vectors": {
+    "total_generated": 124,
+    "dimensions": 8,
+    "status": "ALL_VALID"
+  },
+  "clustering": {
+    "cluster_count": 5,
+    "algorithm": "K-Means (k=5)",
+    "clusters": {
+      "0": {
+        "label": "Longevity_fixative & Intensity",
+        "count": 35
+      },
+      "1": {
+        "label": "Exotic Spices & Smoked Woods",
+        "count": 35
+      },
+      "2": {
+        "label": "Longevity_fixative & Freshness",
+        "count": 9
+      },
+      "3": {
+        "label": "Longevity_fixative & Earthy_clay",
+        "count": 13
+      },
+      "4": {
+        "label": "Opulent Floral Bouquet",
+        "count": 32
+      }
+    },
+    "status": "RECALCULATED_AND_PERSISTED"
+  },
+  "integrity_audit": {
+    "A": {
+      "check": "Duplicate fragrance identities",
+      "status": "PASS",
+      "details": "Zero duplicate fragrance identities detected across all 124 records"
+    },
+    "B": {
+      "check": "Duplicate brand identities",
+      "status": "PASS",
+      "details": "Zero duplicate brand identities detected across all 80 brands"
+    },
+    "C": {
+      "check": "Orphaned records (fragrances and notes)",
+      "status": "PASS",
+      "details": "Orphaned fragrances: 0, Orphaned notes: 0"
+    },
+    "D": {
+      "check": "Missing required canonical fields",
+      "status": "PASS",
+      "details": "All 124 fragrances contain complete required canonical fields"
+    },
+    "E": {
+      "check": "Invalid concentration values",
+      "status": "PASS",
+      "details": "All 124 fragrances have non-empty valid concentration strings"
+    },
+    "F": {
+      "check": "Invalid confidence values (range 0-1)",
+      "status": "PASS",
+      "details": "All confidence values strictly within [0.0, 1.0]"
+    },
+    "G": {
+      "check": "Vector dimensionality (exactly 8 dimensions)",
+      "status": "PASS",
+      "details": "All 124 fragrances possess complete 8-dimensional vectors"
+    },
+    "H": {
+      "check": "Vector value boundaries (finite numbers within 0-1)",
+      "status": "PASS",
+      "details": "All 124 vectors contain valid, normalized numerical features"
+    },
+    "I": {
+      "check": "Missing provenance tracking",
+      "status": "PASS",
+      "details": "All fragrances have explicit source and verification timestamp"
+    },
+    "J": {
+      "check": "Unsupported heritage claims",
+      "status": "PASS",
+      "details": "Heritage materials and distillation methods imported strictly from verified manifest declarations"
+    },
+    "K": {
+      "check": "Artificial note pyramids in linear profiles",
+      "status": "PASS",
+      "details": "Zero artificial note pyramids. Linear profiles strictly retained in general notes."
+    },
+    "L": {
+      "check": "Accords incorrectly converted into individual notes",
+      "status": "PASS",
+      "details": "Accords persisted exclusively in accords JSON column, not converted into notes"
+    },
+    "M": {
+      "check": "High-confidence data overwritten by lower-confidence data",
+      "status": "PASS",
+      "details": "Zero records overwritten by lower confidence data. Only 1 verified update performed (IN-FRAG-018: 0.95 vs 0.94)."
+    }
+  },
+  "timestamp": "2026-09-17T16:42:13.793Z"
+}

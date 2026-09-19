@@ -4,7 +4,10 @@ import { createServer as createViteServer } from 'vite';
 import { dbService } from './server/db.js';
 import { recommendTopFragrances } from './server/ml/similarity.js';
 import { findBestLayeringCombinations, scoreLayeringPair } from './server/ml/layering.js';
-import { UserPreferences } from './src/types.js';
+import { UserPreferences, WearRecommendationRequest, OlfactoryBehaviorEvent } from './src/types.js';
+import { normalizeOlfactoryContext } from './src/services/contextEngine.js';
+import { generateWearRecommendations } from './server/ml/wearEngine.js';
+import { olfactoryMemoryService } from './server/olfactoryMemory.js';
 
 async function startServer() {
   const app = express();
@@ -33,6 +36,16 @@ async function startServer() {
     }
   });
 
+  // POST /api/brands - creates new brand
+  app.post('/api/brands', (req, res) => {
+    try {
+      const brand = dbService.createBrand(req.body);
+      res.status(201).json(brand);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
   // GET /api/brands/:id - returns brand details and its fragrances
   app.get('/api/brands/:id', (req, res) => {
     try {
@@ -47,6 +60,28 @@ async function startServer() {
     }
   });
 
+  // PUT /api/brands/:id - updates an existing brand
+  app.put('/api/brands/:id', (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const brand = dbService.updateBrand(id, req.body);
+      res.json(brand);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // DELETE /api/brands/:id - deletes a brand
+  app.delete('/api/brands/:id', (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      dbService.deleteBrand(id);
+      res.json({ success: true, id });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
   // GET /api/taxonomy - returns normalized notes taxonomy
   app.get('/api/taxonomy', (req, res) => {
     try {
@@ -57,6 +92,38 @@ async function startServer() {
     }
   });
 
+  // POST /api/taxonomy - creates note taxonomy entry
+  app.post('/api/taxonomy', (req, res) => {
+    try {
+      const entry = dbService.createNoteTaxonomy(req.body);
+      res.status(201).json(entry);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // PUT /api/taxonomy/:id - updates note taxonomy entry
+  app.put('/api/taxonomy/:id', (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const entry = dbService.updateNoteTaxonomy(id, req.body);
+      res.json(entry);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // DELETE /api/taxonomy/:id - deletes note taxonomy entry
+  app.delete('/api/taxonomy/:id', (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      dbService.deleteNoteTaxonomy(id);
+      res.json({ success: true, id });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
   // GET /api/fragrances - returns all fragrances
   app.get('/api/fragrances', (req, res) => {
     try {
@@ -64,6 +131,16 @@ async function startServer() {
       res.json(fragrances);
     } catch (err: any) {
       res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/fragrances - creates new fragrance
+  app.post('/api/fragrances', (req, res) => {
+    try {
+      const fragrance = dbService.createFragrance(req.body);
+      res.status(201).json(fragrance);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
     }
   });
 
@@ -81,6 +158,28 @@ async function startServer() {
     }
   });
 
+  // PUT /api/fragrances/:id - updates fragrance
+  app.put('/api/fragrances/:id', (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const fragrance = dbService.updateFragrance(id, req.body);
+      res.json(fragrance);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // DELETE /api/fragrances/:id - deletes fragrance
+  app.delete('/api/fragrances/:id', (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      dbService.deleteFragrance(id);
+      res.json({ success: true, id });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
   // GET /api/clusters - returns K-Means clusters and dominant features
   app.get('/api/clusters', (req, res) => {
     try {
@@ -91,11 +190,51 @@ async function startServer() {
     }
   });
 
-  // POST /api/recommend - recommend single fragrances based on preferences
+  // POST /api/recommend/wear - What Should I Wear? Olfactory Recommendation Engine
+  app.post('/api/recommend/wear', (req, res) => {
+    try {
+      const wearReq: WearRecommendationRequest = req.body;
+      const allFragrances = dbService.getAllFragrances();
+      const userId = wearReq.context?.user?.userId || 1;
+      const userCollectionIds = dbService.getUserCollection(userId);
+      const userPreferences = dbService.getUserPreferences(userId);
+
+      const result = generateWearRecommendations(
+        allFragrances,
+        wearReq,
+        userCollectionIds,
+        userPreferences
+      );
+
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/recommend - recommend single fragrances based on preferences or context
   app.post('/api/recommend', (req, res) => {
     try {
-      const preferences: UserPreferences = req.body;
       const allFragrances = dbService.getAllFragrances();
+
+      // If unified context payload is passed, route to wearEngine
+      if (req.body.context) {
+        const wearReq: WearRecommendationRequest = req.body;
+        const userId = wearReq.context?.user?.userId || 1;
+        const userCollectionIds = dbService.getUserCollection(userId);
+        const userPreferences = dbService.getUserPreferences(userId);
+
+        const result = generateWearRecommendations(
+          allFragrances,
+          wearReq,
+          userCollectionIds,
+          userPreferences
+        );
+        return res.json(result);
+      }
+
+      // Legacy user preferences payload
+      const preferences: UserPreferences = req.body;
       const recommendations = recommendTopFragrances(allFragrances, preferences, 8);
       res.json(recommendations);
     } catch (err: any) {
@@ -518,6 +657,134 @@ async function startServer() {
       const { status } = req.body;
       dbService.reviewProductSubmission(req.params.id, status);
       res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/canonical-import - validated canonical fragrance ingestion
+  app.post('/api/canonical-import', (req, res) => {
+    try {
+      const result = dbService.importCanonicalFragrance(req.body);
+      res.json({
+        success: true,
+        ...result
+      });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // POST /api/context/normalize - Step 6A Central Olfactory Context Engine
+  app.post('/api/context/normalize', (req, res) => {
+    try {
+      const normalizedResponse = normalizeOlfactoryContext(req.body);
+      res.json(normalizedResponse);
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  // ================= STEP 6D: OLFACTORY MEMORY & BEHAVIORAL TELEMETRY =================
+
+  // POST /api/behavior/events - record single behavior event with validation and idempotency
+  app.post('/api/behavior/events', (req, res) => {
+    try {
+      const event: OlfactoryBehaviorEvent = req.body;
+      const result = olfactoryMemoryService.recordEvent(event);
+      if (!result.success) {
+        return res.status(400).json({
+          error: 'Behavior event validation failed',
+          errors: result.errors
+        });
+      }
+      res.status(201).json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/behavior/events/batch - record batch of behavior events
+  app.post('/api/behavior/events/batch', (req, res) => {
+    try {
+      const { events } = req.body;
+      if (!Array.isArray(events)) {
+        return res.status(400).json({ error: 'events array is required' });
+      }
+      const result = olfactoryMemoryService.recordBatch(events);
+      if (!result.success && result.inserted === 0) {
+        return res.status(400).json({
+          error: 'All events in batch failed validation',
+          ...result
+        });
+      }
+      res.status(201).json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/behavior/memory - retrieve structured OlfactoryMemorySnapshot
+  app.get('/api/behavior/memory', (req, res) => {
+    try {
+      const userId = parseInt(req.query.userId as string, 10) || 1;
+      const snapshot = olfactoryMemoryService.getMemorySnapshot(userId);
+      res.json(snapshot);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/behavior/history - retrieve paginated raw behavior history
+  app.get('/api/behavior/history', (req, res) => {
+    try {
+      const userId = parseInt(req.query.userId as string, 10) || 1;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+      const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+      const eventType = req.query.eventType as string | undefined;
+      const source = req.query.source as string | undefined;
+      const fragranceId = req.query.fragranceId ? parseInt(req.query.fragranceId as string, 10) : undefined;
+
+      const history = dbService.getBehaviorEvents(userId, {
+        limit,
+        offset,
+        eventType,
+        source,
+        fragranceId
+      });
+
+      res.json(history);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/behavior/fragrance/:id - retrieve fragrance behavioral summary
+  app.get('/api/behavior/fragrance/:id', (req, res) => {
+    try {
+      const fragranceId = parseInt(req.params.id, 10);
+      const userId = parseInt(req.query.userId as string, 10) || 1;
+      const summary = dbService.getFragranceBehaviorSummary(fragranceId, userId);
+      if (!summary) {
+        return res.status(404).json({ error: `Fragrance with ID ${fragranceId} not found` });
+      }
+      res.json(summary);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // DELETE /api/behavior/history - clear behavioral telemetry without touching preferences, wardrobe, or fragrances
+  app.delete('/api/behavior/history', (req, res) => {
+    try {
+      const userId = parseInt((req.query.userId || req.body?.userId) as string, 10) || 1;
+      const result = dbService.clearBehaviorHistory(userId);
+      res.json({
+        success: true,
+        message: 'Behavioral telemetry cleared successfully',
+        deletedCount: result.deletedCount,
+        userId
+      });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }

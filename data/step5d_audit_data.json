@@ -1,0 +1,353 @@
+{
+  "db_to_ml": true,
+  "vector_audit": true,
+  "cluster_audit": true,
+  "api_endpoints": {
+    "/api/fragrances/:id": true,
+    "/api/recommend": true,
+    "/api/layer": true,
+    "/api/scent-battles": true,
+    "/api/weather-recommendation": true,
+    "/api/discovery-box": true,
+    "/api/retail-recommendations": true,
+    "/api/collection": true
+  },
+  "source_review_clean": true,
+  "pyramid_integrity": true,
+  "heritage_integrity": true,
+  "contextual_recommendations": {
+    "weather": {
+      "hot": {
+        "count": 4,
+        "top_names": [
+          "Raw",
+          "Verge",
+          "Amalfi Bleu"
+        ],
+        "status": 200,
+        "latency_ms": 1.2238025665283203
+      },
+      "humid_monsoon": {
+        "count": 4,
+        "top_names": [
+          "Raw",
+          "Verge",
+          "Amalfi Bleu"
+        ],
+        "status": 200,
+        "latency_ms": 1.1942386627197266
+      },
+      "cool_winter": {
+        "count": 4,
+        "top_names": [
+          "White Oud",
+          "CEO Man",
+          "Mysore Sandalwood & Vetiver"
+        ],
+        "status": 200,
+        "latency_ms": 1.1403560638427734
+      }
+    },
+    "occasions": {
+      "Office": {
+        "count": 8,
+        "top_names": [
+          "CEO Man",
+          "Blanc"
+        ],
+        "status": 200,
+        "latency_ms": 1.8534660339355469
+      },
+      "Formal": {
+        "count": 8,
+        "top_names": [
+          "Gentleman Classic",
+          "Colonia Essenza"
+        ],
+        "status": 200,
+        "latency_ms": 2.268075942993164
+      },
+      "Evening": {
+        "count": 8,
+        "top_names": [
+          "Aventus",
+          "Noura Iris"
+        ],
+        "status": 200,
+        "latency_ms": 1.9941329956054688
+      },
+      "Festive / Wedding": {
+        "count": 8,
+        "top_names": [
+          "CEO Man",
+          "Base Camp"
+        ],
+        "status": 200,
+        "latency_ms": 2.1202564239501953
+      },
+      "Casual": {
+        "count": 8,
+        "top_names": [
+          "CEO Man",
+          "Base Camp"
+        ],
+        "status": 200,
+        "latency_ms": 1.9540786743164062
+      }
+    }
+  },
+  "indian_test_cases": [
+    {
+      "id": 3,
+      "category": "Indian designer fragrance",
+      "name": "Amalfi Bleu",
+      "brand": "SKINN by Titan",
+      "vector_dims": 8,
+      "vector_sample": [
+        0.9,
+        0.3,
+        0.6,
+        0.38,
+        0.38,
+        0.75,
+        0,
+        0.71
+      ],
+      "cluster_id": 0,
+      "cluster_label": "Longevity_fixative & Intensity",
+      "api_status": 200,
+      "top_similar": [
+        "CEO Man",
+        "Base Camp",
+        "Blanc"
+      ],
+      "layer_score_with_ref": 89
+    },
+    {
+      "id": 23,
+      "category": "Indian niche fragrance",
+      "name": "Chai Musk",
+      "brand": "Bombay Perfumery",
+      "vector_dims": 8,
+      "vector_sample": [
+        0.5,
+        0.6,
+        0.7,
+        0.3,
+        0,
+        1,
+        0,
+        0.84
+      ],
+      "cluster_id": 1,
+      "cluster_label": "Exotic Spices & Smoked Woods",
+      "api_status": 200,
+      "top_similar": [
+        "CEO Man",
+        "Base Camp",
+        "Blanc"
+      ],
+      "layer_score_with_ref": 83
+    },
+    {
+      "id": 120,
+      "category": "Indian heritage/attar material",
+      "name": "Pahadi Phool Attar",
+      "brand": "Purandas Ranchhoddas",
+      "vector_dims": 8,
+      "vector_sample": [
+        0.5,
+        0.5,
+        0.7,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "cluster_id": 4,
+      "cluster_label": "Opulent Floral Bouquet",
+      "api_status": 200,
+      "top_similar": [
+        "CEO Man",
+        "Base Camp",
+        "Blanc"
+      ],
+      "layer_score_with_ref": 91
+    },
+    {
+      "id": 98,
+      "category": "Kannauj traditional distillation",
+      "name": "Motiya",
+      "brand": "Boond Fragrances",
+      "vector_dims": 8,
+      "vector_sample": [
+        0.5,
+        0.5,
+        0.7,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      "cluster_id": 4,
+      "cluster_label": "Opulent Floral Bouquet",
+      "api_status": 200,
+      "top_similar": [
+        "CEO Man",
+        "Base Camp",
+        "Blanc"
+      ],
+      "layer_score_with_ref": 91
+    },
+    {
+      "id": 99,
+      "category": "Linear botanical profile",
+      "name": "Khus",
+      "brand": "Boond Fragrances",
+      "vector_dims": 8,
+      "vector_sample": [
+        0.5,
+        0.5,
+        0.8,
+        0.75,
+        0,
+        0,
+        0.75,
+        1
+      ],
+      "cluster_id": 3,
+      "cluster_label": "Longevity_fixative & Earthy_clay",
+      "api_status": 200,
+      "top_similar": [
+        "CEO Man",
+        "Base Camp",
+        "Blanc"
+      ],
+      "layer_score_with_ref": 91
+    },
+    {
+      "id": 1,
+      "category": "Full Top/Heart/Base pyramid",
+      "name": "Raw",
+      "brand": "SKINN by Titan",
+      "vector_dims": 8,
+      "vector_sample": [
+        0.8,
+        0.4,
+        0.6,
+        1,
+        0.24,
+        0.24,
+        0,
+        0.77
+      ],
+      "cluster_id": 0,
+      "cluster_label": "Longevity_fixative & Intensity",
+      "api_status": 200,
+      "top_similar": [
+        "CEO Man",
+        "Base Camp",
+        "Blanc"
+      ],
+      "layer_score_with_ref": 92
+    },
+    {
+      "id": 24,
+      "category": "Fragrance with accords",
+      "name": "Calicut",
+      "brand": "Bombay Perfumery",
+      "vector_dims": 8,
+      "vector_sample": [
+        0.6,
+        0.2,
+        0.8,
+        0.75,
+        0,
+        0.58,
+        0.17,
+        0.6
+      ],
+      "cluster_id": 0,
+      "cluster_label": "Longevity_fixative & Intensity",
+      "api_status": 200,
+      "top_similar": [
+        "CEO Man",
+        "Base Camp",
+        "Blanc"
+      ],
+      "layer_score_with_ref": 89
+    },
+    {
+      "id": 107,
+      "category": "Unmapped source terminology",
+      "name": "Mystique",
+      "brand": "Kastoor",
+      "vector_dims": 8,
+      "vector_sample": [
+        0.5,
+        0.5,
+        0.7,
+        0,
+        0.75,
+        0,
+        0.75,
+        1
+      ],
+      "cluster_id": 2,
+      "cluster_label": "Longevity_fixative & Freshness",
+      "api_status": 200,
+      "top_similar": [
+        "CEO Man",
+        "Base Camp",
+        "Blanc"
+      ],
+      "layer_score_with_ref": 88
+    }
+  ],
+  "performance": [
+    {
+      "endpoint": "GET /api/fragrances",
+      "avg_ms": 5.6,
+      "min_ms": 4.65,
+      "max_ms": 6.33
+    },
+    {
+      "endpoint": "GET /api/fragrances/98",
+      "avg_ms": 1.08,
+      "min_ms": 0.91,
+      "max_ms": 1.29
+    },
+    {
+      "endpoint": "GET /api/clusters",
+      "avg_ms": 1.63,
+      "min_ms": 1.2,
+      "max_ms": 3.11
+    },
+    {
+      "endpoint": "POST /api/recommend (k=5)",
+      "avg_ms": 1.86,
+      "min_ms": 1.69,
+      "max_ms": 1.97
+    },
+    {
+      "endpoint": "POST /api/layer (1 & 98)",
+      "avg_ms": 65.72,
+      "min_ms": 56.94,
+      "max_ms": 83.11
+    },
+    {
+      "endpoint": "GET /api/weather-recommendation",
+      "avg_ms": 2.08,
+      "min_ms": 1.54,
+      "max_ms": 3.05
+    },
+    {
+      "endpoint": "POST /api/discovery-box",
+      "avg_ms": 2.57,
+      "min_ms": 1.54,
+      "max_ms": 5.26
+    }
+  ]
+}

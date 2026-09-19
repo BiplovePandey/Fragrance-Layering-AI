@@ -3,7 +3,8 @@ import { AnimatePresence } from 'motion/react';
 import { MotionPage, MotionModal } from './motion/index.js';
 import { AtelierNavbar } from './components/AtelierNavbar.js';
 import { AppBottomNav } from './components/AppBottomNav.js';
-import { AtmosphericFragranceCanvas, ScentFamilyAtmosphere } from './components/AtmosphericFragranceCanvas.js';
+import { AtmosphericFragranceCanvas, ScentFamilyAtmosphere, ATMOSPHERE_PROFILES } from './components/AtmosphericFragranceCanvas.js';
+import { AmbientAtmosphereControl, getAtmosphereFromFragrance } from './components/AmbientAtmosphereControl.js';
 import { WeatherAtmosphereModal } from './components/WeatherAtmosphereModal.js';
 import { FragranceChamberModal } from './components/FragranceChamberModal.js';
 import { OpeningExperience } from './components/OpeningExperience.js';
@@ -19,6 +20,7 @@ import { HeritageAtlasView } from './components/views/HeritageAtlasView.js';
 import { CommunityView } from './components/views/CommunityView.js';
 import { MyDnaView } from './components/views/MyDnaView.js';
 import { DiscoverView } from './components/views/DiscoverView.js';
+import { WhatShouldIWearView } from './components/views/WhatShouldIWearView.js';
 
 import { api } from './services/api.js';
 import { updateWeatherCondition } from './services/weatherEngine.js';
@@ -58,6 +60,7 @@ export default function App() {
     updateWeatherCondition(28, 65, 'temperate', 'Evening')
   );
   const [isWeatherModalOpen, setIsWeatherModalOpen] = useState<boolean>(false);
+  const [isAtmosphereModalOpen, setIsAtmosphereModalOpen] = useState<boolean>(false);
   const [currentAtmosphere, setCurrentAtmosphere] = useState<ScentFamilyAtmosphere>('rose');
 
   // Gamification & User Rank State
@@ -229,6 +232,10 @@ export default function App() {
   const handleInspectInChamber = (frag: Fragrance) => {
     setChamberFragrance(frag);
     setIsChamberOpen(true);
+    const targetAtm = getAtmosphereFromFragrance(frag);
+    if (targetAtm && targetAtm !== 'default') {
+      setCurrentAtmosphere(targetAtm);
+    }
   };
 
   const handleSendToLaboratory = (fragA: Fragrance, fragB?: Fragrance) => {
@@ -314,7 +321,7 @@ export default function App() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#0D0B09] text-stone-200 flex flex-col font-sans selection:bg-amber-500/30 pb-20 md:pb-0 overflow-x-hidden">
+    <div className="relative min-h-screen bg-[#F8F5EF]/50 text-[#1A1613] flex flex-col font-sans selection:bg-amber-500/20 pb-24 md:pb-0 overflow-x-hidden">
       {/* Dynamic Scent Family Atmospheric Canvas Background */}
       <AtmosphericFragranceCanvas
         atmosphere={currentAtmosphere}
@@ -349,6 +356,20 @@ export default function App() {
         onAddToWardrobe={(f) => handleAddToCabinet(f.id)}
         weather={weather}
         allFragrances={fragrances}
+        onImmerseAtmosphere={(f) => {
+          const atm = getAtmosphereFromFragrance(f);
+          setCurrentAtmosphere(atm);
+          showNotification(`Atmosphere shifted to ${ATMOSPHERE_PROFILES[atm]?.name || atm}.`);
+        }}
+      />
+
+      {/* Floating Ambient Atmosphere Controller & Audio Soundscape Modal */}
+      <AmbientAtmosphereControl
+        currentAtmosphere={currentAtmosphere}
+        onSetAtmosphere={setCurrentAtmosphere}
+        activeFragrance={chamberFragrance || labFragA}
+        isOpen={isAtmosphereModalOpen}
+        onOpenChange={setIsAtmosphereModalOpen}
       />
 
       {/* Top Luxury Atelier Navbar */}
@@ -357,14 +378,16 @@ export default function App() {
         setActiveTab={setActiveTab}
         weather={weather}
         onOpenWeatherModal={() => setIsWeatherModalOpen(true)}
+        currentAtmosphere={currentAtmosphere}
+        onOpenAtmosphere={() => setIsAtmosphereModalOpen(true)}
         gamification={gamification}
         wardrobeCount={ownedFragrances?.length || 0}
       />
 
       {/* Floating Notification Toast */}
       {notification && (
-        <div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 bg-[#181512]/95 text-stone-100 rounded-2xl shadow-2xl border border-amber-500/40 text-xs font-medium backdrop-blur-md">
-          <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+        <div className="fixed bottom-24 md:bottom-8 right-6 z-50 flex items-center gap-2.5 px-4 py-3 liquid-glass-elevated text-[#1A1613] rounded-2xl shadow-[0_12px_36px_rgba(95,70,40,0.15)] border border-white text-xs font-semibold">
+          <CheckCircle2 className="w-4 h-4 text-amber-700 shrink-0" />
           <span>{notification.message}</span>
         </div>
       )}
@@ -386,6 +409,22 @@ export default function App() {
                 onSendToLaboratory={handleSendToLaboratory}
                 onSetAtmosphere={setCurrentAtmosphere}
                 currentAtmosphere={currentAtmosphere}
+                onWearToday={handleWearToday}
+                onAddToWardrobe={handleAddToCabinet}
+              />
+            </MotionPage>
+          )}
+
+          {/* WHAT SHOULD I WEAR? OLFACTORY RECOMMENDATION ATELIER */}
+          {activeTab === 'wear' && (
+            <MotionPage key="wear">
+              <WhatShouldIWearView
+                fragrances={fragrances}
+                wardrobeFragrances={ownedFragrances}
+                weather={weather}
+                onOpenWeatherModal={() => setIsWeatherModalOpen(true)}
+                onSelectFragranceForChamber={handleInspectInChamber}
+                onSendToLaboratory={handleSendToLaboratory}
                 onWearToday={handleWearToday}
                 onAddToWardrobe={handleAddToCabinet}
               />

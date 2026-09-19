@@ -1,9 +1,30 @@
 import initSqlJs, { Database } from 'sql.js';
 import fs from 'fs';
 import path from 'path';
-import { Fragrance, Brand, NoteTaxonomyEntry, UserPreferences, SavedCombination, ClusterInfo, UserRating } from '../src/types.js';
-import { extractFragranceVector } from './ml/features.js';
+import {
+  Fragrance,
+  Brand,
+  NoteTaxonomyEntry,
+  UserPreferences,
+  SavedCombination,
+  ClusterInfo,
+  UserRating,
+  CanonicalFragranceImport,
+  CanonicalImportValidationResult,
+  CanonicalImportResolution,
+  OlfactoryBehaviorEvent,
+  FragranceBehaviorSummary
+} from '../src/types.js';
+import { extractFragranceVector, setDynamicTaxonomy, resolveTaxonomyNote } from './ml/features.js';
 import { performKMeansClustering } from './ml/clustering.js';
+import {
+  validateStringArray,
+  validate8DVector,
+  validateProjection,
+  calculateVectorConfidence,
+  validateCanonicalImport,
+  resolveImportConflict
+} from './ml/canonicalValidation.js';
 
 const DB_FILE_PATH = path.join(process.cwd(), 'fragrances.db');
 const BRANDS_JSON_PATH = path.join(process.cwd(), 'data', 'brands.json');
@@ -69,6 +90,34 @@ export class FragranceDatabase {
         if (!existingCols.includes('owned_fragrance_id')) {
           console.log('Migrating user_preferences table: adding owned_fragrance_id column...');
           this.db.run("ALTER TABLE user_preferences ADD COLUMN owned_fragrance_id INTEGER;");
+        }
+      }
+    } catch (e) {
+      // Table doesn't exist yet, proceed
+    }
+
+    // Ensure fragrances table has all canonical olfactory intelligence columns
+    try {
+      const checkFrag = this.db.exec("PRAGMA table_info(fragrances);");
+      if (checkFrag[0]) {
+        const existingCols = checkFrag[0].values.map(row => row[1]);
+        const canonicalColumns = [
+          { name: 'accords', ddl: 'ALTER TABLE fragrances ADD COLUMN accords TEXT;' },
+          { name: 'projection', ddl: 'ALTER TABLE fragrances ADD COLUMN projection TEXT;' },
+          { name: 'time_of_day', ddl: 'ALTER TABLE fragrances ADD COLUMN time_of_day TEXT;' },
+          { name: 'heritage_materials', ddl: 'ALTER TABLE fragrances ADD COLUMN heritage_materials TEXT;' },
+          { name: 'distillation_method', ddl: 'ALTER TABLE fragrances ADD COLUMN distillation_method TEXT;' },
+          { name: 'heritage_relationship', ddl: 'ALTER TABLE fragrances ADD COLUMN heritage_relationship TEXT;' },
+          { name: 'vector', ddl: 'ALTER TABLE fragrances ADD COLUMN vector TEXT;' },
+          { name: 'vector_confidence', ddl: 'ALTER TABLE fragrances ADD COLUMN vector_confidence REAL;' },
+          { name: 'vector_generation_source', ddl: 'ALTER TABLE fragrances ADD COLUMN vector_generation_source TEXT;' }
+        ];
+
+        for (const col of canonicalColumns) {
+          if (!existingCols.includes(col.name)) {
+            console.log(`Migrating fragrances table: adding ${col.name} column...`);
+            this.db.run(col.ddl);
+          }
         }
       }
     } catch (e) {
@@ -141,6 +190,15 @@ export class FragranceDatabase {
         product_category TEXT DEFAULT 'fine_perfume',
         cluster_id INTEGER,
         cluster_label TEXT,
+        accords TEXT,
+        projection TEXT,
+        time_of_day TEXT,
+        heritage_materials TEXT,
+        distillation_method TEXT,
+        heritage_relationship TEXT,
+        vector TEXT,
+        vector_confidence REAL,
+        vector_generation_source TEXT,
         FOREIGN KEY (brand_id) REFERENCES brands (id)
       );
 
@@ -248,6 +306,24 @@ export class FragranceDatabase {
         submitted_by TEXT,
         submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS olfactory_behavior_events (
+        id TEXT PRIMARY KEY,
+        user_id INTEGER NOT NULL DEFAULT 1,
+        event_type TEXT NOT NULL,
+        fragrance_id INTEGER,
+        source TEXT NOT NULL,
+        context_json TEXT,
+        metadata_json TEXT,
+        session_id TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (fragrance_id) REFERENCES fragrances (id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_behavior_user ON olfactory_behavior_events(user_id);
+      CREATE INDEX IF NOT EXISTS idx_behavior_type ON olfactory_behavior_events(event_type);
+      CREATE INDEX IF NOT EXISTS idx_behavior_fragrance ON olfactory_behavior_events(fragrance_id);
+      CREATE INDEX IF NOT EXISTS idx_behavior_created ON olfactory_behavior_events(created_at);
     `);
   }
 
@@ -432,9 +508,10 @@ export class FragranceDatabase {
         cultural_context: obj.cultural_context
       };
     });
+    setDynamicTaxonomy(this.taxonomyCache);
   }
 
-  private computeVectorsAndClusters() {
+  computeVectorsAndClusters() {
     if (!this.db) return;
 
     const rows = this.db.exec(`
@@ -488,30 +565,64 @@ export class FragranceDatabase {
         active: Boolean(obj.active !== 0),
         is_gift_set: Boolean(obj.is_gift_set),
         product_category: obj.product_category || 'fine_perfume',
-        top_notes: typeof obj.top_notes === 'string' ? JSON.parse(obj.top_notes) : obj.top_notes,
-        middle_notes: typeof obj.middle_notes === 'string' ? JSON.parse(obj.middle_notes) : obj.middle_notes,
-        base_notes: typeof obj.base_notes === 'string' ? JSON.parse(obj.base_notes) : obj.base_notes
+        top_notes: typeof obj.top_notes === 'string' ? JSON.parse(obj.top_notes) : (Array.isArray(obj.top_notes) ? obj.top_notes : []),
+        middle_notes: typeof obj.middle_notes === 'string' ? JSON.parse(obj.middle_notes) : (Array.isArray(obj.middle_notes) ? obj.middle_notes : []),
+        base_notes: typeof obj.base_notes === 'string' ? JSON.parse(obj.base_notes) : (Array.isArray(obj.base_notes) ? obj.base_notes : []),
+        accords: typeof obj.accords === 'string' ? JSON.parse(obj.accords) : (Array.isArray(obj.accords) ? obj.accords : []),
+        projection: obj.projection || null,
+        time_of_day: typeof obj.time_of_day === 'string' ? JSON.parse(obj.time_of_day) : (Array.isArray(obj.time_of_day) ? obj.time_of_day : []),
+        heritage_materials: typeof obj.heritage_materials === 'string' ? JSON.parse(obj.heritage_materials) : (Array.isArray(obj.heritage_materials) ? obj.heritage_materials : []),
+        distillation_method: obj.distillation_method || null,
+        heritage_relationship: obj.heritage_relationship || null,
+        vector_confidence: typeof obj.vector_confidence === 'number' ? obj.vector_confidence : undefined,
+        vector_generation_source: obj.vector_generation_source || 'rule_based_taxonomy'
       };
     });
 
-    // Compute vectors
-    const withVectors = rawList.map(frag => ({
-      ...frag,
-      vector: extractFragranceVector(frag)
-    }));
+    // Compute vectors and vector confidence
+    const withVectors = rawList.map(frag => {
+      const vector = extractFragranceVector(frag);
+      const vectorConfidence = frag.vector_confidence !== undefined && frag.vector_confidence !== null
+        ? frag.vector_confidence
+        : calculateVectorConfidence(frag);
+      const vectorGenSource = frag.vector_generation_source || 'rule_based_taxonomy';
+
+      return {
+        ...frag,
+        vector,
+        vector_confidence: vectorConfidence,
+        vector_generation_source: vectorGenSource
+      };
+    });
 
     // Perform K-Means clustering (k = 5)
     const kMeansResult = performKMeansClustering(withVectors, 5);
     this.clustersCache = kMeansResult.clusterInfos;
 
-    // Assign cluster label and id
+    // Assign cluster label, id and persist vector + metadata into database
     this.fragrancesCache = withVectors.map(frag => {
       const clusterId = kMeansResult.clusterAssignments.get(frag.id) ?? 0;
       const info = kMeansResult.clusterInfos.find(ci => ci.cluster_id === clusterId);
       const label = info ? info.name : `Cluster ${clusterId + 1}`;
 
-      // Update DB with cluster
-      this.db?.run(`UPDATE fragrances SET cluster_id = ?, cluster_label = ? WHERE id = ?`, [clusterId, label, frag.id]);
+      // Update DB with cluster, vector, vector_confidence, vector_generation_source
+      this.db?.run(
+        `UPDATE fragrances SET
+          cluster_id = ?,
+          cluster_label = ?,
+          vector = ?,
+          vector_confidence = ?,
+          vector_generation_source = ?
+         WHERE id = ?`,
+        [
+          clusterId,
+          label,
+          JSON.stringify(frag.vector),
+          frag.vector_confidence,
+          frag.vector_generation_source,
+          frag.id
+        ]
+      );
 
       return {
         ...frag,
@@ -919,6 +1030,956 @@ export class FragranceDatabase {
     this.db.run(`UPDATE product_submissions SET status = ? WHERE id = ?`, [status, id]);
     this.saveToFile();
     return true;
+  }
+
+  // ================= CRUD: BRANDS =================
+
+  createBrand(data: Partial<Brand>): Brand {
+    if (!this.db) throw new Error('Database not initialized');
+    if (!data.name || typeof data.name !== 'string' || !data.name.trim()) {
+      throw new Error('Brand name is required');
+    }
+
+    const trimmedName = data.name.trim();
+
+    // Duplicate check
+    const existing = this.brandsCache.find(
+      b => b.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (existing) {
+      throw new Error(`Brand "${trimmedName}" already exists (ID: ${existing.id})`);
+    }
+
+    // Determine ID
+    let newId = data.id;
+    if (!newId) {
+      const maxRes = this.db.exec(`SELECT MAX(id) FROM brands`);
+      const maxId = (maxRes[0]?.values[0]?.[0] as number) || 0;
+      newId = maxId + 1;
+    }
+
+    this.db.run(
+      `INSERT INTO brands (id, name, country, brand_type, category, origin_style, description, founded_year, website, city)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        newId,
+        trimmedName,
+        data.country?.trim() || 'India',
+        data.brand_type?.trim() || 'indian_niche',
+        data.category?.trim() || 'Indian niche',
+        data.origin_style?.trim() || 'Indian / Traditional',
+        data.description?.trim() || '',
+        data.founded_year ?? null,
+        data.website?.trim() || null,
+        data.city?.trim() || null
+      ]
+    );
+
+    this.saveToFile();
+    this.refreshBrandsCache();
+
+    const created = this.getBrandById(newId);
+    if (!created) throw new Error('Failed to retrieve newly created brand');
+    return created;
+  }
+
+  updateBrand(id: number, data: Partial<Brand>): Brand {
+    if (!this.db) throw new Error('Database not initialized');
+    const existing = this.getBrandById(id);
+    if (!existing) {
+      throw new Error(`Brand with ID ${id} not found`);
+    }
+
+    if (data.name && data.name.trim()) {
+      const trimmedName = data.name.trim();
+      const duplicate = this.brandsCache.find(
+        b => b.id !== id && b.name.toLowerCase() === trimmedName.toLowerCase()
+      );
+      if (duplicate) {
+        throw new Error(`Brand "${trimmedName}" already exists (ID: ${duplicate.id})`);
+      }
+    }
+
+    const updatedName = data.name !== undefined ? data.name.trim() : existing.name;
+    const updatedCountry = data.country !== undefined ? data.country.trim() : existing.country;
+    const updatedBrandType = data.brand_type !== undefined ? data.brand_type.trim() : existing.brand_type;
+    const updatedCategory = data.category !== undefined ? data.category.trim() : existing.category;
+    const updatedOriginStyle = data.origin_style !== undefined ? data.origin_style.trim() : existing.origin_style;
+    const updatedDescription = data.description !== undefined ? data.description.trim() : existing.description;
+    const updatedFoundedYear = data.founded_year !== undefined ? data.founded_year : existing.founded_year;
+    const updatedWebsite = data.website !== undefined ? data.website.trim() : existing.website;
+    const updatedCity = data.city !== undefined ? data.city.trim() : existing.city;
+
+    this.db.run(
+      `UPDATE brands SET
+        name = ?, country = ?, brand_type = ?, category = ?, origin_style = ?,
+        description = ?, founded_year = ?, website = ?, city = ?
+       WHERE id = ?`,
+      [
+        updatedName,
+        updatedCountry,
+        updatedBrandType,
+        updatedCategory,
+        updatedOriginStyle,
+        updatedDescription,
+        updatedFoundedYear ?? null,
+        updatedWebsite ?? null,
+        updatedCity ?? null,
+        id
+      ]
+    );
+
+    // If brand name changed, also update brand_name in fragrances
+    if (updatedName !== existing.name) {
+      this.db.run(`UPDATE fragrances SET brand_name = ? WHERE brand_id = ?`, [updatedName, id]);
+    }
+
+    this.saveToFile();
+    this.refreshBrandsCache();
+    this.computeVectorsAndClusters();
+
+    return this.getBrandById(id)!;
+  }
+
+  deleteBrand(id: number): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+    const existing = this.getBrandById(id);
+    if (!existing) {
+      throw new Error(`Brand with ID ${id} not found`);
+    }
+
+    // Check if any fragrances reference this brand
+    const checkFrags = this.db.exec(`SELECT COUNT(*) FROM fragrances WHERE brand_id = ?`, [id]);
+    const count = (checkFrags[0]?.values[0]?.[0] as number) || 0;
+    if (count > 0) {
+      throw new Error(`Cannot delete brand "${existing.name}" because it has ${count} associated fragrance(s). Delete or reassign the fragrances first.`);
+    }
+
+    this.db.run(`DELETE FROM brands WHERE id = ?`, [id]);
+    this.saveToFile();
+    this.refreshBrandsCache();
+    return true;
+  }
+
+  // ================= CRUD: FRAGRANCES =================
+
+  createFragrance(data: Partial<Fragrance>): Fragrance & { vector: number[] } {
+    if (!this.db) throw new Error('Database not initialized');
+    if (!data.name || typeof data.name !== 'string' || !data.name.trim()) {
+      throw new Error('Fragrance name is required');
+    }
+
+    // Resolve Brand
+    let brandId = data.brand_id;
+    let brandName = data.brand_name || data.brand;
+
+    if (brandId) {
+      const foundBrand = this.getBrandById(brandId);
+      if (!foundBrand) {
+        throw new Error(`Brand with ID ${brandId} does not exist`);
+      }
+      brandName = foundBrand.name;
+    } else if (brandName && brandName.trim()) {
+      const trimmedBrand = brandName.trim();
+      const existingBrand = this.brandsCache.find(
+        b => b.name.toLowerCase() === trimmedBrand.toLowerCase()
+      );
+      if (existingBrand) {
+        brandId = existingBrand.id;
+        brandName = existingBrand.name;
+      } else {
+        // Auto-create brand if it doesn't exist
+        const createdBrand = this.createBrand({
+          name: trimmedBrand,
+          country: data.brand_country || 'India',
+          brand_type: data.brand_type || 'indian_niche',
+          category: data.category || 'Indian niche',
+          origin_style: data.origin_style || 'Indian / Traditional'
+        });
+        brandId = createdBrand.id;
+        brandName = createdBrand.name;
+      }
+    } else {
+      throw new Error('Either brand_id or brand name is required');
+    }
+
+    const trimmedName = data.name.trim();
+
+    // Duplicate check: Same brand + same fragrance name
+    const existingFrag = this.fragrancesCache.find(
+      f => (f.brand_id === brandId || f.brand_name?.toLowerCase() === brandName!.toLowerCase()) &&
+           f.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (existingFrag) {
+      throw new Error(`Fragrance "${trimmedName}" by "${brandName}" already exists (ID: ${existingFrag.id})`);
+    }
+
+    // Determine ID
+    let newId = data.id;
+    if (!newId) {
+      const maxRes = this.db.exec(`SELECT MAX(id) FROM fragrances`);
+      const maxId = (maxRes[0]?.values[0]?.[0] as number) || 0;
+      newId = maxId + 1;
+    }
+
+    const topNotes = Array.isArray(data.top_notes) ? data.top_notes : [];
+    const middleNotes = Array.isArray(data.middle_notes) ? data.middle_notes : [];
+    const baseNotes = Array.isArray(data.base_notes) ? data.base_notes : [];
+    const accords = Array.isArray(data.accords) ? data.accords : [];
+    const timeOfDay = Array.isArray(data.time_of_day) ? data.time_of_day : [];
+    const heritageMaterials = Array.isArray(data.heritage_materials) ? data.heritage_materials : [];
+    const season = Array.isArray(data.season) ? data.season : ['Spring', 'Summer', 'Monsoon', 'Winter'];
+    const occasion = Array.isArray(data.occasion) ? data.occasion : ['Office', 'Casual', 'Evening'];
+
+    this.db.run(
+      `INSERT INTO fragrances (
+        id, brand_id, brand_name, collection, name, format, fragrance_type, concentration,
+        gender, category, description, origin_style, price_min, price_max, price_inr, currency,
+        volume_ml, is_oil_based, fragrance_family, top_notes, middle_notes, base_notes,
+        season, occasion, intensity, sweetness, freshness, longevity, source, source_url,
+        source_date, last_verified, data_confidence, status, active, is_gift_set, product_category,
+        accords, projection, time_of_day, heritage_materials, distillation_method, heritage_relationship
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        newId,
+        brandId,
+        brandName,
+        data.collection?.trim() || 'Core Perfume Range',
+        trimmedName,
+        data.format || 'Eau de Parfum',
+        data.fragrance_type || data.format || 'Eau de Parfum',
+        data.concentration || 'EDP (15-20%)',
+        data.gender || 'unisex',
+        data.category || 'Designer / mass Indian',
+        data.description || '',
+        data.origin_style || 'International / Western',
+        data.price_min ?? null,
+        data.price_max ?? null,
+        data.price_inr ?? (data.price_min ? Math.round((data.price_min + (data.price_max || data.price_min)) / 2) : 2500),
+        data.currency || 'INR',
+        data.volume_ml ?? null,
+        data.is_oil_based ? 1 : 0,
+        data.fragrance_family || 'Woody',
+        JSON.stringify(topNotes),
+        JSON.stringify(middleNotes),
+        JSON.stringify(baseNotes),
+        JSON.stringify(season),
+        JSON.stringify(occasion),
+        data.intensity || 6,
+        data.sweetness || 5,
+        data.freshness || 6,
+        data.longevity || '8 hrs',
+        data.source || 'curated_catalog',
+        data.source_url || null,
+        data.source_date || '2025-2026',
+        data.last_verified || new Date().toISOString().split('T')[0],
+        data.data_confidence ?? 0.95,
+        data.status || 'verified',
+        data.active !== false ? 1 : 0,
+        data.is_gift_set ? 1 : 0,
+        data.product_category || 'fine_perfume',
+        JSON.stringify(accords),
+        data.projection || null,
+        JSON.stringify(timeOfDay),
+        JSON.stringify(heritageMaterials),
+        data.distillation_method || null,
+        data.heritage_relationship || null
+      ]
+    );
+
+    // Sync fragrance_notes normalized table
+    for (const note of topNotes) {
+      const res = resolveTaxonomyNote(note);
+      this.db.run(
+        `INSERT OR IGNORE INTO fragrance_notes (fragrance_id, raw_note, normalized_name, note_type) VALUES (?, ?, ?, ?)`,
+        [newId, res.raw_note, res.normalized_name, 'top']
+      );
+    }
+    for (const note of middleNotes) {
+      const res = resolveTaxonomyNote(note);
+      this.db.run(
+        `INSERT OR IGNORE INTO fragrance_notes (fragrance_id, raw_note, normalized_name, note_type) VALUES (?, ?, ?, ?)`,
+        [newId, res.raw_note, res.normalized_name, 'middle']
+      );
+    }
+    for (const note of baseNotes) {
+      const res = resolveTaxonomyNote(note);
+      this.db.run(
+        `INSERT OR IGNORE INTO fragrance_notes (fragrance_id, raw_note, normalized_name, note_type) VALUES (?, ?, ?, ?)`,
+        [newId, res.raw_note, res.normalized_name, 'base']
+      );
+    }
+    const generalNotes = (data as any).notes_general || [];
+    for (const note of generalNotes) {
+      const res = resolveTaxonomyNote(note);
+      this.db.run(
+        `INSERT OR IGNORE INTO fragrance_notes (fragrance_id, raw_note, normalized_name, note_type) VALUES (?, ?, ?, ?)`,
+        [newId, res.raw_note, res.normalized_name, 'general']
+      );
+    }
+
+    this.saveToFile();
+    this.computeVectorsAndClusters();
+
+    const created = this.getFragranceById(newId);
+    if (!created) throw new Error('Failed to retrieve newly created fragrance');
+    return created;
+  }
+
+  updateFragrance(id: number, data: Partial<Fragrance>): Fragrance & { vector: number[] } {
+    if (!this.db) throw new Error('Database not initialized');
+    const existing = this.getFragranceById(id);
+    if (!existing) {
+      throw new Error(`Fragrance with ID ${id} not found`);
+    }
+
+    let brandId = data.brand_id !== undefined ? data.brand_id : existing.brand_id;
+    let brandName = data.brand_name || data.brand;
+
+    if (data.brand_id !== undefined) {
+      const foundBrand = this.getBrandById(data.brand_id);
+      if (!foundBrand) throw new Error(`Brand with ID ${data.brand_id} not found`);
+      brandName = foundBrand.name;
+    } else if (brandName && brandName.trim()) {
+      const existingBrand = this.brandsCache.find(b => b.name.toLowerCase() === brandName!.trim().toLowerCase());
+      if (existingBrand) {
+        brandId = existingBrand.id;
+        brandName = existingBrand.name;
+      }
+    } else {
+      brandName = existing.brand_name || existing.brand;
+    }
+
+    const updatedName = data.name !== undefined ? data.name.trim() : existing.name;
+
+    // Check duplicate if name or brand changed
+    if (updatedName.toLowerCase() !== existing.name.toLowerCase() || (brandId && brandId !== existing.brand_id)) {
+      const duplicate = this.fragrancesCache.find(
+        f => f.id !== id &&
+             (f.brand_id === brandId || f.brand_name?.toLowerCase() === brandName?.toLowerCase()) &&
+             f.name.toLowerCase() === updatedName.toLowerCase()
+      );
+      if (duplicate) {
+        throw new Error(`Fragrance "${updatedName}" by "${brandName}" already exists (ID: ${duplicate.id})`);
+      }
+    }
+
+    const topNotes = data.top_notes !== undefined ? (Array.isArray(data.top_notes) ? data.top_notes : []) : existing.top_notes;
+    const middleNotes = data.middle_notes !== undefined ? (Array.isArray(data.middle_notes) ? data.middle_notes : []) : existing.middle_notes;
+    const baseNotes = data.base_notes !== undefined ? (Array.isArray(data.base_notes) ? data.base_notes : []) : existing.base_notes;
+    const accords = data.accords !== undefined ? (Array.isArray(data.accords) ? data.accords : []) : (existing.accords || []);
+    const timeOfDay = data.time_of_day !== undefined ? (Array.isArray(data.time_of_day) ? data.time_of_day : []) : (existing.time_of_day || []);
+    const heritageMaterials = data.heritage_materials !== undefined ? (Array.isArray(data.heritage_materials) ? data.heritage_materials : []) : (existing.heritage_materials || []);
+    const season = data.season !== undefined ? (Array.isArray(data.season) ? data.season : []) : existing.season;
+    const occasion = data.occasion !== undefined ? (Array.isArray(data.occasion) ? data.occasion : []) : existing.occasion;
+
+    this.db.run(
+      `UPDATE fragrances SET
+        brand_id = ?, brand_name = ?, collection = ?, name = ?, format = ?,
+        fragrance_type = ?, concentration = ?, gender = ?, category = ?,
+        description = ?, origin_style = ?, price_min = ?, price_max = ?,
+        price_inr = ?, currency = ?, volume_ml = ?, is_oil_based = ?,
+        fragrance_family = ?, top_notes = ?, middle_notes = ?, base_notes = ?,
+        season = ?, occasion = ?, intensity = ?, sweetness = ?, freshness = ?,
+        longevity = ?, source = ?, source_url = ?, source_date = ?,
+        last_verified = ?, data_confidence = ?, status = ?, active = ?,
+        is_gift_set = ?, product_category = ?, accords = ?, projection = ?,
+        time_of_day = ?, heritage_materials = ?, distillation_method = ?,
+        heritage_relationship = ?
+       WHERE id = ?`,
+      [
+        brandId ?? existing.brand_id ?? 1,
+        brandName ?? existing.brand_name ?? 'Unknown',
+        data.collection !== undefined ? data.collection : existing.collection,
+        updatedName,
+        data.format !== undefined ? data.format : existing.format,
+        data.fragrance_type !== undefined ? data.fragrance_type : existing.fragrance_type,
+        data.concentration !== undefined ? data.concentration : existing.concentration,
+        data.gender !== undefined ? data.gender : existing.gender,
+        data.category !== undefined ? data.category : existing.category,
+        data.description !== undefined ? data.description : existing.description,
+        data.origin_style !== undefined ? data.origin_style : existing.origin_style,
+        data.price_min !== undefined ? data.price_min : existing.price_min,
+        data.price_max !== undefined ? data.price_max : existing.price_max,
+        data.price_inr !== undefined ? data.price_inr : existing.price_inr,
+        data.currency !== undefined ? data.currency : existing.currency,
+        data.volume_ml !== undefined ? data.volume_ml : existing.volume_ml,
+        data.is_oil_based !== undefined ? (data.is_oil_based ? 1 : 0) : (existing.is_oil_based ? 1 : 0),
+        data.fragrance_family !== undefined ? data.fragrance_family : existing.fragrance_family,
+        JSON.stringify(topNotes),
+        JSON.stringify(middleNotes),
+        JSON.stringify(baseNotes),
+        JSON.stringify(season),
+        JSON.stringify(occasion),
+        data.intensity !== undefined ? data.intensity : existing.intensity,
+        data.sweetness !== undefined ? data.sweetness : existing.sweetness,
+        data.freshness !== undefined ? data.freshness : existing.freshness,
+        data.longevity !== undefined ? data.longevity : existing.longevity,
+        data.source !== undefined ? data.source : existing.source,
+        data.source_url !== undefined ? data.source_url : existing.source_url,
+        data.source_date !== undefined ? data.source_date : existing.source_date,
+        data.last_verified !== undefined ? data.last_verified : new Date().toISOString().split('T')[0],
+        data.data_confidence !== undefined ? data.data_confidence : existing.data_confidence,
+        data.status !== undefined ? data.status : existing.status,
+        data.active !== undefined ? (data.active ? 1 : 0) : (existing.active !== false ? 1 : 0),
+        data.is_gift_set !== undefined ? (data.is_gift_set ? 1 : 0) : (existing.is_gift_set ? 1 : 0),
+        data.product_category !== undefined ? data.product_category : existing.product_category,
+        JSON.stringify(accords),
+        data.projection !== undefined ? data.projection : (existing.projection || null),
+        JSON.stringify(timeOfDay),
+        JSON.stringify(heritageMaterials),
+        data.distillation_method !== undefined ? data.distillation_method : (existing.distillation_method || null),
+        data.heritage_relationship !== undefined ? data.heritage_relationship : (existing.heritage_relationship || null),
+        id
+      ]
+    );
+
+    // Update notes table
+    this.db.run(`DELETE FROM fragrance_notes WHERE fragrance_id = ?`, [id]);
+    for (const note of topNotes) {
+      const res = resolveTaxonomyNote(note);
+      this.db.run(`INSERT OR IGNORE INTO fragrance_notes (fragrance_id, raw_note, normalized_name, note_type) VALUES (?, ?, ?, ?)`, [id, res.raw_note, res.normalized_name, 'top']);
+    }
+    for (const note of middleNotes) {
+      const res = resolveTaxonomyNote(note);
+      this.db.run(`INSERT OR IGNORE INTO fragrance_notes (fragrance_id, raw_note, normalized_name, note_type) VALUES (?, ?, ?, ?)`, [id, res.raw_note, res.normalized_name, 'middle']);
+    }
+    for (const note of baseNotes) {
+      const res = resolveTaxonomyNote(note);
+      this.db.run(`INSERT OR IGNORE INTO fragrance_notes (fragrance_id, raw_note, normalized_name, note_type) VALUES (?, ?, ?, ?)`, [id, res.raw_note, res.normalized_name, 'base']);
+    }
+    const generalNotes = (data as any).notes_general || [];
+    for (const note of generalNotes) {
+      const res = resolveTaxonomyNote(note);
+      this.db.run(`INSERT OR IGNORE INTO fragrance_notes (fragrance_id, raw_note, normalized_name, note_type) VALUES (?, ?, ?, ?)`, [id, res.raw_note, res.normalized_name, 'general']);
+    }
+
+    this.saveToFile();
+    this.computeVectorsAndClusters();
+
+    return this.getFragranceById(id)!;
+  }
+
+  deleteFragrance(id: number): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+    const existing = this.getFragranceById(id);
+    if (!existing) {
+      throw new Error(`Fragrance with ID ${id} not found`);
+    }
+
+    // Cascade delete relations
+    this.db.run(`DELETE FROM fragrance_notes WHERE fragrance_id = ?`, [id]);
+    this.db.run(`DELETE FROM user_collection WHERE fragrance_id = ?`, [id]);
+    this.db.run(`DELETE FROM user_ratings WHERE fragrance_a_id = ? OR fragrance_b_id = ?`, [id, id]);
+    this.db.run(`DELETE FROM layering_combinations WHERE fragrance_a_id = ? OR fragrance_b_id = ?`, [id, id]);
+    this.db.run(`DELETE FROM fragrance_journal WHERE fragrance_id = ? OR layering_partner_id = ?`, [id, id]);
+    this.db.run(`DELETE FROM fragrances WHERE id = ?`, [id]);
+
+    this.saveToFile();
+    this.computeVectorsAndClusters();
+    return true;
+  }
+
+  // ================= CRUD: NOTES / TAXONOMY =================
+
+  createNoteTaxonomy(entry: Partial<NoteTaxonomyEntry>): NoteTaxonomyEntry {
+    if (!this.db) throw new Error('Database not initialized');
+    if (!entry.raw_term || typeof entry.raw_term !== 'string' || !entry.raw_term.trim()) {
+      throw new Error('raw_term is required');
+    }
+
+    const trimmedRaw = entry.raw_term.trim();
+    const existing = this.taxonomyCache.find(
+      t => t.raw_term.toLowerCase() === trimmedRaw.toLowerCase()
+    );
+    if (existing) {
+      throw new Error(`Note taxonomy entry for "${trimmedRaw}" already exists (ID: ${existing.id})`);
+    }
+
+    this.db.run(
+      `INSERT INTO note_taxonomy (
+        raw_term, original_note, normalized_name, note_family, category,
+        origin, english_equivalent, cultural_context
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        trimmedRaw,
+        entry.original_note?.trim() || trimmedRaw,
+        entry.normalized_name?.trim() || trimmedRaw,
+        entry.note_family || 'Floral',
+        entry.category || 'floral',
+        entry.origin || 'Indian',
+        entry.english_equivalent?.trim() || null,
+        entry.cultural_context?.trim() || null
+      ]
+    );
+
+    this.saveToFile();
+    this.refreshTaxonomyCache();
+    this.computeVectorsAndClusters();
+
+    const created = this.taxonomyCache.find(
+      t => t.raw_term.toLowerCase() === trimmedRaw.toLowerCase()
+    );
+    if (!created) throw new Error('Failed to create note taxonomy entry');
+    return created;
+  }
+
+  updateNoteTaxonomy(id: number, entry: Partial<NoteTaxonomyEntry>): NoteTaxonomyEntry {
+    if (!this.db) throw new Error('Database not initialized');
+    const existing = this.taxonomyCache.find(t => t.id === id);
+    if (!existing) {
+      throw new Error(`Note taxonomy entry with ID ${id} not found`);
+    }
+
+    if (entry.raw_term && entry.raw_term.trim()) {
+      const trimmedRaw = entry.raw_term.trim();
+      const duplicate = this.taxonomyCache.find(
+        t => t.id !== id && t.raw_term.toLowerCase() === trimmedRaw.toLowerCase()
+      );
+      if (duplicate) {
+        throw new Error(`Note taxonomy entry for "${trimmedRaw}" already exists (ID: ${duplicate.id})`);
+      }
+    }
+
+    this.db.run(
+      `UPDATE note_taxonomy SET
+        raw_term = ?, original_note = ?, normalized_name = ?,
+        note_family = ?, category = ?, origin = ?,
+        english_equivalent = ?, cultural_context = ?
+       WHERE id = ?`,
+      [
+        entry.raw_term !== undefined ? entry.raw_term.trim() : existing.raw_term,
+        entry.original_note !== undefined ? entry.original_note.trim() : existing.original_note,
+        entry.normalized_name !== undefined ? entry.normalized_name.trim() : existing.normalized_name,
+        entry.note_family !== undefined ? entry.note_family : existing.note_family,
+        entry.category !== undefined ? entry.category : existing.category,
+        entry.origin !== undefined ? entry.origin : existing.origin,
+        entry.english_equivalent !== undefined ? entry.english_equivalent?.trim() : existing.english_equivalent,
+        entry.cultural_context !== undefined ? entry.cultural_context?.trim() : existing.cultural_context,
+        id
+      ]
+    );
+
+    this.saveToFile();
+    this.refreshTaxonomyCache();
+    this.computeVectorsAndClusters();
+
+    return this.taxonomyCache.find(t => t.id === id)!;
+  }
+
+  deleteNoteTaxonomy(id: number): boolean {
+    if (!this.db) throw new Error('Database not initialized');
+    const existing = this.taxonomyCache.find(t => t.id === id);
+    if (!existing) {
+      throw new Error(`Note taxonomy entry with ID ${id} not found`);
+    }
+
+    this.db.run(`DELETE FROM note_taxonomy WHERE id = ?`, [id]);
+    this.saveToFile();
+    this.refreshTaxonomyCache();
+    this.computeVectorsAndClusters();
+    return true;
+  }
+
+  // ================= CANONICAL IMPORT & VALIDATION =================
+
+  importCanonicalFragrance(payload: CanonicalFragranceImport): {
+    action: 'inserted' | 'updated' | 'skipped';
+    fragrance?: Fragrance & { vector: number[] };
+    reason?: string;
+    validation: CanonicalImportValidationResult;
+  } {
+    if (!this.db) throw new Error('Database not initialized');
+
+    // 1. Strict validation
+    const validation = validateCanonicalImport(payload);
+    if (!validation.valid) {
+      throw new Error(`Canonical validation failed: ${validation.errors.join(', ')}`);
+    }
+
+    // 2. Conflict & Deduplication check
+    const resolution = resolveImportConflict(payload, this.fragrancesCache);
+    if (resolution.action === 'skip') {
+      return {
+        action: 'skipped',
+        fragrance: resolution.existingFragrance ? this.getFragranceById(resolution.existingFragrance.id) : undefined,
+        reason: resolution.reason,
+        validation
+      };
+    }
+
+    // 3. Ensure Brand exists or create
+    const brandName = payload.identity.brand_name.trim();
+    let brand = this.brandsCache.find(b => b.name.toLowerCase() === brandName.toLowerCase());
+    if (!brand) {
+      let brandManifestInfo: any = null;
+      try {
+        const brandManifestPath = path.join(process.cwd(), 'data/india_brand_manifest.json');
+        if (fs.existsSync(brandManifestPath)) {
+          const manifestBrands = JSON.parse(fs.readFileSync(brandManifestPath, 'utf8'));
+          brandManifestInfo = manifestBrands.find((mb: any) => mb.brand_name?.toLowerCase() === brandName.toLowerCase());
+        }
+      } catch (e) {
+        // ignore
+      }
+
+      brand = this.createBrand({
+        name: brandName,
+        country: brandManifestInfo?.country || payload.identity.brand_country || 'India',
+        brand_type: brandManifestInfo?.category_description || payload.identity.brand_type || 'Contemporary Indian Lifestyle',
+        category: brandManifestInfo?.category_description || 'Contemporary Indian brand inspired by fine perfumery',
+        origin_style: payload.heritage?.origin_style || 'French-Indian Contemporary Fine Perfumery',
+        description: brandManifestInfo?.craftsmanship_focus || '',
+        founded_year: brandManifestInfo?.founding_year || undefined,
+        website: brandManifestInfo?.tier_1_url || undefined,
+        city: brandManifestInfo?.city || undefined
+      });
+    }
+
+    // 4. Map canonical payload to Fragrance schema
+    const topNotes = payload.scent_structure.top_notes || [];
+    const middleNotes = payload.scent_structure.middle_notes || [];
+    const baseNotes = payload.scent_structure.base_notes || [];
+    const notesGeneral = (payload.scent_structure as any).notes_general || [];
+    const accords = payload.scent_structure.accords || [];
+    const seasons = payload.context?.seasons || ['Spring', 'Summer', 'Monsoon', 'Winter'];
+    const occasions = payload.context?.occasions || ['Office', 'Casual', 'Evening'];
+    const timeOfDay = payload.context?.time_of_day || [];
+    const heritageMaterials = payload.heritage?.heritage_materials || [];
+
+    const isOilBased = payload.identity.is_oil_based !== undefined
+      ? payload.identity.is_oil_based
+      : Boolean(
+          payload.identity.format?.toLowerCase().includes('oil') ||
+          payload.identity.format?.toLowerCase().includes('attar') ||
+          payload.identity.concentration?.toLowerCase().includes('oil') ||
+          payload.identity.concentration?.toLowerCase().includes('attar')
+        );
+
+    const sourceUrl = payload.provenance?.source_url || (payload.provenance as any)?.sources?.[0]?.url || null;
+
+    const fragranceData: Partial<Fragrance> = {
+      brand_id: brand.id,
+      brand_name: brand.name,
+      name: payload.identity.name.trim(),
+      collection: payload.identity.collection || 'Core Collection',
+      gender: payload.identity.gender || 'unisex',
+      concentration: payload.identity.concentration || 'Attar / Perfume Oil (100%)',
+      format: (payload.identity.format as any) || 'Attar',
+      is_oil_based: isOilBased,
+      volume_ml: payload.identity.volume_ml ?? null,
+      price_inr: payload.identity.price_inr ?? null,
+      currency: payload.identity.currency || 'INR',
+      description: payload.identity.description || '',
+      fragrance_family: payload.scent_structure.fragrance_family,
+      top_notes: topNotes,
+      middle_notes: middleNotes,
+      base_notes: baseNotes,
+      accords: accords,
+      projection: payload.performance?.projection || null,
+      season: seasons,
+      occasion: occasions,
+      time_of_day: timeOfDay,
+      intensity: payload.performance?.intensity ?? 7,
+      sweetness: payload.performance?.sweetness ?? 5,
+      freshness: payload.performance?.freshness ?? 5,
+      longevity: payload.performance?.longevity || '8-12 hrs',
+      origin_style: payload.heritage?.origin_style || 'Traditional Indian / Attar',
+      heritage_materials: heritageMaterials,
+      distillation_method: payload.heritage?.distillation_method || null,
+      heritage_relationship: payload.heritage?.heritage_relationship || null,
+      source: payload.provenance?.source || 'canonical_import',
+      source_url: sourceUrl,
+      source_date: payload.provenance?.source_date || new Date().toISOString().split('T')[0],
+      last_verified: payload.provenance?.last_verified || new Date().toISOString().split('T')[0],
+      data_confidence: payload.provenance?.data_confidence ?? 0.95,
+      status: payload.provenance?.status || 'verified',
+      active: true,
+      product_category: 'fine_perfume'
+    };
+    (fragranceData as any).notes_general = notesGeneral;
+
+    if (resolution.action === 'update' && resolution.existingFragrance) {
+      const updated = this.updateFragrance(resolution.existingFragrance.id, fragranceData);
+      return {
+        action: 'updated',
+        fragrance: updated,
+        reason: resolution.reason,
+        validation
+      };
+    } else {
+      const created = this.createFragrance(fragranceData);
+      return {
+        action: 'inserted',
+        fragrance: created,
+        reason: resolution.reason,
+        validation
+      };
+    }
+  }
+
+  getFragranceNotesCount(): number {
+    if (!this.db) return 0;
+    const res = this.db.exec(`SELECT COUNT(*) as count FROM fragrance_notes`);
+    if (res.length > 0 && res[0].values.length > 0) {
+      return Number(res[0].values[0][0]);
+    }
+    return 0;
+  }
+
+  getNotesWithoutFragrance(): any[] {
+    if (!this.db) return [];
+    const res = this.db.exec(`
+      SELECT fn.* FROM fragrance_notes fn
+      LEFT JOIN fragrances f ON fn.fragrance_id = f.id
+      WHERE f.id IS NULL
+    `);
+    if (res.length > 0 && res[0].values.length > 0) {
+      return res[0].values;
+    }
+    return [];
+  }
+
+  findFragranceByNameAndBrand(name: string, brandName: string): Fragrance | undefined {
+    const cleanName = name.toLowerCase().trim();
+    const cleanBrand = brandName.toLowerCase().trim();
+    return this.fragrancesCache.find(
+      f => f.name.toLowerCase().trim() === cleanName && (f.brand_name || f.brand || '').toLowerCase().trim() === cleanBrand
+    );
+  }
+
+  findBrandByName(name: string): Brand | undefined {
+    const clean = name.toLowerCase().trim();
+    return this.brandsCache.find(b => b.name.toLowerCase().trim() === clean);
+  }
+
+  // ================= OLFACTORY BEHAVIOR EVENTS (STEP 6D) =================
+
+  recordBehaviorEvent(event: OlfactoryBehaviorEvent): { inserted: boolean; duplicate: boolean } {
+    if (!this.db) throw new Error('Database not initialized');
+    if (!event.id || !event.eventType || !event.source) {
+      throw new Error('Event must contain id, eventType, and source');
+    }
+
+    // Check idempotency: does event.id already exist?
+    const checkRes = this.db.exec(`SELECT id FROM olfactory_behavior_events WHERE id = ?`, [event.id]);
+    if (checkRes.length > 0 && checkRes[0].values.length > 0) {
+      return { inserted: false, duplicate: true };
+    }
+
+    const contextJson = event.contextSnapshot ? JSON.stringify(event.contextSnapshot) : null;
+    const metadataJson = event.metadata ? JSON.stringify(event.metadata) : null;
+    const createdAt = event.timestamp || new Date().toISOString();
+
+    this.db.run(
+      `INSERT INTO olfactory_behavior_events (
+        id, user_id, event_type, fragrance_id, source, context_json, metadata_json, session_id, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        event.id,
+        event.userId || 1,
+        event.eventType,
+        event.fragranceId ?? null,
+        event.source,
+        contextJson,
+        metadataJson,
+        event.sessionId || null,
+        createdAt
+      ]
+    );
+
+    this.saveToFile();
+    return { inserted: true, duplicate: false };
+  }
+
+  recordBehaviorEventsBatch(events: OlfactoryBehaviorEvent[]): { count: number; inserted: number; duplicates: number } {
+    if (!this.db) throw new Error('Database not initialized');
+    let inserted = 0;
+    let duplicates = 0;
+
+    for (const ev of events) {
+      const res = this.recordBehaviorEvent(ev);
+      if (res.inserted) inserted++;
+      if (res.duplicate) duplicates++;
+    }
+
+    return { count: events.length, inserted, duplicates };
+  }
+
+  getBehaviorEvents(
+    userId: number = 1,
+    options: {
+      limit?: number;
+      offset?: number;
+      eventType?: string;
+      source?: string;
+      fragranceId?: number;
+    } = {}
+  ): { events: OlfactoryBehaviorEvent[]; total: number } {
+    if (!this.db) return { events: [], total: 0 };
+
+    const limit = Math.min(Math.max(1, options.limit || 50), 200);
+    const offset = Math.max(0, options.offset || 0);
+
+    const whereClauses: string[] = ['user_id = ?'];
+    const params: any[] = [userId];
+
+    if (options.eventType) {
+      whereClauses.push('event_type = ?');
+      params.push(options.eventType);
+    }
+    if (options.source) {
+      whereClauses.push('source = ?');
+      params.push(options.source);
+    }
+    if (options.fragranceId !== undefined && options.fragranceId !== null) {
+      whereClauses.push('fragrance_id = ?');
+      params.push(options.fragranceId);
+    }
+
+    const whereSql = whereClauses.join(' AND ');
+
+    // Total count
+    const countRes = this.db.exec(`SELECT COUNT(*) FROM olfactory_behavior_events WHERE ${whereSql}`, params);
+    const total = countRes.length > 0 && countRes[0].values.length > 0 ? Number(countRes[0].values[0][0]) : 0;
+
+    // Paginated results
+    const querySql = `
+      SELECT id, user_id, event_type, fragrance_id, source, context_json, metadata_json, session_id, created_at
+      FROM olfactory_behavior_events
+      WHERE ${whereSql}
+      ORDER BY created_at DESC
+      LIMIT ? OFFSET ?
+    `;
+    const rowsRes = this.db.exec(querySql, [...params, limit, offset]);
+
+    if (!rowsRes[0] || rowsRes[0].values.length === 0) {
+      return { events: [], total };
+    }
+
+    const cols = rowsRes[0].columns;
+    const events: OlfactoryBehaviorEvent[] = rowsRes[0].values.map(val => {
+      const obj: any = {};
+      cols.forEach((col, idx) => { obj[col] = val[idx]; });
+      return {
+        id: obj.id,
+        userId: obj.user_id,
+        eventType: obj.event_type,
+        fragranceId: obj.fragrance_id ?? null,
+        source: obj.source,
+        contextSnapshot: obj.context_json ? JSON.parse(obj.context_json) : null,
+        metadata: obj.metadata_json ? JSON.parse(obj.metadata_json) : null,
+        sessionId: obj.session_id ?? null,
+        timestamp: obj.created_at
+      };
+    });
+
+    return { events, total };
+  }
+
+  getAllBehaviorEventsForAggregation(userId: number = 1, limit: number = 1000): OlfactoryBehaviorEvent[] {
+    if (!this.db) return [];
+    const querySql = `
+      SELECT id, user_id, event_type, fragrance_id, source, context_json, metadata_json, session_id, created_at
+      FROM olfactory_behavior_events
+      WHERE user_id = ?
+      ORDER BY created_at DESC
+      LIMIT ?
+    `;
+    const rowsRes = this.db.exec(querySql, [userId, limit]);
+    if (!rowsRes[0] || rowsRes[0].values.length === 0) return [];
+
+    const cols = rowsRes[0].columns;
+    return rowsRes[0].values.map(val => {
+      const obj: any = {};
+      cols.forEach((col, idx) => { obj[col] = val[idx]; });
+      return {
+        id: obj.id,
+        userId: obj.user_id,
+        eventType: obj.event_type,
+        fragranceId: obj.fragrance_id ?? null,
+        source: obj.source,
+        contextSnapshot: obj.context_json ? JSON.parse(obj.context_json) : null,
+        metadata: obj.metadata_json ? JSON.parse(obj.metadata_json) : null,
+        sessionId: obj.session_id ?? null,
+        timestamp: obj.created_at
+      };
+    });
+  }
+
+  getFragranceBehaviorSummary(fragranceId: number, userId: number = 1): FragranceBehaviorSummary | null {
+    if (!this.db) return null;
+    const fragrance = this.getFragranceById(fragranceId);
+    if (!fragrance) return null;
+
+    const ownedIds = this.getUserCollection(userId);
+    const isOwned = ownedIds.includes(fragranceId);
+
+    const evRes = this.db.exec(`
+      SELECT event_type, metadata_json, created_at
+      FROM olfactory_behavior_events
+      WHERE user_id = ? AND fragrance_id = ?
+      ORDER BY created_at DESC
+    `, [userId, fragranceId]);
+
+    let views = 0;
+    let opens = 0;
+    let saves = 0;
+    let wears = 0;
+    let sotdCount = 0;
+    let ratingsCount = 0;
+    let ratingSum = 0;
+    let lastInteracted = fragrance.last_verified || new Date().toISOString();
+
+    if (evRes[0] && evRes[0].values.length > 0) {
+      lastInteracted = String(evRes[0].values[0][2]);
+      for (const row of evRes[0].values) {
+        const type = String(row[0]);
+        const metaStr = row[1] ? String(row[1]) : null;
+        if (type === 'FRAGRANCE_VIEWED') views++;
+        else if (type === 'RECOMMENDATION_OPENED') opens++;
+        else if (type === 'RECOMMENDATION_SAVED' || type === 'FRAGRANCE_ADDED_TO_WARDROBE') saves++;
+        else if (type === 'FRAGRANCE_WORN') wears++;
+        else if (type === 'SOTD_SELECTED') { sotdCount++; wears++; }
+        else if (type === 'FRAGRANCE_RATED') {
+          ratingsCount++;
+          if (metaStr) {
+            try {
+              const meta = JSON.parse(metaStr);
+              if (typeof meta.rating === 'number') ratingSum += meta.rating;
+            } catch {}
+          }
+        }
+      }
+    }
+
+    return {
+      fragranceId,
+      fragranceName: fragrance.name,
+      brandName: fragrance.brand_name || fragrance.brand || 'Unknown',
+      fragranceFamily: fragrance.fragrance_family,
+      views,
+      opens,
+      saves,
+      wears,
+      ratingsCount,
+      averageRating: ratingsCount > 0 ? parseFloat((ratingSum / ratingsCount).toFixed(1)) : undefined,
+      sotdCount,
+      isOwned,
+      lastInteracted,
+      observedVector: fragrance.vector
+    };
+  }
+
+  clearBehaviorHistory(userId: number = 1): { deletedCount: number } {
+    if (!this.db) return { deletedCount: 0 };
+    const countRes = this.db.exec(`SELECT COUNT(*) FROM olfactory_behavior_events WHERE user_id = ?`, [userId]);
+    const count = countRes.length > 0 && countRes[0].values.length > 0 ? Number(countRes[0].values[0][0]) : 0;
+
+    this.db.run(`DELETE FROM olfactory_behavior_events WHERE user_id = ?`, [userId]);
+    this.saveToFile();
+
+    return { deletedCount: count };
   }
 }
 
