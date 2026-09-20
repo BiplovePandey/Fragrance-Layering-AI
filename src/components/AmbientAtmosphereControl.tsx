@@ -27,6 +27,7 @@ import {
   SOUNDSCAPE_PRESETS
 } from '../services/ambientAudioEngine.js';
 import { Fragrance } from '../types.js';
+import { getFragranceFamilyTokens } from '../utils/fragrancePalette.js';
 
 interface AmbientAtmosphereControlProps {
   currentAtmosphere: ScentFamilyAtmosphere;
@@ -40,40 +41,12 @@ interface AmbientAtmosphereControlProps {
 
 export function getAtmosphereFromFragrance(frag?: Fragrance | null): ScentFamilyAtmosphere {
   if (!frag) return 'default';
-  const allNotes = [
-    ...(frag.top_notes || []),
-    ...(frag.middle_notes || []),
-    ...(frag.base_notes || []),
-    frag.fragrance_family || '',
-    frag.name || '',
-    frag.description || ''
-  ].join(' ').toLowerCase();
-
-  if (allNotes.includes('mitti') || allNotes.includes('petrichor') || allNotes.includes('clay') || allNotes.includes('earth') || allNotes.includes('geosmin')) {
-    return 'earthy';
-  }
-  if (allNotes.includes('khus') || allNotes.includes('vetiver') || allNotes.includes('vetivert')) {
-    return 'khus';
-  }
-  if (allNotes.includes('oud') || allNotes.includes('agarwood') || allNotes.includes('amber') || allNotes.includes('incense') || allNotes.includes('smoky') || allNotes.includes('leather')) {
-    return 'oud';
-  }
-  if (allNotes.includes('cedar') || allNotes.includes('pine') || allNotes.includes('juniper') || allNotes.includes('alpine')) {
-    return 'alpine';
-  }
-  if (allNotes.includes('rose') || allNotes.includes('gulab') || allNotes.includes('floral') || allNotes.includes('jasmine') || allNotes.includes('tuberose')) {
-    return 'rose';
-  }
-  if (allNotes.includes('citrus') || allNotes.includes('bergamot') || allNotes.includes('neroli') || allNotes.includes('lemon') || allNotes.includes('mandarin') || allNotes.includes('orange')) {
-    return 'citrus';
-  }
-  if (allNotes.includes('marine') || allNotes.includes('aquatic') || allNotes.includes('sea') || allNotes.includes('salt') || allNotes.includes('ocean')) {
-    return 'aquatic';
-  }
-  if (allNotes.includes('sandalwood') || allNotes.includes('santal') || allNotes.includes('woody') || allNotes.includes('spicy')) {
-    return 'woody';
-  }
-  return 'default';
+  const tokens = getFragranceFamilyTokens(
+    frag.fragrance_family,
+    frag.name,
+    [...(frag.top_notes || []), ...(frag.middle_notes || []), ...(frag.base_notes || [])]
+  );
+  return tokens.atmosphereKey;
 }
 
 export const AmbientAtmosphereControl: React.FC<AmbientAtmosphereControlProps> = ({

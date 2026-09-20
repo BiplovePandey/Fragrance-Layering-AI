@@ -20,6 +20,8 @@ import {
   WardrobeAnalytics
 } from '../types.js';
 
+export type { OlfactoryVector8D, LivingOlfactoryDNA };
+
 // ================= STORAGE KEYS =================
 const DNA_STORAGE_KEY = 'olfactory_living_dna_v2';
 const MEMORY_STORAGE_KEY = 'olfactory_scent_memory_v2';
@@ -156,7 +158,15 @@ export const olfactoryIntelligence = {
       const stored = localStorage.getItem(DNA_STORAGE_KEY);
       if (stored) {
         const parsed: LivingOlfactoryDNA = JSON.parse(stored);
-        if (parsed?.vector) return parsed;
+        if (parsed?.vector) {
+          if (!Array.isArray(parsed.evolutionReasons)) {
+            parsed.evolutionReasons = [];
+          }
+          if (!parsed.recentDeltas) {
+            parsed.recentDeltas = {};
+          }
+          return parsed;
+        }
       }
     } catch (e) {
       console.warn('Error reading living DNA:', e);
@@ -208,7 +218,19 @@ export const olfactoryIntelligence = {
     try {
       const stored = localStorage.getItem(MEMORY_STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') {
+          if (!Array.isArray(parsed.history)) {
+            parsed.history = [];
+          }
+          if (!Array.isArray(parsed.likes)) parsed.likes = [1, 7, 11, 14];
+          if (!Array.isArray(parsed.dislikes)) parsed.dislikes = [9];
+          if (!Array.isArray(parsed.strongDislikes)) parsed.strongDislikes = [];
+          if (!Array.isArray(parsed.favoriteNotes)) parsed.favoriteNotes = ['Sandalwood', 'Vetiver', 'Mitti', 'Cardamom', 'Bergamot', 'Ruh Khus'];
+          if (!Array.isArray(parsed.avoidNotes)) parsed.avoidNotes = ['Heavy Praline', 'Cotton Candy', 'Overpowering Ethyl Maltol'];
+          if (!Array.isArray(parsed.favoriteFamilies)) parsed.favoriteFamilies = ['Woody Aromatic', 'Chypre Earthy', 'Oriental Resinous'];
+          return parsed;
+        }
       }
     } catch (e) {
       console.warn('Error reading scent memory:', e);
@@ -229,7 +251,8 @@ export const olfactoryIntelligence = {
         hotWeatherNotes: ['Bergamot', 'Mitti Attar', 'Vetiver / Khus', 'Neroli'],
         coldWeatherNotes: ['Sandalwood', 'Assam Oud', 'Cardamom', 'Warm Amber'],
         monsoonNotes: ['Geosmin / Mitti', 'Ruh Khus', 'Patchouli', 'Cedar']
-      }
+      },
+      history: []
     };
     this.saveScentMemory(initial);
     return initial;
@@ -247,7 +270,10 @@ export const olfactoryIntelligence = {
   getEventHistory(): OlfactoryEvent[] {
     try {
       const stored = localStorage.getItem(EVENTS_STORAGE_KEY);
-      if (stored) return JSON.parse(stored);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
     } catch (e) {
       console.warn('Error reading event history:', e);
     }
@@ -284,7 +310,8 @@ export const olfactoryIntelligence = {
       timestamp: new Date().toISOString()
     };
 
-    const history = this.getEventHistory();
+    let history = this.getEventHistory();
+    if (!Array.isArray(history)) history = [];
     history.unshift(fullEvent);
     // Keep last 150 events
     try {
@@ -361,6 +388,9 @@ export const olfactoryIntelligence = {
     }
 
     if (evolutionSummary) {
+      if (!Array.isArray(dna.evolutionReasons)) {
+        dna.evolutionReasons = [];
+      }
       dna.evolutionReasons.unshift({
         date: new Date().toISOString().split('T')[0],
         summary: evolutionSummary,
@@ -691,7 +721,10 @@ export const olfactoryIntelligence = {
   getSavedExperiments(): LayerExperiment[] {
     try {
       const stored = localStorage.getItem(EXPERIMENTS_STORAGE_KEY);
-      if (stored) return JSON.parse(stored);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
     } catch (e) {
       console.warn('Error reading layer experiments:', e);
     }
@@ -705,7 +738,8 @@ export const olfactoryIntelligence = {
       createdAt: new Date().toISOString()
     };
 
-    const list = this.getSavedExperiments();
+    let list = this.getSavedExperiments();
+    if (!Array.isArray(list)) list = [];
     list.unshift(fullExp);
     try {
       localStorage.setItem(EXPERIMENTS_STORAGE_KEY, JSON.stringify(list.slice(0, 50)));
@@ -1125,7 +1159,8 @@ export const olfactoryIntelligence = {
   // 14. ROTATION AI & NEGLECTED FLACONS
   getNeglectedFragrances(wardrobe: Fragrance[]): Fragrance[] {
     const memory = this.getScentMemory();
-    const wornIds = new Set(memory.history.map(h => h.fragranceId));
+    const history = Array.isArray(memory.history) ? memory.history : [];
+    const wornIds = new Set(history.map(h => h.fragranceId));
 
     // Bottles not in recent history
     const unworn = wardrobe.filter(f => !wornIds.has(f.id));
@@ -1133,8 +1168,8 @@ export const olfactoryIntelligence = {
 
     // Or reverse history to find least recently worn
     const sorted = [...wardrobe].sort((a, b) => {
-      const idxA = memory.history.findIndex(h => h.fragranceId === a.id);
-      const idxB = memory.history.findIndex(h => h.fragranceId === b.id);
+      const idxA = history.findIndex(h => h.fragranceId === a.id);
+      const idxB = history.findIndex(h => h.fragranceId === b.id);
       return idxA - idxB;
     });
     return sorted.slice(0, 3);
@@ -1143,7 +1178,8 @@ export const olfactoryIntelligence = {
   // 15. SCENT CALENDAR RECENT WEARS
   getRecentWears(): RecentWearItem[] {
     const memory = this.getScentMemory();
-    if (memory.history.length === 0) {
+    const history = Array.isArray(memory.history) ? memory.history : [];
+    if (history.length === 0) {
       return [
         {
           id: 'w-mock-1',
@@ -1175,13 +1211,13 @@ export const olfactoryIntelligence = {
       ];
     }
 
-    return memory.history.map((h, i) => ({
+    return history.map((h, i) => ({
       id: `w-${i}-${h.timestamp}`,
       fragranceId: h.fragranceId,
       fragranceName: h.fragranceName,
-      occasion: h.occasion,
-      weatherSummary: `${Math.round(h.weatherCondition.temperature_c)}°C • ${h.weatherCondition.condition}`,
-      satisfactionRating: h.satisfactionRating,
+      occasion: h.occasion || 'Signature Wear',
+      weatherSummary: h.weatherCondition ? `${Math.round(h.weatherCondition.temperature_c)}°C • ${h.weatherCondition.condition}` : 'Temperate Atmosphere',
+      satisfactionRating: h.satisfactionRating || 9,
       timestamp: h.timestamp
     }));
   },
@@ -1279,6 +1315,9 @@ export const olfactoryIntelligence = {
     satisfactionRating?: number;
   }) {
     const memory = this.getScentMemory();
+    if (!Array.isArray(memory.history)) {
+      memory.history = [];
+    }
     const newEntry = {
       fragranceId: params.fragranceId,
       fragranceName: params.fragranceName,

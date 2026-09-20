@@ -1,13 +1,17 @@
 import React, { useState, useRef } from 'react';
 import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { Sparkles, Eye } from 'lucide-react';
-import { Fragrance } from '../../types.js';
+import { Fragrance, OlfactoryVector8D } from '../../types.js';
 import { getFlaconLayoutId, SHARED_FLACON_TRANSITION } from '../../motion/sharedElements.js';
 import { ScentFamilyAtmosphere } from '../AtmosphericFragranceCanvas.js';
+import { extractFragranceVector8D } from '../../services/olfactoryIntelligence.js';
+import { usePrefersReducedMotion } from '../../motion/accessibility.js';
+import { getFragranceFamilyTokens } from '../../utils/fragrancePalette.js';
 
 interface HeroFlaconProps {
   fragrance: Fragrance;
   atmosphere?: ScentFamilyAtmosphere;
+  vector8D?: OlfactoryVector8D;
   onClick?: () => void;
   size?: 'hero' | 'chord' | 'mini';
 }
@@ -90,16 +94,39 @@ const FAMILY_AURA_MAP: Record<string, {
 export const HeroFlacon: React.FC<HeroFlaconProps> = ({
   fragrance,
   atmosphere,
+  vector8D,
   onClick,
   size = 'hero'
 }) => {
-  const familyKey = (atmosphere || fragrance.fragrance_family?.toLowerCase() || 'default');
-  const aura = FAMILY_AURA_MAP[familyKey] || FAMILY_AURA_MAP.default;
+  const reducedMotion = usePrefersReducedMotion();
+  const effectiveVector = vector8D || extractFragranceVector8D(fragrance);
+
+  const tokens = getFragranceFamilyTokens(
+    atmosphere || fragrance.fragrance_family,
+    fragrance.name,
+    [...(fragrance.top_notes || []), ...(fragrance.middle_notes || []), ...(fragrance.base_notes || [])]
+  );
+  const baseAura = tokens.flaconAura;
+
+  // 8D Vector-influenced visual properties
+  const intensityRatio = Math.max(0.35, Math.min(1.2, (effectiveVector.intensity || 60) / 70));
+  const freshnessRatio = Math.max(0.3, Math.min(1.2, (effectiveVector.freshness || 60) / 70));
+  const woodyRatio = (effectiveVector.woody || 50) / 100;
+  const resinRatio = (effectiveVector.warm_resinous_spices || 50) / 100;
+
+  // Modulated aura tones reflecting resin and wood depth
+  const aura = {
+    ...baseAura,
+    liquidColor: resinRatio > 0.6 
+      ? `rgba(180, 83, 9, ${0.28 + resinRatio * 0.22})` 
+      : baseAura.liquidColor,
+    amber: woodyRatio > 0.65 ? '#CA8A04' : baseAura.amber
+  };
 
   const isHero = size === 'hero';
   const isChord = size === 'chord';
 
-  // Pointer Parallax (Subtle 2-4 degrees tilt max for hero)
+  // Pointer Parallax (Subtle 2-4 degrees tilt max for hero, disabled if reduced motion)
   const containerRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -110,7 +137,7 @@ export const HeroFlacon: React.FC<HeroFlaconProps> = ({
   const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-3, 3]), { stiffness: 150, damping: 20 });
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isHero || !containerRef.current) return;
+    if (!isHero || !containerRef.current || reducedMotion) return;
     const rect = containerRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -136,6 +163,9 @@ export const HeroFlacon: React.FC<HeroFlaconProps> = ({
   const capWidth = isHero ? 'w-14 sm:w-16 h-8 sm:h-10' : isChord ? 'w-9 h-5' : 'w-6 h-3';
   const neckWidth = isHero ? 'w-9 sm:w-11 h-3.5 sm:h-4.5' : isChord ? 'w-6 h-2.5' : 'w-4 h-1.5';
 
+  const outerBloomPx = Math.round((isHero ? 340 : 180) * intensityRatio);
+  const midDiffusionPx = Math.round((isHero ? 260 : 140) * (0.85 + freshnessRatio * 0.25));
+
   return (
     <div
       ref={containerRef}
@@ -153,56 +183,68 @@ export const HeroFlacon: React.FC<HeroFlaconProps> = ({
         }
       }}
       aria-label={`Inspect ${fragrance.name} by ${fragrance.brand}`}
-      style={{ perspective: isHero ? 900 : undefined }}
+      style={{ perspective: isHero && !reducedMotion ? 900 : undefined }}
     >
       {/* =========================================================================
           ATMOSPHERIC FRAGRANCE AURA (3-LAYER SLOW VAPOR DIFFUSION)
           ========================================================================= */}
       {/* Layer 1: Outer Environmental Bloom */}
       <motion.div
-        animate={{
-          scale: isHovered ? 1.22 : isHero ? [1.02, 1.15, 1.02] : [1, 1.06, 1],
-          opacity: isHovered ? 0.9 : isHero ? [0.65, 0.95, 0.65] : [0.4, 0.7, 0.4],
-        }}
+        animate={
+          reducedMotion
+            ? { scale: 1, opacity: 0.7 }
+            : {
+                scale: isHovered ? 1.22 : isHero ? [1.02, 1.15, 1.02] : [1, 1.06, 1],
+                opacity: isHovered ? 0.9 : isHero ? [0.65, 0.95, 0.65] : [0.4, 0.7, 0.4],
+              }
+        }
         transition={{
-          duration: 6,
+          duration: 6 / freshnessRatio,
           repeat: Infinity,
           ease: 'easeInOut'
         }}
         className="absolute rounded-full pointer-events-none blur-3xl z-0 transition-all duration-700"
         style={{
-          width: isHero ? '340px' : '180px',
-          height: isHero ? '340px' : '180px',
+          width: `${outerBloomPx}px`,
+          height: `${outerBloomPx}px`,
           background: `radial-gradient(circle, ${aura.outerBloom} 0%, rgba(255,255,255,0) 70%)`
         }}
       />
 
       {/* Layer 2: Mid Scent Vapor Diffusion (Irregular Breathing Ellipse) */}
       <motion.div
-        animate={{
-          scale: isHovered ? 1.15 : isHero ? [1, 1.1, 1] : [1, 1.05, 1],
-          opacity: isHovered ? 0.95 : isHero ? [0.75, 1, 0.75] : [0.5, 0.8, 0.5],
-          rotate: isHero ? [0, 8, -6, 0] : 0
-        }}
+        animate={
+          reducedMotion
+            ? { scale: 1, opacity: 0.8, rotate: 0 }
+            : {
+                scale: isHovered ? 1.15 : isHero ? [1, 1.1, 1] : [1, 1.05, 1],
+                opacity: isHovered ? 0.95 : isHero ? [0.75, 1, 0.75] : [0.5, 0.8, 0.5],
+                rotate: isHero ? [0, 8, -6, 0] : 0
+              }
+        }
         transition={{
-          duration: 8,
+          duration: 8 / freshnessRatio,
           repeat: Infinity,
           ease: 'easeInOut'
         }}
         className="absolute rounded-[45%_55%_60%_40%/50%_45%_55%_50%] pointer-events-none blur-2xl z-0 transition-all duration-500"
         style={{
-          width: isHero ? '260px' : '140px',
-          height: isHero ? '260px' : '140px',
+          width: `${midDiffusionPx}px`,
+          height: `${midDiffusionPx}px`,
           background: `radial-gradient(circle, ${aura.midDiffusion} 15%, transparent 68%)`
         }}
       />
 
       {/* Layer 3: Concentrated Core Headspace Aura */}
       <motion.div
-        animate={{
-          scale: isHovered ? 1.08 : [0.95, 1.05, 0.95],
-          opacity: [0.8, 1, 0.8]
-        }}
+        animate={
+          reducedMotion
+            ? { scale: 1, opacity: 0.9 }
+            : {
+                scale: isHovered ? 1.08 : [0.95, 1.05, 0.95],
+                opacity: [0.8, 1, 0.8]
+              }
+        }
         transition={{
           duration: 4.5,
           repeat: Infinity,
@@ -217,7 +259,7 @@ export const HeroFlacon: React.FC<HeroFlaconProps> = ({
       />
 
       {/* Floating Micro-Scent Molecules (Light-Refracting Particles) */}
-      {isHero && (
+      {isHero && !reducedMotion && (
         <div className="absolute inset-0 pointer-events-none z-0 overflow-visible">
           {[...Array(5)].map((_, i) => (
             <motion.div
@@ -230,7 +272,7 @@ export const HeroFlacon: React.FC<HeroFlaconProps> = ({
                 scale: [0.4, 0.9, 0.2]
               }}
               transition={{
-                duration: 4.2 + i * 0.8,
+                duration: (4.2 + i * 0.8) / freshnessRatio,
                 repeat: Infinity,
                 delay: i * 0.9,
                 ease: 'easeOut'
@@ -255,7 +297,13 @@ export const HeroFlacon: React.FC<HeroFlaconProps> = ({
         className="relative z-10 flex flex-col items-center"
       >
         <motion.div
-          animate={isHero ? { y: isHovered ? -6 : [0, -6, 0] } : undefined}
+          animate={
+            isHero
+              ? reducedMotion
+                ? { y: 0 }
+                : { y: isHovered ? -6 : [0, -6, 0] }
+              : undefined
+          }
           transition={
             isHero
               ? isHovered
@@ -263,7 +311,7 @@ export const HeroFlacon: React.FC<HeroFlaconProps> = ({
                 : { duration: 5, repeat: Infinity, ease: 'easeInOut' }
               : undefined
           }
-          style={isHero ? { rotateX, rotateY, transformStyle: 'preserve-3d' } : undefined}
+          style={isHero && !reducedMotion ? { rotateX, rotateY, transformStyle: 'preserve-3d' } : undefined}
           className="flex flex-col items-center"
         >
           {/* 1. Flacon Cap (Brushed Gold / Noble Metallic Bevel) */}

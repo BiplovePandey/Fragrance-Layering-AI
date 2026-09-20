@@ -115,3 +115,22 @@ export const blurRevealVariants: Variants = {
     },
   },
 };
+
+export const accordionVariants: Variants = {
+  closed: {
+    opacity: 0,
+    height: 0,
+    transition: {
+      height: { duration: 0.28, ease: [0.16, 1, 0.3, 1] },
+      opacity: { duration: 0.18 },
+    },
+  },
+  open: {
+    opacity: 1,
+    height: 'auto',
+    transition: {
+      height: { duration: 0.35, ease: [0.16, 1, 0.3, 1] },
+      opacity: { duration: 0.28, delay: 0.08 },
+    },
+  },
+};

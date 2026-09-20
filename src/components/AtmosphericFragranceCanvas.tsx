@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { isMobileOrLowPower } from '../motion/performance.js';
 
 export type ScentFamilyAtmosphere =
   | 'citrus'
@@ -9,6 +10,7 @@ export type ScentFamilyAtmosphere =
   | 'woody'
   | 'khus'
   | 'alpine'
+  | 'spicy'
   | 'default';
 
 export interface AtmosphereMeta {
@@ -55,6 +57,17 @@ export const ATMOSPHERE_PROFILES: Record<ScentFamilyAtmosphere, AtmosphereMeta> 
     accentColor: '#D97706',
     palette: ['#B45309', '#78350F', '#D97706', '#6B21A8', '#451A03'],
     particleStyle: 'smoke',
+    ambientSoundSuggested: 'amber_hearth'
+  },
+  spicy: {
+    id: 'spicy',
+    name: 'Warm Resins & Sacred Spices',
+    subhead: 'Radiant saffron, Ceylon cinnamon & golden frankincense embers',
+    glowColor1: 'rgba(234, 88, 12, 0.18)',
+    glowColor2: 'rgba(185, 28, 28, 0.14)',
+    accentColor: '#EA580C',
+    palette: ['#EA580C', '#C2410C', '#B45309', '#F97316', '#7C2D12'],
+    particleStyle: 'sparkle',
     ambientSoundSuggested: 'amber_hearth'
   },
   alpine: {
@@ -145,7 +158,7 @@ interface Particle {
   sinOffset?: number;
 }
 
-export const AtmosphericFragranceCanvas: React.FC<AtmosphericFragranceCanvasProps> = ({
+const AtmosphericFragranceCanvasComponent: React.FC<AtmosphericFragranceCanvasProps> = ({
   atmosphere = 'default',
   intensity = 1.0,
   opacity = 0.55
@@ -156,12 +169,15 @@ export const AtmosphericFragranceCanvas: React.FC<AtmosphericFragranceCanvasProp
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     let animId: number;
     let width = (canvas.width = window.innerWidth);
     let height = (canvas.height = window.innerHeight);
+    let isVisible = !document.hidden;
+
+    const isMobile = isMobileOrLowPower();
 
     const handleResize = () => {
       if (!canvas) return;
@@ -170,19 +186,27 @@ export const AtmosphericFragranceCanvas: React.FC<AtmosphericFragranceCanvasProp
       initParticles();
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize, { passive: true });
+
+    const handleVisibilityChange = () => {
+      isVisible = !document.hidden;
+      if (isVisible) {
+        lastTime = performance.now();
+        animId = requestAnimationFrame(render);
+      } else {
+        cancelAnimationFrame(animId);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     let particles: Particle[] = [];
     const palette = activeProfile.palette;
 
     const initParticles = () => {
       particles = [];
-      const count =
-        activeProfile.particleStyle === 'smoke'
-          ? 32
-          : activeProfile.particleStyle === 'sparkle'
-          ? 60
-          : 42;
+      const baseCount = isMobile ? 14 : 32;
+      const count = Math.round(baseCount * Math.min(1.5, Math.max(0.5, intensity)));
 
       for (let i = 0; i < count; i++) {
         const color = palette[Math.floor(Math.random() * palette.length)];
@@ -193,40 +217,40 @@ export const AtmosphericFragranceCanvas: React.FC<AtmosphericFragranceCanvasProp
 
         if (activeProfile.particleStyle === 'sparkle') {
           // Energetic sparkling upward motes
-          vx = (Math.random() - 0.5) * 1.5;
-          vy = -Math.random() * 1.4 - 0.4;
+          vx = (Math.random() - 0.5) * 1.2;
+          vy = -Math.random() * 1.1 - 0.3;
           radius = Math.random() * 2.2 + 1;
           baseAlpha = Math.random() * 0.4 + 0.25;
         } else if (activeProfile.particleStyle === 'smoke') {
           // Slow expansive charcoal / oud smoke puffs
-          vx = (Math.random() - 0.5) * 0.35;
-          vy = -Math.random() * 0.35 - 0.08;
-          radius = Math.random() * 16 + 20;
-          baseAlpha = Math.random() * 0.14 + 0.04;
+          vx = (Math.random() - 0.5) * 0.3;
+          vy = -Math.random() * 0.3 - 0.08;
+          radius = isMobile ? Math.random() * 10 + 10 : Math.random() * 14 + 18;
+          baseAlpha = Math.random() * 0.12 + 0.04;
         } else if (activeProfile.particleStyle === 'petal') {
           // Gently floating falling petals
-          vx = (Math.random() - 0.5) * 0.7;
-          vy = Math.random() * 0.4 + 0.15;
-          radius = Math.random() * 3.8 + 1.8;
-          baseAlpha = Math.random() * 0.35 + 0.2;
+          vx = (Math.random() - 0.5) * 0.6;
+          vy = Math.random() * 0.35 + 0.12;
+          radius = Math.random() * 3.2 + 1.6;
+          baseAlpha = Math.random() * 0.3 + 0.18;
         } else if (activeProfile.particleStyle === 'mist') {
           // Flowing horizontal dewy currents (Vetiver / Aquatic)
-          vx = Math.random() * 1.1 + 0.25;
-          vy = (Math.random() - 0.5) * 0.35;
-          radius = Math.random() * 3.2 + 1.2;
-          baseAlpha = Math.random() * 0.35 + 0.15;
+          vx = Math.random() * 0.8 + 0.2;
+          vy = (Math.random() - 0.5) * 0.25;
+          radius = Math.random() * 2.8 + 1.2;
+          baseAlpha = Math.random() * 0.3 + 0.12;
         } else if (activeProfile.particleStyle === 'dust') {
           // Clay & Petrichor settling dust particles
-          vx = (Math.random() - 0.5) * 0.3;
-          vy = Math.random() * 0.35 + 0.12;
-          radius = Math.random() * 2.4 + 1.1;
-          baseAlpha = Math.random() * 0.32 + 0.18;
+          vx = (Math.random() - 0.5) * 0.25;
+          vy = Math.random() * 0.3 + 0.1;
+          radius = Math.random() * 2.2 + 1.0;
+          baseAlpha = Math.random() * 0.28 + 0.15;
         } else {
           // Woody organic drift
-          vx = (Math.random() - 0.5) * 0.4;
-          vy = -Math.random() * 0.35 - 0.12;
-          radius = Math.random() * 3.5 + 1.5;
-          baseAlpha = Math.random() * 0.28 + 0.14;
+          vx = (Math.random() - 0.5) * 0.35;
+          vy = -Math.random() * 0.3 - 0.1;
+          radius = Math.random() * 3.0 + 1.2;
+          baseAlpha = Math.random() * 0.25 + 0.12;
         }
 
         particles.push({
@@ -239,7 +263,7 @@ export const AtmosphericFragranceCanvas: React.FC<AtmosphericFragranceCanvasProp
           alpha: baseAlpha,
           color,
           twinkle: Math.random() * Math.PI * 2,
-          twinkleSpeed: Math.random() * 0.035 + 0.01,
+          twinkleSpeed: Math.random() * 0.03 + 0.01,
           sinOffset: Math.random() * Math.PI * 2
         });
       }
@@ -247,21 +271,32 @@ export const AtmosphericFragranceCanvas: React.FC<AtmosphericFragranceCanvasProp
 
     initParticles();
 
-    const render = () => {
+    let lastTime = performance.now();
+
+    const render = (currentTime: number) => {
+      if (!isVisible) return;
+
+      const elapsed = currentTime - lastTime;
+      lastTime = currentTime;
+      // Clamp delta to avoid leaps after tab resumes
+      const delta = Math.min(elapsed / 16.67, 2.0);
+
       ctx.clearRect(0, 0, width, height);
+
+      const effectiveSpeed = Math.max(0.6, intensity) * delta;
 
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
-        p.x += p.vx * Math.max(0.6, intensity);
-        p.y += p.vy * Math.max(0.6, intensity);
+        p.x += p.vx * effectiveSpeed;
+        p.y += p.vy * effectiveSpeed;
 
         if (p.sinOffset !== undefined) {
-          p.sinOffset += 0.015;
-          p.x += Math.sin(p.sinOffset) * 0.25;
+          p.sinOffset += 0.015 * delta;
+          p.x += Math.sin(p.sinOffset) * 0.25 * delta;
         }
 
         if (p.twinkle !== undefined && p.twinkleSpeed) {
-          p.twinkle += p.twinkleSpeed;
+          p.twinkle += p.twinkleSpeed * delta;
           p.alpha = Math.max(0.04, p.baseAlpha + Math.sin(p.twinkle) * 0.15);
         }
 
@@ -272,7 +307,7 @@ export const AtmosphericFragranceCanvas: React.FC<AtmosphericFragranceCanvasProp
         if (p.y > height + 50) p.y = -40;
 
         ctx.beginPath();
-        if (activeProfile.particleStyle === 'smoke') {
+        if (activeProfile.particleStyle === 'smoke' && !isMobile) {
           const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.radius);
           grad.addColorStop(0, p.color);
           grad.addColorStop(1, 'transparent');
@@ -297,6 +332,7 @@ export const AtmosphericFragranceCanvas: React.FC<AtmosphericFragranceCanvasProp
     return () => {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [atmosphere, intensity, opacity, activeProfile]);
 
@@ -350,3 +386,5 @@ export const AtmosphericFragranceCanvas: React.FC<AtmosphericFragranceCanvasProp
     </div>
   );
 };
+
+export const AtmosphericFragranceCanvas = React.memo(AtmosphericFragranceCanvasComponent);

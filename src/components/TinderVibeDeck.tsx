@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { TINDER_VIBE_CARDS, TinderVibeCard } from '../theme.js';
-import { Heart, ThumbsDown, Sparkles, RotateCcw, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Heart, Ban, Sparkles, RotateCcw, CheckCircle2, ArrowRight, Compass } from 'lucide-react';
 import { UserPreferences } from '../types.js';
 
 interface TinderVibeDeckProps {
@@ -66,79 +66,87 @@ export const TinderVibeDeck: React.FC<TinderVibeDeckProps> = ({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FFF9F3] via-[#FAF1E8] to-[#F7E7DC] border border-[#F0E6DD] p-6 sm:p-8 shadow-xs">
-      <div className="text-center max-w-lg mx-auto space-y-2 mb-6">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E9D6F5] text-[#5B2186] text-[11px] font-semibold tracking-wider uppercase">
-          <Sparkles className="w-3.5 h-3.5 text-[#7B3F98]" />
-          <span>Scent Taste Matcher</span>
+    <div className="relative overflow-hidden rounded-3xl bg-[#14100D] border border-[#3E3228] p-6 sm:p-10 shadow-2xl text-[#FAF5F0]">
+      {/* Background ambient radiance */}
+      <div className="absolute top-0 right-1/4 w-96 h-96 bg-[radial-gradient(circle,rgba(217,119,6,0.12),transparent_70%)] pointer-events-none" />
+
+      {/* Header */}
+      <div className="text-center max-w-xl mx-auto space-y-2 mb-8 relative z-10">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#241B15] text-[#D97706] border border-[#3E3228] text-xs font-mono-lab uppercase tracking-wider">
+          <Compass className="w-3.5 h-3.5 text-[#F59E0B]" />
+          <span>Chapter II • Taste Discovery Ritual</span>
         </div>
-        <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#292323]">
-          Swipe Your Scent Vibe
+        <h3 className="font-serif text-3xl sm:text-4xl font-medium text-[#FAF5F0] tracking-tight">
+          Sensory Accord Calibration
         </h3>
-        <p className="text-xs text-[#786F6A]">
-          Quickly like or pass on iconic chords. In 5 taps, we decode your olfactory fingerprint.
+        <p className="text-xs sm:text-sm text-[#A8988B] leading-relaxed">
+          Respond instinctually. In 5 tactile impressions, we calibrate your personal scent profile against iconic fragrance structures.
         </p>
       </div>
 
       {!isFinished ? (
-        <div className="max-w-xs mx-auto space-y-5">
+        <div className="max-w-sm mx-auto space-y-6 relative z-10">
           {/* Progress dots */}
           <div className="flex items-center justify-center gap-2">
             {TINDER_VIBE_CARDS.map((card, idx) => (
               <div
                 key={card.id}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
+                className={`h-2 rounded-full transition-all duration-300 ${
                   idx === currentIndex
-                    ? 'w-8 bg-[#7B3F98]'
+                    ? 'w-8 bg-[#D97706]'
                     : idx < currentIndex
-                    ? 'w-3 bg-[#E86A92]'
-                    : 'w-2 bg-stone-300'
+                    ? 'w-3 bg-[#34D399]'
+                    : 'w-2 bg-[#2A1E16]'
                 }`}
               />
             ))}
           </div>
 
           {/* Swipe Card */}
-          <div className="relative h-72 w-full">
+          <div className="relative h-80 w-full">
             <div
-              className={`absolute inset-0 rounded-3xl p-6 flex flex-col items-center justify-between text-center border-2 transition-all duration-300 shadow-md ${
-                currentCard.gradient
-              } ${
+              className={`absolute inset-0 rounded-3xl p-7 flex flex-col items-center justify-between text-center border transition-all duration-300 shadow-2xl bg-gradient-to-b from-[#241912] via-[#1B120D] to-[#120D0A] ${
                 swipeFeedback === 'liked'
-                  ? 'translate-x-12 rotate-6 opacity-40 border-emerald-400'
+                  ? 'translate-x-12 rotate-6 opacity-40 border-[#34D399]'
                   : swipeFeedback === 'passed'
-                  ? '-translate-x-12 -rotate-6 opacity-40 border-rose-400'
-                  : 'translate-x-0 rotate-0 border-white/80 hover:scale-[1.02]'
+                  ? '-translate-x-12 -rotate-6 opacity-40 border-[#F87171]'
+                  : 'translate-x-0 rotate-0 border-[#523A25] hover:scale-[1.01]'
               }`}
             >
+              {/* Radial glow tailored to the card */}
+              <div
+                className="absolute inset-0 opacity-15 rounded-3xl pointer-events-none transition-opacity duration-500"
+                style={{ backgroundColor: currentCard.accentColor }}
+              />
+
               {/* Feedback Stamps */}
               {swipeFeedback === 'liked' && (
-                <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-emerald-500 text-white font-bold text-xs shadow-md tracking-wider uppercase">
+                <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-[#183424] border border-[#276B45] text-[#86EFAC] font-mono-lab font-semibold text-xs shadow-md tracking-wider uppercase">
                   Love It ❤️
                 </div>
               )}
               {swipeFeedback === 'passed' && (
-                <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-rose-500 text-white font-bold text-xs shadow-md tracking-wider uppercase">
+                <div className="absolute top-4 left-4 px-3 py-1 rounded-full bg-[#381818] border border-[#6B2727] text-[#FCA5A5] font-mono-lab font-semibold text-xs shadow-md tracking-wider uppercase">
                   Not for me 👎
                 </div>
               )}
 
-              <span className="text-5xl mt-2 select-none animate-bounce-short">
+              <span className="text-6xl mt-2 select-none filter drop-shadow-md transform hover:scale-110 transition-transform">
                 {currentCard.emoji}
               </span>
 
-              <div className="space-y-1">
-                <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-[#786F6A]">
+              <div className="space-y-1.5 relative z-10">
+                <span className="text-[10px] font-mono-lab uppercase tracking-widest text-[#D97706] block">
                   {currentCard.family}
                 </span>
-                <h4 className="font-serif text-2xl font-bold text-[#292323] leading-tight">
+                <h4 className="font-serif text-2xl font-medium text-[#FAF5F0] leading-tight">
                   {currentCard.name}
                 </h4>
                 <div className="flex flex-wrap items-center justify-center gap-1.5 pt-2">
                   {currentCard.tags.map(tag => (
                     <span
                       key={tag}
-                      className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-white/70 text-[#292323] border border-white/90"
+                      className="px-2.5 py-0.5 rounded-md text-[10px] font-mono-lab bg-black/40 text-[#D6C7B2] border border-white/10"
                     >
                       {tag}
                     </span>
@@ -146,65 +154,66 @@ export const TinderVibeDeck: React.FC<TinderVibeDeckProps> = ({
                 </div>
               </div>
 
-              <div className="text-[10px] text-[#786F6A] font-mono">
-                Chord {currentIndex + 1} of {TINDER_VIBE_CARDS.length}
+              <div className="text-[10px] text-[#8C7D70] font-mono-lab">
+                Impression 0{currentIndex + 1} of 0{TINDER_VIBE_CARDS.length}
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-center gap-5 pt-2">
+          <div className="flex items-center justify-center gap-6 pt-2">
             <button
               id="vibe-pass-btn"
               type="button"
               onClick={() => handleVote(false)}
-              className="w-14 h-14 rounded-full bg-white hover:bg-stone-50 border border-stone-200 shadow-sm flex items-center justify-center text-stone-400 hover:text-stone-700 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+              className="w-14 h-14 rounded-full bg-[#1F1612] hover:bg-[#2A1D17] border border-[#443328] shadow-md flex items-center justify-center text-[#8C7D70] hover:text-[#F87171] hover:scale-105 active:scale-95 transition-all cursor-pointer"
               title="Not for me"
             >
-              <ThumbsDown className="w-5 h-5" />
+              <Ban className="w-5 h-5" />
             </button>
 
             <button
               id="vibe-like-btn"
               type="button"
               onClick={() => handleVote(true)}
-              className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#E86A92] to-[#7B3F98] text-white shadow-lg hover:shadow-xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer"
+              className="w-16 h-16 rounded-full bg-gradient-to-tr from-[#B45309] to-[#F59E0B] text-white shadow-[0_4px_20px_rgba(217,119,6,0.5)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer"
               title="Love this"
             >
               <Heart className="w-7 h-7 fill-current text-white" />
             </button>
           </div>
 
-          <p className="text-[11px] text-center text-[#786F6A]">
-            Tap <span className="font-semibold text-[#7B3F98]">Heart</span> to include or <span className="font-semibold text-stone-500">Thumb</span> to skip
+          <p className="text-[11px] text-center text-[#8C7D70] font-mono-lab">
+            Tap <span className="text-[#F59E0B] font-semibold">Heart</span> to welcome or <span className="text-[#8C7D70] font-semibold">Circle</span> to pass
           </p>
         </div>
       ) : (
         /* Finished State */
-        <div className="max-w-md mx-auto bg-white rounded-3xl border border-[#F0E6DD] p-6 sm:p-8 text-center space-y-5 shadow-sm animate-fade-in">
-          <div className="w-16 h-16 mx-auto rounded-full bg-[#E0F7F2] text-[#0F766E] flex items-center justify-center text-3xl">
+        <div className="max-w-md mx-auto bg-[#1C1612] rounded-3xl border border-[#523A25] p-6 sm:p-8 text-center space-y-6 shadow-2xl relative z-10 animate-fade-in">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-[#2A1F17] border border-[#523A25] text-[#F59E0B] flex items-center justify-center text-3xl shadow-md">
             🎯
           </div>
 
           <div className="space-y-1.5">
-            <h4 className="font-serif text-2xl font-semibold text-[#292323]">
-              We&rsquo;ve Got Your Vibe!
+            <h4 className="font-serif text-2xl font-medium text-[#FAF5F0]">
+              Taste Profile Calibrated
             </h4>
-            <p className="text-xs text-[#786F6A]">
+            <p className="text-xs sm:text-sm text-[#A8988B] leading-relaxed">
               You resonated with {likedCards.length} of {TINDER_VIBE_CARDS.length} iconic olfactory accords.
+              Ready to synchronize your living scent signature.
             </p>
           </div>
 
           {likedCards.length > 0 ? (
-            <div className="p-3.5 rounded-2xl bg-[#FFF9F3] border border-[#F0E6DD] space-y-2 text-left">
-              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#7B3F98] block">
-                Your Affinity Highlights
+            <div className="p-4 rounded-2xl bg-[#14100D] border border-[#3E3228] space-y-2 text-left">
+              <span className="text-[10px] font-mono-lab uppercase tracking-wider text-[#D97706] block">
+                Your Affinity Accords
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {likedCards.map(c => (
                   <span
                     key={c.id}
-                    className="px-2.5 py-1 rounded-full text-xs font-semibold bg-white border border-[#E86A92]/40 text-[#292323] inline-flex items-center gap-1 shadow-2xs"
+                    className="px-2.5 py-1 rounded-lg text-xs font-mono-lab bg-[#241B16] border border-[#443325] text-[#FEF3C7] inline-flex items-center gap-1.5 shadow-xs"
                   >
                     <span>{c.emoji}</span>
                     <span>{c.name}</span>
@@ -213,8 +222,8 @@ export const TinderVibeDeck: React.FC<TinderVibeDeckProps> = ({
               </div>
             </div>
           ) : (
-            <p className="text-xs text-stone-500 italic">
-              You passed on all sample chords. We will calibrate a neutral baseline.
+            <p className="text-xs text-[#8C7D70] italic">
+              You passed on all sample chords. A restrained, minimal baseline will be applied.
             </p>
           )}
 
@@ -223,17 +232,17 @@ export const TinderVibeDeck: React.FC<TinderVibeDeckProps> = ({
               id="vibe-apply-results-btn"
               type="button"
               onClick={handleApplyVibes}
-              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#7B3F98] to-[#E86A92] hover:opacity-95 text-white font-semibold text-xs inline-flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all"
+              className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-[#B45309] to-[#D97706] hover:opacity-95 text-white font-semibold text-xs font-mono-lab uppercase tracking-wider inline-flex items-center justify-center gap-2 shadow-lg cursor-pointer transition-all"
             >
-              <Sparkles className="w-4 h-4 text-amber-300" />
-              <span>Reveal My Scent Layer Match</span>
+              <Sparkles className="w-4 h-4 text-[#FEF3C7]" />
+              <span>Apply Scent DNA</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
             <button
               type="button"
               onClick={handleReset}
-              className="w-full sm:w-auto px-4 py-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-medium text-xs inline-flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+              className="w-full sm:w-auto px-4 py-3 rounded-xl bg-[#241B16] hover:bg-[#34261F] text-[#D6C7B2] font-mono-lab text-xs uppercase tracking-wider inline-flex items-center justify-center gap-1.5 cursor-pointer border border-[#3E3228] transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Retake</span>

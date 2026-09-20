@@ -54,6 +54,8 @@ class AmbientAudioEngine {
   private activeNodes: { stop?: () => void; disconnect?: () => void }[] = [];
   private rainInterval: number | null = null;
   private crackleInterval: number | null = null;
+  private stopTimer: ReturnType<typeof setTimeout> | null = null;
+  private startTimer: ReturnType<typeof setTimeout> | null = null;
   private listeners: Set<() => void> = new Set();
 
   constructor() {
@@ -64,6 +66,18 @@ class AmbientAudioEngine {
       }
     } catch {
       // Ignore storage errors
+    }
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', () => {
+        if (this.ctx) {
+          if (document.hidden && this.ctx.state === 'running') {
+            this.ctx.suspend().catch(() => {});
+          } else if (!document.hidden && this.ctx.state === 'suspended' && this.activeSoundscape !== 'none') {
+            this.ctx.resume().catch(() => {});
+          }
+        }
+      });
     }
   }
 
@@ -123,6 +137,11 @@ class AmbientAudioEngine {
   }
 
   public stopSoundscape() {
+    if (this.startTimer) {
+      clearTimeout(this.startTimer);
+      this.startTimer = null;
+    }
+
     if (!this.ctx || !this.masterGain) {
       this.activeSoundscape = 'none';
       this.notify();
@@ -142,7 +161,12 @@ class AmbientAudioEngine {
     const now = this.ctx.currentTime;
     this.masterGain.gain.setTargetAtTime(0, now, 0.08);
 
-    setTimeout(() => {
+    if (this.stopTimer) {
+      clearTimeout(this.stopTimer);
+    }
+
+    this.stopTimer = setTimeout(() => {
+      this.stopTimer = null;
       this.activeNodes.forEach((n) => {
         try {
           n.stop?.();
@@ -171,7 +195,12 @@ class AmbientAudioEngine {
     const ctx = this.initContext();
     this.stopSoundscape();
 
-    setTimeout(() => {
+    if (this.startTimer) {
+      clearTimeout(this.startTimer);
+    }
+
+    this.startTimer = setTimeout(() => {
+      this.startTimer = null;
       this.activeSoundscape = type;
       this.isMuted = false;
       if (this.masterGain) {
@@ -380,6 +409,39 @@ class AmbientAudioEngine {
 
       popSource.start();
     }, 250 + Math.random() * 400);
+  }
+
+  /**
+   * Plays a delicate procedural alchemical chord / chime for surprises, discoveries, and rituals.
+   */
+  public playSpatialChord(frequencies: number[] = [528, 660, 792], volume: number = 0.12) {
+    if (this.isMuted) return;
+    try {
+      const ctx = this.initContext();
+      const now = ctx.currentTime;
+      const baseGain = ctx.createGain();
+      baseGain.gain.setValueAtTime(0, now);
+      baseGain.gain.linearRampToValueAtTime(Math.min(0.2, volume * this.currentVolume), now + 0.04);
+      baseGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
+      baseGain.connect(ctx.destination);
+
+      frequencies.forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.connect(baseGain);
+        osc.start(now);
+        osc.stop(now + 1.8);
+      });
+
+      setTimeout(() => {
+        try {
+          baseGain.disconnect();
+        } catch {}
+      }, 2000);
+    } catch {
+      // Audio context restricted or unavailable
+    }
   }
 }
 

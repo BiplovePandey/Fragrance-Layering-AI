@@ -18,12 +18,60 @@ import {
   FragranceBehaviorSummary
 } from '../types.js';
 
+const apiCache = new Map<string, { data: any; time: number }>();
+const CACHE_TTL = 60000; // 60s cache for fast tab navigation
+
+async function fetchWithRetry(url: string, options?: RequestInit, retries = 2): Promise<Response> {
+  let lastError: any;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const res = await fetch(url, options);
+      if (res.ok || i === retries) return res;
+    } catch (err) {
+      lastError = err;
+      if (i < retries) {
+        await new Promise((resolve) => setTimeout(resolve, 200 * (i + 1)));
+      }
+    }
+  }
+  throw lastError || new Error(`Network request failed for ${url}`);
+}
+
+async function cachedFetchJson<T>(url: string, ttl = CACHE_TTL): Promise<T> {
+  const cached = apiCache.get(url);
+  const now = Date.now();
+  if (cached && now - cached.time < ttl) {
+    return cached.data as T;
+  }
+  try {
+    const res = await fetchWithRetry(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+    const data = await res.json();
+    apiCache.set(url, { data, time: now });
+    return data as T;
+  } catch (err) {
+    if (cached) {
+      return cached.data as T;
+    }
+    throw err;
+  }
+}
+
 export const api = {
+  // Clear cache on write operations
+  invalidateCache(prefix?: string) {
+    if (!prefix) {
+      apiCache.clear();
+      return;
+    }
+    for (const key of apiCache.keys()) {
+      if (key.startsWith(prefix)) apiCache.delete(key);
+    }
+  },
+
   // Brands
   async getBrands(): Promise<Brand[]> {
-    const res = await fetch('/api/brands');
-    if (!res.ok) throw new Error('Failed to fetch brands');
-    return res.json();
+    return cachedFetchJson<Brand[]>('/api/brands');
   },
 
   async getBrandById(id: number): Promise<Brand & { fragrances: Fragrance[] }> {
@@ -71,12 +119,11 @@ export const api = {
 
   // Taxonomy
   async getTaxonomy(): Promise<NoteTaxonomyEntry[]> {
-    const res = await fetch('/api/taxonomy');
-    if (!res.ok) throw new Error('Failed to fetch note taxonomy');
-    return res.json();
+    return cachedFetchJson<NoteTaxonomyEntry[]>('/api/taxonomy');
   },
 
   async createTaxonomyEntry(entry: Partial<NoteTaxonomyEntry>): Promise<NoteTaxonomyEntry> {
+    api.invalidateCache('/api/taxonomy');
     const res = await fetch('/api/taxonomy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -90,6 +137,7 @@ export const api = {
   },
 
   async updateTaxonomyEntry(id: number, entry: Partial<NoteTaxonomyEntry>): Promise<NoteTaxonomyEntry> {
+    api.invalidateCache('/api/taxonomy');
     const res = await fetch(`/api/taxonomy/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -103,6 +151,7 @@ export const api = {
   },
 
   async deleteTaxonomyEntry(id: number): Promise<{ success: boolean; id: number }> {
+    api.invalidateCache('/api/taxonomy');
     const res = await fetch(`/api/taxonomy/${id}`, {
       method: 'DELETE'
     });
@@ -115,9 +164,7 @@ export const api = {
 
   // Fragrances
   async getFragrances(): Promise<Fragrance[]> {
-    const res = await fetch('/api/fragrances');
-    if (!res.ok) throw new Error('Failed to fetch fragrances');
-    return res.json();
+    return cachedFetchJson<Fragrance[]>('/api/fragrances');
   },
 
   async getFragranceById(id: number): Promise<Fragrance> {
@@ -127,6 +174,8 @@ export const api = {
   },
 
   async createFragrance(fragrance: Partial<Fragrance>): Promise<Fragrance> {
+    api.invalidateCache('/api/fragrances');
+    api.invalidateCache('/api/clusters');
     const res = await fetch('/api/fragrances', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -140,6 +189,8 @@ export const api = {
   },
 
   async updateFragrance(id: number, fragrance: Partial<Fragrance>): Promise<Fragrance> {
+    api.invalidateCache('/api/fragrances');
+    api.invalidateCache('/api/clusters');
     const res = await fetch(`/api/fragrances/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -153,6 +204,8 @@ export const api = {
   },
 
   async deleteFragrance(id: number): Promise<{ success: boolean; id: number }> {
+    api.invalidateCache('/api/fragrances');
+    api.invalidateCache('/api/clusters');
     const res = await fetch(`/api/fragrances/${id}`, {
       method: 'DELETE'
     });
@@ -165,9 +218,7 @@ export const api = {
 
   // Clusters
   async getClusters(): Promise<ClusterInfo[]> {
-    const res = await fetch('/api/clusters');
-    if (!res.ok) throw new Error('Failed to fetch clusters');
-    return res.json();
+    return cachedFetchJson<ClusterInfo[]>('/api/clusters');
   },
 
   // Single Recommendation

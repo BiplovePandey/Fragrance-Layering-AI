@@ -1,6 +1,6 @@
 {
   "name": "Olfactory AI",
-  "description": "Your Fragrance Universe. Your Scent Intelligence. A living digital fragrance atelier combining a massive Indian & global fragrance catalogue, AI-powered fragrance laboratory, personal fragrance wardrobe, and heritage atlas.",
-  "requestFramePermissions": [],
+  "description": "Your Fragrance Universe. Your Scent Intelligence. A living digital fragrance atelier combining a massive Indian & global fragrance catalogue, AI-powered fragrance laboratory, personal fragrance wardrobe, heritage atlas, and living olfactory portrait.",
+  "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

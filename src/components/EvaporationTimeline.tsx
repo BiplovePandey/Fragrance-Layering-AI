@@ -143,7 +143,151 @@ export const EvaporationTimeline: React.FC<EvaporationTimelineProps> = ({
         </div>
       </div>
 
-      {/* Interactive Time Steps & Slider */}
+        {/* Perfumer's Evaporation Timeline & Vapor Envelope */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#FAF8F5]/90 dark:bg-[#14100D]/80 border border-[#E3DACB] dark:border-white/[0.08] relative overflow-hidden">
+          <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-[#8A7E74] mb-2">
+            <span>VOLATILITY ENVELOPE (HEADSPACE DYNAMICS)</span>
+            <span className="text-amber-800 dark:text-amber-300 font-semibold">T + {currentStage.timeKey} ACTIVE</span>
+          </div>
+
+          <div className="relative h-28 sm:h-32 w-full">
+            <svg
+              viewBox="0 0 500 110"
+              preserveAspectRatio="none"
+              className="w-full h-full overflow-visible"
+              aria-label="Perfumer evaporation vapor envelope"
+            >
+              <defs>
+                {/* Top vapor gradient */}
+                <linearGradient id="topVaporGrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.45" />
+                  <stop offset="35%" stopColor="#F59E0B" stopOpacity="0.1" />
+                  <stop offset="70%" stopColor="#F59E0B" stopOpacity="0" />
+                </linearGradient>
+
+                {/* Heart vapor gradient */}
+                <linearGradient id="heartVaporGrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="10%" stopColor="#FB7185" stopOpacity="0.05" />
+                  <stop offset="45%" stopColor="#E11D48" stopOpacity="0.35" />
+                  <stop offset="85%" stopColor="#FB7185" stopOpacity="0.05" />
+                </linearGradient>
+
+                {/* Base fixative gradient */}
+                <linearGradient id="baseVaporGrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#B45309" stopOpacity="0.08" />
+                  <stop offset="45%" stopColor="#B45309" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#B45309" stopOpacity="0.5" />
+                </linearGradient>
+              </defs>
+
+              {/* Baseline and time divisions */}
+              <line x1="20" y1="95" x2="480" y2="95" stroke="currentColor" strokeOpacity="0.18" strokeWidth="0.75" />
+              {[30, 140, 260, 380, 470].map((x, i) => (
+                <line key={i} x1={x} y1="92" x2={x} y2="98" stroke="currentColor" strokeOpacity="0.3" strokeWidth="0.75" />
+              ))}
+
+              {/* Base Fixative Vapor Envelope (low, persistent) */}
+              <path
+                d="M 20 92 Q 140 85 260 70 T 480 62 L 480 95 L 20 95 Z"
+                fill="url(#baseVaporGrad)"
+              />
+              <path
+                d="M 20 92 Q 140 85 260 70 T 480 62"
+                fill="none"
+                stroke="#C59A3F"
+                strokeWidth="1.2"
+                strokeOpacity="0.8"
+              />
+
+              {/* Heart Accord Vapor Envelope (peaking around 2h-4h) */}
+              <path
+                d="M 20 95 Q 120 40 260 38 T 480 90 L 480 95 L 20 95 Z"
+                fill="url(#heartVaporGrad)"
+              />
+              <path
+                d="M 20 95 Q 120 40 260 38 T 480 90"
+                fill="none"
+                stroke="#FB7185"
+                strokeWidth="1.2"
+                strokeOpacity="0.7"
+              />
+
+              {/* Top Volatile Vapor Envelope (steep opening descent) */}
+              <path
+                d="M 20 18 Q 80 28 140 68 T 320 95 L 20 95 Z"
+                fill="url(#topVaporGrad)"
+              />
+              <path
+                d="M 20 18 Q 80 28 140 68 T 320 95"
+                fill="none"
+                stroke="#F59E0B"
+                strokeWidth="1.4"
+                strokeOpacity="0.85"
+              />
+
+              {/* Scrubbed Stage Active Vertical Hairline Indicator */}
+              {(() => {
+                const stageXMap = [30, 140, 260, 380, 470];
+                const activeX = stageXMap[selectedIndex] ?? 30;
+                return (
+                  <g>
+                    <line
+                      x1={activeX}
+                      y1="10"
+                      x2={activeX}
+                      y2="95"
+                      stroke="#D97706"
+                      strokeWidth="1"
+                      strokeDasharray="2 2"
+                      strokeOpacity="0.8"
+                    />
+                    {/* Active point illumination */}
+                    <circle
+                      cx={activeX}
+                      cy={selectedIndex === 0 ? 18 : selectedIndex === 1 ? 55 : selectedIndex === 2 ? 38 : selectedIndex === 3 ? 66 : 62}
+                      r="4.5"
+                      fill="#F59E0B"
+                      stroke="#FFF"
+                      strokeWidth="1.5"
+                      className="shadow-sm"
+                    />
+                    <circle
+                      cx={activeX}
+                      cy={selectedIndex === 0 ? 18 : selectedIndex === 1 ? 55 : selectedIndex === 2 ? 38 : selectedIndex === 3 ? 66 : 62}
+                      r="8"
+                      fill="none"
+                      stroke="#D97706"
+                      strokeWidth="0.75"
+                      strokeOpacity="0.5"
+                    />
+                  </g>
+                );
+              })()}
+
+              {/* Botanical Note Marker Nodes */}
+              <g className="text-[7.5px] font-mono" fill="currentColor" fillOpacity="0.65">
+                <circle cx="35" cy="22" r="2.5" fill="#F59E0B" />
+                <text x="42" y="24">{topNotes[0] || 'Top Citrus'}</text>
+
+                <circle cx="260" cy="40" r="2.5" fill="#FB7185" />
+                <text x="268" y="42">{heartNotes[0] || 'Heart Floral'}</text>
+
+                <circle cx="430" cy="65" r="2.5" fill="#C59A3F" />
+                <text x="410" y="58" textAnchor="end">{baseNotes[0] || 'Base Fixative'}</text>
+              </g>
+            </svg>
+          </div>
+
+          <div className="flex justify-between text-[9px] font-mono text-[#8A7E74] mt-1 px-1 select-none">
+            <span>0m (Flash)</span>
+            <span>15m (Bloom)</span>
+            <span>2h (Full Heart)</span>
+            <span>6h (Fixation)</span>
+            <span>12h+ (Drydown Shadow)</span>
+          </div>
+        </div>
+
+        {/* Interactive Time Steps & Slider */}
       <div className="space-y-4">
         {/* Step Buttons */}
         <div className="grid grid-cols-5 gap-1.5 sm:gap-2.5">

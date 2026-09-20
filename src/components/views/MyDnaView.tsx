@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Sparkles,
   Award,
@@ -7,436 +7,356 @@ import {
   Lock,
   Compass,
   SlidersHorizontal,
-  Bookmark,
   Brain,
-  Activity,
-  Trash2,
-  HelpCircle,
   ShieldCheck,
   Eye,
-  Check
+  Layers,
+  Thermometer,
+  BookOpen,
+  ArrowRight,
+  RotateCcw
 } from 'lucide-react';
-import { UserGamification, UserPreferences, OlfactoryMemorySnapshot } from '../../types.js';
+import {
+  UserGamification,
+  UserPreferences,
+  Fragrance,
+  WeatherCondition
+} from '../../types.js';
+import { olfactoryIntelligence, LivingOlfactoryDNA } from '../../services/olfactoryIntelligence.js';
+import { PortraitHero } from '../portrait/PortraitHero.js';
+import { InteractiveScentConstellation } from '../portrait/InteractiveScentConstellation.js';
+import { ScentTerritories } from '../portrait/ScentTerritories.js';
+import { GravitatePreferences } from '../portrait/GravitatePreferences.js';
+import { CabinetAffinities } from '../portrait/CabinetAffinities.js';
+import { LayeringPersonality } from '../portrait/LayeringPersonality.js';
+import { ClimateResonance } from '../portrait/ClimateResonance.js';
+import { HeritageAffinities } from '../portrait/HeritageAffinities.js';
+import { PersonalDossierSummary } from '../portrait/PersonalDossierSummary.js';
+import { SensoryDiscoveryRitual } from '../portrait/SensoryDiscoveryRitual.js';
+import { EvidenceTelemetryDrawer } from '../portrait/EvidenceTelemetryDrawer.js';
 import { api } from '../../services/api.js';
 
-interface MyDnaViewProps {
+export interface MyDnaViewProps {
   gamification: UserGamification;
   preferences: UserPreferences | null;
   onOpenPreferencesModal: () => void;
+  allFragrances?: Fragrance[];
+  ownedFragrances?: Fragrance[];
+  weather?: WeatherCondition;
+  onNavigate?: (tab: string) => void;
+  onInspectInChamber?: (fragrance: Fragrance) => void;
+  onSendToLab?: (fragrance: Fragrance) => void;
+  onSendToLabChord?: (baseFrag: Fragrance, topFrag: Fragrance) => void;
+  onWearToday?: (fragrance: Fragrance) => void;
+  onNavigateToHeritageAtlas?: (materialId?: string) => void;
+  onAddNoteToPreferences?: (note: string) => void;
+  onCompleteVibeCheck?: (discovered: Partial<UserPreferences>) => void;
 }
 
 export const MyDnaView: React.FC<MyDnaViewProps> = ({
   gamification,
   preferences,
-  onOpenPreferencesModal
+  onOpenPreferencesModal,
+  allFragrances = [],
+  ownedFragrances = [],
+  weather = {
+    temperature_c: 24,
+    humidity_pct: 65,
+    condition: 'Partly Cloudy',
+    season: 'Monsoon Transition'
+  },
+  onNavigate = (_tab: string) => {},
+  onInspectInChamber = (_fragrance: Fragrance) => {},
+  onSendToLab = (_fragrance: Fragrance) => {},
+  onSendToLabChord = (_baseFrag: Fragrance, _topFrag: Fragrance) => {},
+  onWearToday = (_fragrance: Fragrance) => {},
+  onNavigateToHeritageAtlas = (_materialId?: string) => {},
+  onAddNoteToPreferences = (_note: string) => {},
+  onCompleteVibeCheck = (_discovered: Partial<UserPreferences>) => {}
 }) => {
-  const [memorySnapshot, setMemorySnapshot] = useState<OlfactoryMemorySnapshot | null>(null);
-  const [isLoadingMemory, setIsLoadingMemory] = useState<boolean>(false);
-  const [isClearing, setIsClearing] = useState<boolean>(false);
-  const [clearMessage, setClearMessage] = useState<string | null>(null);
+  const [livingDNA, setLivingDNA] = useState<LivingOlfactoryDNA>(olfactoryIntelligence.getLivingDNA());
+  const [activeChapter, setActiveChapter] = useState<string>('all');
+  const [showDiscoveryRitual, setShowDiscoveryRitual] = useState<boolean>(false);
+  const [fragrancesList, setFragrancesList] = useState<Fragrance[]>(allFragrances);
 
+  const constellationRef = useRef<HTMLDivElement>(null);
+  const ritualRef = useRef<HTMLDivElement>(null);
+
+  // Refresh DNA when component mounts
   useEffect(() => {
-    let isMounted = true;
-    setIsLoadingMemory(true);
-    api.getOlfactoryMemory(1)
-      .then(snap => {
-        if (isMounted) setMemorySnapshot(snap);
-      })
-      .catch(err => {
-        console.warn('Failed to load olfactory memory:', err);
-      })
-      .finally(() => {
-        if (isMounted) setIsLoadingMemory(false);
-      });
-    return () => { isMounted = false; };
-  }, []);
+    setLivingDNA(olfactoryIntelligence.getLivingDNA());
+  }, [preferences]);
 
-  const handleClearBehaviorHistory = async () => {
-    if (!window.confirm('Clear all recorded olfactory behavioral telemetry? Your explicit preferences and wardrobe will remain intact.')) {
-      return;
+  // Load fragrances if not passed from parent
+  useEffect(() => {
+    if (allFragrances && allFragrances.length > 0) {
+      setFragrancesList(allFragrances);
+    } else {
+      api.getFragrances().then(data => {
+        if (data && data.length > 0) setFragrancesList(data);
+      }).catch(err => console.warn('Failed to load fragrances for DNA view:', err));
     }
-    setIsClearing(true);
-    try {
-      const res = await api.clearBehaviorHistory(1);
-      const freshSnap = await api.getOlfactoryMemory(1);
-      setMemorySnapshot(freshSnap);
-      setClearMessage(`Cleared ${res.deletedCount} telemetry event(s).`);
-      setTimeout(() => setClearMessage(null), 4000);
-    } catch (err: any) {
-      console.error('Failed to clear behavior history:', err);
-    } finally {
-      setIsClearing(false);
+  }, [allFragrances]);
+
+  const handleStartDiscoveryRitual = () => {
+    setShowDiscoveryRitual(true);
+    setTimeout(() => {
+      ritualRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleCompleteDiscoveryRitual = (discovered: Partial<UserPreferences>) => {
+    // Record event to DNA engine
+    olfactoryIntelligence.recordEvent({
+      type: 'RATE',
+      value: 5,
+      context: { occasion: 'Sensory Ritual' },
+      notes: `Vibe check completed: favored ${(discovered.favorite_family || []).join(', ')}`
+    });
+
+    onCompleteVibeCheck(discovered);
+    setLivingDNA(olfactoryIntelligence.getLivingDNA());
+    setShowDiscoveryRitual(false);
+  };
+
+  const badgesList = [
+    { id: 'first_chord', name: 'First Alchemical Chord', desc: 'Synthesized dual fragrance chord in lab', icon: '🧪', unlocked: true },
+    { id: 'heritage_voyager', name: 'Heritage Voyager', desc: 'Explored traditional Indian Deg-Bhapka archives', icon: '🏛️', unlocked: true },
+    { id: 'weather_attuned', name: 'Atmospherically Attuned', desc: 'Calibrated formulation to live weather telemetry', icon: '🌤️', unlocked: true },
+    { id: 'master_alchemist', name: 'Grand Master Alchemist', desc: 'Formulated 10 high-compatibility chords', icon: '👑', unlocked: (gamification?.xp || 0) >= 300 },
+    { id: 'curator_grand', name: 'Cabinet Collector', desc: 'Curated 6 fine fragrances in digital wardrobe', icon: '🗄️', unlocked: ownedFragrances.length >= 6 },
+    { id: 'archivist_submission', name: 'Guardian of Fine Perfumery', desc: 'Validated and submitted a new perfume candidate', icon: '🛡️', unlocked: Boolean(gamification?.badges?.includes('archivist_submission')) }
+  ];
+
+  const chaptersNav = [
+    { id: 'portrait', label: 'I • Portrait' },
+    { id: 'ritual', label: 'II • Discovery' },
+    { id: 'constellation', label: 'III • 8D Constellation' },
+    { id: 'territories', label: 'IV • Territories' },
+    { id: 'preferences', label: 'V • Gravitations' },
+    { id: 'affinities', label: 'VI • Cabinet' },
+    { id: 'layering', label: 'VII • Layering' },
+    { id: 'climate', label: 'VIII • Climate' },
+    { id: 'heritage', label: 'IX • Heritage' },
+    { id: 'dossier', label: 'X • Dossier' }
+  ];
+
+  const handleScrollToChapter = (id: string) => {
+    setActiveChapter(id);
+    const element = document.getElementById(`chapter-${id}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
-  const xpForNextLevel = gamification.level * 200;
-  const progressPercent = Math.min(100, Math.round((gamification.xp / xpForNextLevel) * 100));
-
-  const dnaVectorAxes = [
-    { label: 'Freshness', value: 8.4, desc: 'High preference for sparkling citrus and green leaves' },
-    { label: 'Woody & Resins', value: 9.1, desc: 'Dominant anchor affinity: Mysore Sandalwood & Cedar' },
-    { label: 'Floral Delicacy', value: 6.8, desc: 'Selective affinity: Damask Rose & Neroli' },
-    { label: 'Warmth / Spice', value: 7.9, desc: 'Loves Cardamom, Saffron & Warm Amber' },
-    { label: 'Earth & Clay', value: 9.5, desc: 'Petrichor / Geosmin enthusiast' },
-    { label: 'Aquatic / Marine', value: 5.2, desc: 'Moderate affinity for oceanic ozone' },
-    { label: 'Sweet / Gourmand', value: 4.1, desc: 'Low tolerance for sugary confections' },
-    { label: 'Smoky / Leather', value: 8.6, desc: 'High appreciation for birch tar and Assam oud' }
-  ];
-
   return (
-    <div className="space-y-8 pb-16">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 backdrop-blur-md border border-white text-purple-900 text-xs font-mono-lab mb-2 shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5 text-purple-700" />
-            <span>Algorithmic Olfactory Fingerprint</span>
-          </div>
-          <h1 className="font-serif text-3xl sm:text-4xl font-medium text-[#1A1613]">
-            Personal Scent DNA &amp; Rank
-          </h1>
-          <p className="text-xs sm:text-sm text-[#5A5046] mt-1">
-            Synthesized from your ratings, worn combinations, and preferred raw aromatics.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={onOpenPreferencesModal}
-          className="px-4 py-2.5 rounded-2xl liquid-glass-pill text-[#1A1613] text-xs font-medium transition cursor-pointer flex items-center gap-2 self-start sm:self-center"
-        >
-          <SlidersHorizontal className="w-3.5 h-3.5 text-amber-700" />
-          <span>Recalibrate DNA Preferences</span>
-        </button>
-      </div>
-
-      {/* Gamification Level & XP Progress Banner */}
-      <div className="rounded-3xl liquid-glass p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-purple-600 flex items-center justify-center text-3xl shadow-md border border-white/40">
-            💎
-          </div>
-          <div>
-            <span className="text-[10px] font-mono-lab uppercase text-amber-800 font-bold tracking-wider">
-              Current Olfactory Rank
-            </span>
-            <h2 className="font-serif text-2xl sm:text-3xl font-medium text-[#1A1613]">
-              {gamification.title}
-            </h2>
-            <p className="text-xs text-[#5A5046] mt-0.5 font-mono-lab">
-              Level {gamification.level} &bull; {gamification.xp} Lifetime XP
-            </p>
-          </div>
-        </div>
-
-        {/* Progress bar */}
-        <div className="w-full md:w-80 space-y-2">
-          <div className="flex justify-between text-xs font-mono-lab">
-            <span className="text-[#5A5046]">Next Rank Progress</span>
-            <span className="text-amber-900 font-bold">{progressPercent}%</span>
-          </div>
-          <div className="w-full bg-white/60 h-2.5 rounded-full overflow-hidden border border-white">
-            <div
-              className="h-full bg-gradient-to-r from-amber-500 to-purple-500 rounded-full transition-all"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-          <div className="text-[10px] text-[#7A6F66] text-right font-mono-lab">
-            {xpForNextLevel - gamification.xp} XP needed for Level {gamification.level + 1}
-          </div>
-        </div>
-      </div>
-
-      {/* 8-D Vector Breakdown */}
-      <div className="p-6 sm:p-8 rounded-3xl liquid-glass space-y-6">
-        <div className="flex items-center justify-between">
-          <h3 className="font-serif text-2xl font-medium text-[#1A1613]">
-            8-Dimensional Vector Olfactory Profile
-          </h3>
-          <span className="text-xs font-mono-lab text-[#7A6F66]">Cosine Weights</span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {dnaVectorAxes.map((axis) => (
-            <div key={axis.label} className="p-4 rounded-2xl liquid-glass-inset space-y-2">
-              <div className="flex justify-between items-center text-xs">
-                <span className="text-[#1A1613] font-medium">{axis.label}</span>
-                <span className="font-mono-lab text-amber-900 font-bold">{axis.value} / 10</span>
-              </div>
-              <div className="w-full bg-white/60 h-1.5 rounded-full overflow-hidden border border-white">
-                <div
-                  className="h-full bg-gradient-to-r from-amber-500 to-purple-500 rounded-full"
-                  style={{ width: `${axis.value * 10}%` }}
-                />
-              </div>
-              <p className="text-[11px] text-[#5A5046] leading-tight pt-1">
-                {axis.desc}
-              </p>
-            </div>
+    <div className="space-y-12 pb-24 text-[#FAF5F0]">
+      {/* Chapter Quick Navigation Bar */}
+      <div className="sticky top-20 z-30 -mx-4 sm:mx-0 px-4 sm:px-0 py-2 bg-[#0D0A08]/85 backdrop-blur-md border-y sm:border sm:rounded-2xl border-[#3E3228]/80 shadow-md">
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
+          {chaptersNav.map((chap) => (
+            <button
+              key={chap.id}
+              onClick={() => handleScrollToChapter(chap.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-mono-lab uppercase whitespace-nowrap transition-all ${
+                activeChapter === chap.id
+                  ? 'bg-[#2E2219] text-[#FEF3C7] border border-[#D97706] shadow-sm font-semibold'
+                  : 'text-[#8C7D70] hover:text-[#D6C7B2] hover:bg-[#1A1410]'
+              }`}
+            >
+              {chap.label}
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Badges & Achievements */}
-      {(() => {
-        const badgesList = [
-          { id: 'first_chord', name: 'First Alchemical Chord', desc: 'Synthesized your first dual fragrance chord in the lab', icon: '🧪', unlocked: true },
-          { id: 'heritage_voyager', name: 'Heritage Voyager', desc: 'Explored traditional Indian Deg-Bhapka botanical archives', icon: '🏛️', unlocked: true },
-          { id: 'weather_attuned', name: 'Atmospherically Attuned', desc: 'Calibrated fragrance formulation to live weather telemetry', icon: '🌤️', unlocked: true },
-          { id: 'master_alchemist', name: 'Grand Master Alchemist', desc: 'Formulated 10 high-compatibility scent chords', icon: '👑', unlocked: (gamification?.xp || 0) >= 300 },
-          { id: 'curator_grand', name: 'Cabinet Collector', desc: 'Curated 6 fine fragrances in your digital wardrobe', icon: '🗄️', unlocked: false },
-          { id: 'archivist_submission', name: 'Guardian of Fine Perfumery', desc: 'Validated and submitted a new perfume candidate', icon: '🛡️', unlocked: Boolean(gamification?.badges?.includes('archivist_submission') || gamification?.achievements?.some(a => a.id === 'gatekeeper' && a.unlocked)) }
-        ];
-        const unlockedCount = badgesList.filter(b => b.unlocked).length;
+      {/* CHAPTER I: THE OLFACTORY PORTRAIT HERO */}
+      <div id="chapter-portrait">
+        <PortraitHero
+          livingDNA={livingDNA}
+          gamification={gamification}
+          onOpenPreferencesModal={onOpenPreferencesModal}
+          onStartDiscoveryRitual={handleStartDiscoveryRitual}
+          activeTab={activeChapter}
+          onSelectTab={handleScrollToChapter}
+          cabinetCount={ownedFragrances.length}
+        />
+      </div>
 
-        return (
-          <div className="p-6 sm:p-8 rounded-3xl liquid-glass space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-serif text-2xl font-medium text-[#1A1613]">
-                Earned Accolades &amp; Badges
-              </h3>
-              <span className="text-xs font-mono-lab text-amber-900 font-bold">
-                {unlockedCount} / {badgesList.length} Unlocked
+      {/* CHAPTER II: DISCOVERY RITUAL (Toggleable or Inlined) */}
+      <div id="chapter-ritual" ref={ritualRef}>
+        {showDiscoveryRitual ? (
+          <div className="space-y-4">
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowDiscoveryRitual(false)}
+                className="px-3 py-1.5 rounded-xl bg-[#241B16] text-xs font-mono-lab text-[#8C7D70] hover:text-[#FAF5F0] border border-[#3E3228]"
+              >
+                Close Discovery Ritual
+              </button>
+            </div>
+            <SensoryDiscoveryRitual
+              onCompleteRitual={handleCompleteDiscoveryRitual}
+              onClose={() => setShowDiscoveryRitual(false)}
+            />
+          </div>
+        ) : (
+          <div className="rounded-3xl bg-[#14100D] border border-[#3E3228] p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] font-mono-lab uppercase text-[#D97706] tracking-wider">
+                Chapter II • Sensory Interview
               </span>
+              <h3 className="font-serif text-xl sm:text-2xl text-[#FAF5F0] font-medium">
+                Calibrate Your Scent Instincts
+              </h3>
+              <p className="text-xs text-[#A8988B]">
+                Begin a 5-step tactile sensory interview to reshape your 8D coordinates.
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-              {badgesList.map((badge) => (
-                <div
-                  key={badge.id}
-                  className={`p-4 rounded-2xl border flex items-start gap-3 transition ${
-                    badge.unlocked
-                      ? 'liquid-glass-inset border-amber-200 shadow-2xs'
-                      : 'bg-white/30 border-white/40 opacity-50'
-                  }`}
-                >
-                  <div className="text-2xl p-2 rounded-xl bg-white/70 border border-white shadow-2xs">
-                    {badge.icon}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-semibold text-[#1A1613]">{badge.name}</h4>
-                      {badge.unlocked ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-                      ) : (
-                        <Lock className="w-3 h-3 text-[#7A6F66]" />
-                      )}
-                    </div>
-                    <p className="text-[11px] text-[#5A5046] mt-1 leading-snug">
-                      {badge.desc}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* STEP 6D: Olfactory Behavioral Memory & Evidence Foundation */}
-      <div className="p-6 sm:p-8 rounded-3xl liquid-glass border border-white/80 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-mono-lab">
-              <Brain className="w-3.5 h-3.5 text-indigo-700" />
-              <span>BEHAVIORAL LEARNING FOUNDATION (STEP 6D)</span>
-            </div>
-            <h2 className="font-serif text-xl sm:text-2xl font-medium text-[#1A1613]">
-              Olfactory Memory &amp; Evidence Telemetry
-            </h2>
-            <p className="text-xs sm:text-sm text-[#5A5046]">
-              Transparent behavioral telemetry capturing your actual wearing rituals, opens, and saves.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
             <button
-              type="button"
-              onClick={handleClearBehaviorHistory}
-              disabled={isClearing || !memorySnapshot || memorySnapshot.totalEvents === 0}
-              className="px-3.5 py-2 rounded-xl border border-rose-200 bg-rose-50/60 hover:bg-rose-100 text-rose-800 text-xs font-medium transition cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
-              title="Clear all recorded behavioral events"
+              onClick={() => setShowDiscoveryRitual(true)}
+              className="px-4 py-2.5 rounded-xl bg-[#2E2219] hover:bg-[#443224] text-[#FEF3C7] text-xs font-mono-lab uppercase tracking-wider border border-[#523A25] transition-colors flex items-center gap-2 shrink-0"
             >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>{isClearing ? 'Clearing...' : 'Clear Telemetry'}</span>
+              <Compass className="w-3.5 h-3.5 text-[#D97706]" />
+              <span>Launch Discovery Ritual</span>
+              <ArrowRight className="w-3 h-3" />
             </button>
           </div>
-        </div>
-
-        {clearMessage && (
-          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
-            <Check className="w-4 h-4 text-emerald-600" />
-            <span>{clearMessage}</span>
-          </div>
         )}
-
-        {/* Confidence and Metrics Strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 rounded-2xl liquid-glass-inset border border-white/60">
-            <div className="text-[10px] font-mono-lab uppercase text-[#7A6F66] tracking-wider">
-              Total Telemetry Events
-            </div>
-            <div className="font-serif text-2xl text-[#1A1613] mt-1 font-semibold">
-              {memorySnapshot ? memorySnapshot.totalEvents : 0}
-            </div>
-            <div className="text-[11px] text-[#7A6F66] mt-0.5">
-              Across wears, saves, opens &amp; views
-            </div>
-          </div>
-
-          <div className="p-4 rounded-2xl liquid-glass-inset border border-white/60">
-            <div className="text-[10px] font-mono-lab uppercase text-[#7A6F66] tracking-wider">
-              Memory Confidence
-            </div>
-            <div className="font-serif text-2xl text-[#1A1613] mt-1 font-semibold">
-              {memorySnapshot ? `${Math.round(memorySnapshot.confidence * 100)}%` : '0%'}
-            </div>
-            <div className="w-full bg-stone-200 h-1.5 rounded-full mt-2 overflow-hidden">
-              <div
-                className="bg-indigo-600 h-full rounded-full transition-all duration-500"
-                style={{ width: `${Math.round((memorySnapshot?.confidence || 0) * 100)}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="p-4 rounded-2xl liquid-glass-inset border border-white/60">
-            <div className="text-[10px] font-mono-lab uppercase text-[#7A6F66] tracking-wider">
-              Evidence Separation
-            </div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 mt-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>Strictly Segregated</span>
-            </div>
-            <div className="text-[11px] text-[#7A6F66] mt-1">
-              Implicit acts never overwrite explicit DNA
-            </div>
-          </div>
-        </div>
-
-        {/* Explicit vs Implicit Evidence Lists */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-          {/* Explicit Signals */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-mono-lab font-semibold uppercase text-[#1A1613] tracking-wider flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-purple-600" />
-                Explicit Signals ({memorySnapshot?.explicitSignals.length || 0})
-              </h3>
-              <span className="text-[10px] font-mono-lab text-[#7A6F66]">Direct Inputs &amp; Ratings</span>
-            </div>
-
-            <div className="space-y-2">
-              {(!memorySnapshot || memorySnapshot.explicitSignals.length === 0) ? (
-                <div className="p-3.5 rounded-xl border border-stone-200/80 bg-white/40 text-xs text-[#7A6F66] text-center">
-                  No explicit fragrance ratings or preference inputs yet.
-                </div>
-              ) : (
-                memorySnapshot.explicitSignals.slice(0, 5).map((sig, idx) => (
-                  <div key={idx} className="p-3 rounded-xl bg-white/60 border border-white/80 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-medium text-[#1A1613]">{sig.dimension}</span>
-                      <div className="text-[10px] text-[#7A6F66]">{sig.source}</div>
-                    </div>
-                    <div className="text-right">
-                      <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-900 text-[10px] font-mono-lab">
-                        Strength {(sig.evidenceStrength * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Implicit Signals */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-mono-lab font-semibold uppercase text-[#1A1613] tracking-wider flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-blue-500" />
-                Implicit Signals ({memorySnapshot?.implicitSignals.length || 0})
-              </h3>
-              <span className="text-[10px] font-mono-lab text-[#7A6F66]">Observed Behavior</span>
-            </div>
-
-            <div className="space-y-2">
-              {(!memorySnapshot || memorySnapshot.implicitSignals.length === 0) ? (
-                <div className="p-3.5 rounded-xl border border-stone-200/80 bg-white/40 text-xs text-[#7A6F66] text-center">
-                  No wear rituals, opens, or saves recorded yet. Wear a fragrance today to begin observation.
-                </div>
-              ) : (
-                memorySnapshot.implicitSignals.slice(0, 5).map((sig, idx) => (
-                  <div key={idx} className="p-3 rounded-xl bg-white/60 border border-white/80 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="font-medium text-[#1A1613]">{sig.dimension}</span>
-                      <div className="text-[10px] text-[#7A6F66]">{sig.source}</div>
-                    </div>
-                    <div className="text-right">
-                      <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-900 text-[10px] font-mono-lab">
-                        Strength {(sig.evidenceStrength * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Recently Worn vs Recently Saved */}
-        {memorySnapshot && (memorySnapshot.frequentlyWornFragrances.length > 0 || memorySnapshot.frequentlySavedFragrances.length > 0) && (
-          <div className="pt-4 border-t border-stone-200/60 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {memorySnapshot.frequentlyWornFragrances.length > 0 && (
-              <div className="space-y-2">
-                <div className="text-xs font-mono-lab uppercase text-[#1A1613] font-semibold">
-                  Frequently Worn Rituals
-                </div>
-                <div className="space-y-1.5">
-                  {memorySnapshot.frequentlyWornFragrances.map(f => (
-                    <div key={f.fragranceId} className="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/60 flex items-center justify-between text-xs">
-                      <div>
-                        <div className="font-medium text-[#1A1613]">{f.fragranceName}</div>
-                        <div className="text-[10px] text-[#7A6F66]">{f.brandName} &bull; {f.fragranceFamily}</div>
-                      </div>
-                      <span className="font-mono-lab text-amber-900 font-bold text-[11px]">
-                        {f.wears} wear{f.wears !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {memorySnapshot.frequentlySavedFragrances.length > 0 && (
-              <div className="space-y-2">
-                <div className="text-xs font-mono-lab uppercase text-[#1A1613] font-semibold">
-                  Saved / Wardrobe Interest
-                </div>
-                <div className="space-y-1.5">
-                  {memorySnapshot.frequentlySavedFragrances.map(f => (
-                    <div key={f.fragranceId} className="p-2.5 rounded-xl bg-stone-100/70 border border-stone-200/80 flex items-center justify-between text-xs">
-                      <div>
-                        <div className="font-medium text-[#1A1613]">{f.fragranceName}</div>
-                        <div className="text-[10px] text-[#7A6F66]">{f.brandName} &bull; {f.fragranceFamily}</div>
-                      </div>
-                      <span className="font-mono-lab text-[#5A5046] font-bold text-[11px]">
-                        {f.saves} save{f.saves !== 1 ? 's' : ''}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Strict Non-Interference Guarantee */}
-        <div className="p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200/80 flex items-start gap-2.5 text-xs text-amber-900 leading-relaxed">
-          <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-          <div>
-            <span className="font-semibold">Pure Observation Pipeline:</span> All behavioral learning operates strictly in observation mode. Telemetry events are stored immutably to capture natural usage evidence. Recommendation algorithms and 8D vectors remain strictly deterministic and are never modified automatically.
-          </div>
-        </div>
       </div>
+
+      {/* CHAPTER III: INTERACTIVE SCENT CONSTELLATION */}
+      <div id="chapter-constellation" ref={constellationRef}>
+        <InteractiveScentConstellation
+          vector={livingDNA.vector}
+          ownedFragrances={ownedFragrances}
+          allFragrances={fragrancesList}
+          onInspectInChamber={onInspectInChamber}
+          onExploreHeritage={(matId) => onNavigateToHeritageAtlas(matId)}
+        />
+      </div>
+
+      {/* CHAPTER IV: SCENT TERRITORIES */}
+      <div id="chapter-territories">
+        <ScentTerritories
+          vector={livingDNA.vector}
+        />
+      </div>
+
+      {/* CHAPTER V: WHAT YOU GRAVITATE TOWARD */}
+      <div id="chapter-preferences">
+        <GravitatePreferences
+          preferences={preferences}
+          livingDNA={livingDNA}
+          ownedFragrances={ownedFragrances}
+          onOpenPreferencesModal={onOpenPreferencesModal}
+          onAddNote={onAddNoteToPreferences}
+        />
+      </div>
+
+      {/* CHAPTER VI: CABINET AFFINITIES */}
+      <div id="chapter-affinities">
+        <CabinetAffinities
+          livingDNA={livingDNA}
+          ownedFragrances={ownedFragrances}
+          allFragrances={fragrancesList}
+          onInspectInChamber={onInspectInChamber}
+          onSendToLab={onSendToLab}
+          onWearToday={onWearToday}
+          onNavigateToCabinet={() => onNavigate('wardrobe')}
+        />
+      </div>
+
+      {/* CHAPTER VII: LAYERING PERSONALITY */}
+      <div id="chapter-layering">
+        <LayeringPersonality
+          livingDNA={livingDNA}
+          ownedFragrances={ownedFragrances}
+          allFragrances={fragrancesList}
+          onSendToLabChord={onSendToLabChord}
+          onNavigateToLab={() => onNavigate('layer')}
+        />
+      </div>
+
+      {/* CHAPTER VIII: CLIMATE RESONANCE */}
+      <div id="chapter-climate">
+        <ClimateResonance
+          weather={weather}
+          vector={livingDNA.vector}
+        />
+      </div>
+
+      {/* CHAPTER IX: HERITAGE AFFINITIES */}
+      <div id="chapter-heritage">
+        <HeritageAffinities
+          vector={livingDNA.vector}
+          onNavigateToHeritageAtlas={onNavigateToHeritageAtlas}
+        />
+      </div>
+
+      {/* CHAPTER X: MASTER PERFUMER'S ARCHIVAL DOSSIER */}
+      <div id="chapter-dossier">
+        <PersonalDossierSummary
+          livingDNA={livingDNA}
+          weather={weather}
+          ownedFragrances={ownedFragrances}
+          allFragrances={fragrancesList}
+          onInspectInChamber={onInspectInChamber}
+        />
+      </div>
+
+      {/* EARNED ACCOLADES & ARCHIVAL BADGES */}
+      <section className="rounded-3xl bg-[#14100D] border border-[#3E3228] p-6 sm:p-10 shadow-xl space-y-6">
+        <div className="flex items-center justify-between border-b border-[#3E3228] pb-4">
+          <div>
+            <span className="text-[10px] font-mono-lab uppercase tracking-wider text-[#D97706]">
+              Mastery Progress
+            </span>
+            <h3 className="font-serif text-2xl text-[#FAF5F0] font-medium">
+              Earned Accolades &amp; Badges
+            </h3>
+          </div>
+          <span className="text-xs font-mono-lab text-[#F59E0B] font-semibold">
+            {badgesList.filter(b => b.unlocked).length} / {badgesList.length} Unlocked
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+          {badgesList.map((badge) => (
+            <div
+              key={badge.id}
+              className={`p-4 rounded-2xl border flex items-start gap-3 transition ${
+                badge.unlocked
+                  ? 'bg-[#1C1612] border-[#523A25] shadow-sm'
+                  : 'bg-[#14100D]/50 border-[#2E241D] opacity-40'
+              }`}
+            >
+              <div className="text-2xl p-2 rounded-xl bg-[#241B15] border border-[#3E3228]">
+                {badge.icon}
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h4 className="text-xs font-semibold text-[#FAF5F0]">{badge.name}</h4>
+                  {badge.unlocked ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#34D399]" />
+                  ) : (
+                    <Lock className="w-3 h-3 text-[#8C7D70]" />
+                  )}
+                </div>
+                <p className="text-[11px] text-[#A8988B] mt-1 leading-snug">
+                  {badge.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* LEVEL 5: SCIENTIFIC TRANSPARENCY & BEHAVIORAL TELEMETRY DRAWER */}
+      <EvidenceTelemetryDrawer
+        onRecalibrateDNA={onOpenPreferencesModal}
+      />
     </div>
   );
 };

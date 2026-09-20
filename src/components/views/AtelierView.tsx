@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Fragrance,
   WeatherCondition,
@@ -88,20 +88,34 @@ export const AtelierView: React.FC<AtelierViewProps> = ({
   };
 
   // Scent of the day calculation: choose a high-weather-compatibility perfume
-  const safeFrags = Array.isArray(fragrances) ? fragrances : [];
-  const rankedByWeather = safeFrags.map((f) => ({
-    frag: f,
-    ...calculateWeatherAlignmentScore(f, weather)
-  })).sort((a, b) => b.score - a.score);
+  const safeFrags = useMemo(() => (Array.isArray(fragrances) ? fragrances : []), [fragrances]);
 
-  const scentOfTheDay = rankedByWeather[0]?.frag || safeFrags[0];
-  const scentOfTheDayScore = rankedByWeather[0]?.score || 94;
-  const scentOfTheDayAdvisory = rankedByWeather[0]?.advisory || '';
+  const rankedByWeather = useMemo(() => {
+    return safeFrags.map((f) => ({
+      frag: f,
+      ...calculateWeatherAlignmentScore(f, weather)
+    })).sort((a, b) => b.score - a.score);
+  }, [safeFrags, weather]);
+
+  const [selectedHeroFragrance, setSelectedHeroFragrance] = useState<Fragrance | null>(null);
+
+  const defaultScentOfTheDay = rankedByWeather[0]?.frag || safeFrags[0];
+  const scentOfTheDay = selectedHeroFragrance || defaultScentOfTheDay;
+
+  // Real-time weather alignment score for the active hero protagonist
+  const heroAlignment = useMemo(() => {
+    return calculateWeatherAlignmentScore(scentOfTheDay, weather);
+  }, [scentOfTheDay, weather]);
+
+  const scentOfTheDayScore = heroAlignment.score || 94;
+  const scentOfTheDayAdvisory = heroAlignment.advisory || '';
 
   // Recommended Chord: Complementary companion perfume
-  const partnerFrag = safeFrags.find(
-    (f) => f.id !== scentOfTheDay?.id && f.fragrance_family !== scentOfTheDay?.fragrance_family
-  ) || safeFrags[1] || safeFrags[0];
+  const partnerFrag = useMemo(() => {
+    return safeFrags.find(
+      (f) => f.id !== scentOfTheDay?.id && f.fragrance_family !== scentOfTheDay?.fragrance_family
+    ) || safeFrags[1] || safeFrags[0];
+  }, [safeFrags, scentOfTheDay]);
 
   return (
     <div className="space-y-6 sm:space-y-10 pb-20 max-w-6xl mx-auto px-4 sm:px-6">
@@ -113,6 +127,7 @@ export const AtelierView: React.FC<AtelierViewProps> = ({
         partnerFrag={partnerFrag}
         weather={weather}
         currentAtmosphere={currentAtmosphere}
+        allFragrances={safeFrags}
         onSetAtmosphere={onSetAtmosphere}
         onOpenWeatherModal={onOpenWeatherModal}
         onSelectFragranceForChamber={onSelectFragranceForChamber}
@@ -120,6 +135,7 @@ export const AtelierView: React.FC<AtelierViewProps> = ({
         onWearToday={onWearToday}
         onOpenWhatShouldIWear={() => setShowTodayAdvisor(true)}
         onNavigate={onNavigate}
+        onSurpriseSelect={(frag) => setSelectedHeroFragrance(frag)}
       />
 
       {/* CHAPTER II: THE DAY'S ACCORD */}
@@ -183,8 +199,8 @@ export const AtelierView: React.FC<AtelierViewProps> = ({
 
       <AtelierIntelligence
         onOpenAiPerfumer={() => setShowAiPerfumer(true)}
-        onOpenScanner={() => setShowScanner(true)}
-        onOpenAcademy={() => setShowAcademy(true)}
+        onOpenScanner={() => onNavigate ? onNavigate('scanner') : setShowScanner(true)}
+        onOpenAcademy={() => onNavigate ? onNavigate('academy') : setShowAcademy(true)}
       />
 
       {/* =========================================================================

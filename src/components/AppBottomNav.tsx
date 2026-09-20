@@ -1,8 +1,15 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, FlaskConical, Compass, Layers, HeartHandshake, Shirt } from 'lucide-react';
 import { MainNavId } from '../types.js';
-import { MOTION_SPRINGS } from '../motion/config.js';
+import { resolveVisualWorld } from '../utils/visualWorlds.js';
+import {
+  AtelierGlyph,
+  WearGlyph,
+  LayeringGlyph,
+  VaultGlyph,
+  HeritageGlyph,
+  GlyphProps
+} from './ui/AtelierGlyphs.js';
 
 interface AppBottomNavProps {
   activeTab: MainNavId;
@@ -10,94 +17,106 @@ interface AppBottomNavProps {
   wardrobeCount: number;
 }
 
+interface NavRailItem {
+  id: MainNavId;
+  label: string;
+  glyph: React.FC<GlyphProps>;
+}
+
 export const AppBottomNav: React.FC<AppBottomNavProps> = ({
   activeTab,
   setActiveTab,
   wardrobeCount
 }) => {
+  const world = resolveVisualWorld(activeTab);
+
+  const railItems: NavRailItem[] = [
+    { id: 'atelier', label: 'Atelier', glyph: AtelierGlyph },
+    { id: 'wear', label: 'Wear', glyph: WearGlyph },
+    { id: 'layer', label: 'Layering', glyph: LayeringGlyph },
+    { id: 'wardrobe', label: 'Vault', glyph: VaultGlyph },
+    { id: 'heritage', label: 'Heritage', glyph: HeritageGlyph }
+  ];
+
+  // Tailored material styling according to visual world
+  const railMaterial =
+    world.id === 'archive'
+      ? 'bg-[#221B16]/95 border-[#DECDBA]/20 shadow-[0_8px_32px_rgba(34,27,22,0.45)]'
+      : world.id === 'chamber'
+      ? 'bg-[#0E0C0A]/95 border-white/[0.12] shadow-[0_8px_32px_rgba(0,0,0,0.65)]'
+      : 'bg-[#181310]/95 border-white/[0.10] shadow-[0_8px_32px_rgba(24,19,16,0.45)]';
+
+  const highlightBorder =
+    world.id === 'archive'
+      ? 'border-t-[#C2410C]/40'
+      : world.id === 'chamber'
+      ? 'border-t-[#D4AF37]/50'
+      : 'border-t-[#D97706]/45';
+
   return (
     <div className="fixed bottom-3 inset-x-3 z-40 md:hidden pointer-events-none">
-      <div className="max-w-md mx-auto liquid-glass-dock rounded-3xl px-2 py-1.5 pointer-events-auto flex items-center justify-around relative shadow-[0_8px_32px_rgba(95,70,40,0.12)]">
-        {/* Atelier */}
-        <motion.button
-          id="bottom-nav-atelier"
-          type="button"
-          whileTap={{ scale: 0.92 }}
-          onClick={() => setActiveTab('atelier')}
-          className={`min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 transition cursor-pointer relative px-2 py-1 select-none ${
-            activeTab === 'atelier' ? 'text-amber-950 font-bold' : 'text-[#7A6F66] hover:text-[#1A1613]'
-          }`}
-        >
-          <Sparkles className={`w-4 h-4 ${activeTab === 'atelier' ? 'text-amber-700' : ''}`} />
-          <span className="text-[9px] font-mono uppercase tracking-wider">Atelier</span>
-        </motion.button>
+      <div
+        className={`max-w-md mx-auto ${railMaterial} ${highlightBorder} border rounded-2xl px-3 py-1.5 pointer-events-auto flex items-center justify-around relative backdrop-blur-2xl transition-colors duration-500`}
+      >
+        {railItems.map((item) => {
+          const Glyph = item.glyph;
+          const isActive = activeTab === item.id;
 
-        {/* Wear */}
-        <motion.button
-          id="bottom-nav-wear"
-          type="button"
-          whileTap={{ scale: 0.92 }}
-          onClick={() => setActiveTab('wear')}
-          className={`min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 transition cursor-pointer relative px-2 py-1 select-none ${
-            activeTab === 'wear' ? 'text-amber-950 font-bold' : 'text-[#7A6F66] hover:text-[#1A1613]'
-          }`}
-        >
-          <Shirt className={`w-4 h-4 ${activeTab === 'wear' ? 'text-amber-700' : ''}`} />
-          <span className="text-[9px] font-mono uppercase tracking-wider">Wear</span>
-        </motion.button>
-
-        {/* Center Prominent Layer Lab Button - Liquid Gem */}
-        <div className="relative -top-3">
-          <motion.button
-            id="bottom-nav-layer-center"
-            type="button"
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
-            transition={MOTION_SPRINGS.tactilePress}
-            onClick={() => setActiveTab('layer')}
-            className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-amber-600 via-amber-700 to-rose-700 text-white flex items-center justify-center shadow-[0_8px_24px_rgba(217,119,6,0.38)] border border-white/90 cursor-pointer backdrop-blur-md"
-            aria-label="Open Layering Laboratory"
-          >
-            <FlaskConical className="w-5 h-5 text-white" />
-          </motion.button>
-        </div>
-
-        {/* Wardrobe */}
-        <motion.button
-          id="bottom-nav-wardrobe"
-          type="button"
-          whileTap={{ scale: 0.92 }}
-          onClick={() => setActiveTab('wardrobe')}
-          className={`min-h-[44px] min-w-[44px] relative flex flex-col items-center justify-center gap-0.5 transition cursor-pointer px-2 py-1 select-none ${
-            activeTab === 'wardrobe' ? 'text-amber-950 font-bold' : 'text-[#7A6F66] hover:text-[#1A1613]'
-          }`}
-        >
-          <Layers className={`w-4 h-4 ${activeTab === 'wardrobe' ? 'text-amber-700' : ''}`} />
-          <span className="text-[9px] font-mono uppercase tracking-wider">Vault</span>
-          {wardrobeCount > 0 && (
-            <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="absolute 0.5 right-1 w-3.5 h-3.5 rounded-full bg-amber-600 text-[8px] font-bold text-white flex items-center justify-center shadow-2xs"
+          return (
+            <motion.button
+              key={item.id}
+              id={`bottom-nav-${item.id}`}
+              type="button"
+              whileTap={{ scale: 0.94 }}
+              onClick={() => setActiveTab(item.id)}
+              className="min-h-[44px] min-w-[54px] flex flex-col items-center justify-center gap-1 cursor-pointer relative px-2 py-1 select-none group"
+              aria-label={`Switch to ${item.label}`}
             >
-              {wardrobeCount}
-            </motion.span>
-          )}
-        </motion.button>
+              {/* Restrained Instrument Activation Notch */}
+              {isActive && (
+                <motion.div
+                  layoutId="bottom-nav-active-notch"
+                  className="absolute -top-1.5 inset-x-3 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent rounded-full shadow-[0_0_8px_rgba(245,158,11,0.6)]"
+                  transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+                />
+              )}
 
-        {/* Heritage */}
-        <motion.button
-          id="bottom-nav-heritage"
-          type="button"
-          whileTap={{ scale: 0.92 }}
-          onClick={() => setActiveTab('heritage')}
-          className={`min-h-[44px] min-w-[44px] flex flex-col items-center justify-center gap-0.5 transition cursor-pointer px-2 py-1 select-none ${
-            activeTab === 'heritage' ? 'text-amber-950 font-bold' : 'text-[#7A6F66] hover:text-[#1A1613]'
-          }`}
-        >
-          <HeartHandshake className={`w-4 h-4 ${activeTab === 'heritage' ? 'text-amber-700' : ''}`} />
-          <span className="text-[9px] font-mono uppercase tracking-wider">Heritage</span>
-        </motion.button>
+              {/* Glyph with Restrained Instrument Illumination */}
+              <div className="relative flex items-center justify-center">
+                {isActive && (
+                  <div className="absolute inset-0 rounded-full bg-amber-400/10 blur-sm pointer-events-none" />
+                )}
+                <Glyph
+                  size={17}
+                  strokeWidth={isActive ? 1.5 : 1.3}
+                  className={`transition-colors duration-200 ${
+                    isActive
+                      ? 'text-amber-400'
+                      : 'text-[#8C8176] group-hover:text-[#D1C7BB]'
+                  }`}
+                />
+              </div>
+
+              {/* Precise Small Monospace Label */}
+              <span
+                className={`text-[8.5px] font-mono tracking-widest uppercase transition-colors duration-200 leading-none ${
+                  isActive
+                    ? 'text-amber-200 font-semibold'
+                    : 'text-[#7C7166] group-hover:text-[#AAA094]'
+                }`}
+              >
+                {item.label}
+              </span>
+
+              {/* Vault Counter Badge */}
+              {item.id === 'wardrobe' && wardrobeCount > 0 && (
+                <span className="absolute top-1 right-2 w-3.5 h-3.5 rounded-full bg-amber-500/25 border border-amber-400/40 text-[7.5px] font-mono font-bold text-amber-200 flex items-center justify-center">
+                  {wardrobeCount}
+                </span>
+              )}
+            </motion.button>
+          );
+        })}
       </div>
     </div>
   );

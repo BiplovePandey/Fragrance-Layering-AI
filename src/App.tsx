@@ -10,6 +10,8 @@ import { FragranceChamberModal } from './components/FragranceChamberModal.js';
 import { OpeningExperience } from './components/OpeningExperience.js';
 import { RecommendationLoadingModal } from './components/RecommendationLoadingModal.js';
 import { PreferenceForm } from './components/PreferenceForm.js';
+import { SurpriseMeModal } from './components/ui/index.js';
+import { resolveVisualWorld } from './utils/visualWorlds.js';
 
 // Views
 import { AtelierView } from './components/views/AtelierView.js';
@@ -21,6 +23,8 @@ import { CommunityView } from './components/views/CommunityView.js';
 import { MyDnaView } from './components/views/MyDnaView.js';
 import { DiscoverView } from './components/views/DiscoverView.js';
 import { WhatShouldIWearView } from './components/views/WhatShouldIWearView.js';
+import { ScannerView } from './components/views/ScannerView.js';
+import { AcademyView } from './components/views/AcademyView.js';
 
 import { api } from './services/api.js';
 import { updateWeatherCondition } from './services/weatherEngine.js';
@@ -77,6 +81,9 @@ export default function App() {
   // Custom Preferences Form Modal
   const [isPreferencesModalOpen, setIsPreferencesModalOpen] = useState<boolean>(false);
 
+  // Magical Surprise Me Serendipity State
+  const [isSurpriseMeOpen, setIsSurpriseMeOpen] = useState<boolean>(false);
+
   // Core Data Collections
   const [fragrances, setFragrances] = useState<Fragrance[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -116,7 +123,7 @@ export default function App() {
   useEffect(() => {
     async function loadInitialData() {
       try {
-        const [frags, cls, col, saved, prefs, brandList, taxList] = await Promise.all([
+        const [fragsRes, clsRes, colRes, savedRes, prefsRes, brandListRes, taxListRes] = await Promise.allSettled([
           api.getFragrances(),
           api.getClusters(),
           api.getCollection(),
@@ -125,6 +132,14 @@ export default function App() {
           api.getBrands(),
           api.getTaxonomy()
         ]);
+
+        const frags = fragsRes.status === 'fulfilled' ? fragsRes.value : [];
+        const cls = clsRes.status === 'fulfilled' ? clsRes.value : [];
+        const col = colRes.status === 'fulfilled' ? colRes.value : { fragrances: [] };
+        const saved = savedRes.status === 'fulfilled' ? savedRes.value : [];
+        const prefs = prefsRes.status === 'fulfilled' ? prefsRes.value : null;
+        const brandList = brandListRes.status === 'fulfilled' ? brandListRes.value : [];
+        const taxList = taxListRes.status === 'fulfilled' ? taxListRes.value : [];
 
         setFragrances(Array.isArray(frags) ? frags : []);
         setClusters(Array.isArray(cls) ? cls : []);
@@ -142,7 +157,7 @@ export default function App() {
           setLabFragB(frags[1]);
         }
       } catch (err) {
-        console.error('Error initializing application data:', err);
+        console.warn('Non-fatal issue initializing some application data:', err);
       }
     }
 
@@ -320,8 +335,10 @@ export default function App() {
     } catch {}
   };
 
+  const currentWorld = resolveVisualWorld(activeTab);
+
   return (
-    <div className="relative min-h-screen bg-[#F8F5EF]/50 text-[#1A1613] flex flex-col font-sans selection:bg-amber-500/20 pb-24 md:pb-0 overflow-x-hidden">
+    <div className={`relative min-h-screen ${currentWorld.backdropClass} text-[#1A1613] flex flex-col font-sans selection:bg-amber-500/20 pb-24 md:pb-0 overflow-x-hidden transition-colors duration-700`}>
       {/* Dynamic Scent Family Atmospheric Canvas Background */}
       <AtmosphericFragranceCanvas
         atmosphere={currentAtmosphere}
@@ -361,6 +378,24 @@ export default function App() {
           setCurrentAtmosphere(atm);
           showNotification(`Atmosphere shifted to ${ATMOSPHERE_PROFILES[atm]?.name || atm}.`);
         }}
+        onWearToday={(f) => handleWearToday(f)}
+        onExploreHeritage={() => {
+          setIsChamberOpen(false);
+          setActiveTab('heritage');
+        }}
+      />
+
+      {/* Magical Serendipity Surprise Me Modal */}
+      <SurpriseMeModal
+        isOpen={isSurpriseMeOpen}
+        onClose={() => setIsSurpriseMeOpen(false)}
+        allFragrances={fragrances}
+        weather={weather}
+        onWearThis={(f) => {
+          handleWearToday(f);
+          showNotification(`Wearing ${f.name} today (+40 XP).`);
+        }}
+        onOpenChamber={handleInspectInChamber}
       />
 
       {/* Floating Ambient Atmosphere Controller & Audio Soundscape Modal */}
@@ -382,6 +417,7 @@ export default function App() {
         onOpenAtmosphere={() => setIsAtmosphereModalOpen(true)}
         gamification={gamification}
         wardrobeCount={ownedFragrances?.length || 0}
+        onTriggerSurprise={() => setIsSurpriseMeOpen(true)}
       />
 
       {/* Floating Notification Toast */}
@@ -427,6 +463,8 @@ export default function App() {
                 onSendToLaboratory={handleSendToLaboratory}
                 onWearToday={handleWearToday}
                 onAddToWardrobe={handleAddToCabinet}
+                onNavigate={(tab) => setActiveTab(tab)}
+                onNavigateToHeritageAtlas={(_materialId) => setActiveTab('heritage')}
               />
             </MotionPage>
           )}
@@ -440,6 +478,7 @@ export default function App() {
                 selectedFragranceB={labFragB}
                 weather={weather}
                 onSaveCombination={handleSaveCombination}
+                onWearToday={(fragA, fragB) => handleWearToday(fragA, fragB)}
               />
             </MotionPage>
           )}
@@ -468,6 +507,8 @@ export default function App() {
                 onRemoveFromCollection={handleRemoveFromCabinet}
                 onSendToLab={(f) => handleSendToLaboratory(f)}
                 weather={weather}
+                onWearToday={handleWearToday}
+                onNavigate={setActiveTab}
               />
             </MotionPage>
           )}
@@ -478,28 +519,49 @@ export default function App() {
               <HeritageAtlasView
                 onSendToLab={handleSendToLaboratory}
                 allFragrances={fragrances}
+                ownedFragrances={ownedFragrances}
+                onInspectInChamber={handleInspectInChamber}
+                onWearToday={handleWearToday}
+                onNavigate={setActiveTab}
               />
             </MotionPage>
           )}
 
-          {/* PILLAR 6: COMMUNITY ALCHEMICAL COMMONS & INGESTION */}
+          {/* PILLAR 6: THE PRIVATE FRAGRANCE SOCIETY */}
           {activeTab === 'community' && (
             <MotionPage key="community">
               <CommunityView
                 onSendToLab={handleSendToLaboratory}
                 allFragrances={fragrances}
                 weather={weather}
+                onInspectInChamber={handleInspectInChamber}
+                onAddToCabinet={(frag) => handleAddToCabinet(frag.id)}
+                onExploreHeritage={() => setActiveTab('heritage')}
+                wardrobeFragrances={ownedFragrances}
+                gamification={gamification}
+                showNotification={showNotification}
               />
             </MotionPage>
           )}
 
-          {/* PILLAR 7: PERSONAL SCENT DNA & RANK PROGRESSION */}
+          {/* PILLAR 7: PERSONAL SCENT DNA & OLFACTORY PORTRAIT */}
           {activeTab === 'mydna' && (
             <MotionPage key="mydna">
               <MyDnaView
                 gamification={gamification}
                 preferences={preferences}
                 onOpenPreferencesModal={() => setIsPreferencesModalOpen(true)}
+                allFragrances={fragrances}
+                ownedFragrances={ownedFragrances}
+                weather={weather}
+                onNavigate={(tab) => setActiveTab(tab)}
+                onInspectInChamber={handleInspectInChamber}
+                onSendToLab={(f) => handleSendToLaboratory(f)}
+                onSendToLabChord={(fragA, fragB) => handleSendToLaboratory(fragA, fragB)}
+                onWearToday={handleWearToday}
+                onNavigateToHeritageAtlas={(_materialId) => setActiveTab('heritage')}
+                onAddNoteToPreferences={handleAddNoteToPreferences}
+                onCompleteVibeCheck={handleCompleteTinderVibe}
               />
             </MotionPage>
           )}
@@ -521,6 +583,35 @@ export default function App() {
                   setPreferences(prev => ({ ...prev, owned_fragrance_id: fragId }));
                   handleCalculateLayering(undefined, true);
                 }}
+              />
+            </MotionPage>
+          )}
+
+          {/* PILLAR 9A: THE SCENT SCANNER */}
+          {activeTab === 'scanner' && (
+            <MotionPage key="scanner">
+              <ScannerView
+                allFragrances={fragrances}
+                onAddToWardrobe={(id) => handleAddToCabinet(id)}
+                onSelectFragranceForChamber={handleInspectInChamber}
+                onSendToLaboratory={handleSendToLaboratory}
+                onNavigate={setActiveTab}
+                onNavigateToHeritageAtlas={(_matId) => setActiveTab('heritage')}
+              />
+            </MotionPage>
+          )}
+
+          {/* PILLAR 9B: THE SCENT ACADEMY */}
+          {activeTab === 'academy' && (
+            <MotionPage key="academy">
+              <AcademyView
+                fragrances={fragrances}
+                wardrobeFragrances={ownedFragrances}
+                onSelectFragranceForChamber={handleInspectInChamber}
+                onSendToLaboratory={handleSendToLaboratory}
+                onAddToWardrobe={(f) => handleAddToCabinet(f.id)}
+                onNavigate={setActiveTab}
+                onNavigateToHeritageAtlas={(_matId) => setActiveTab('heritage')}
               />
             </MotionPage>
           )}

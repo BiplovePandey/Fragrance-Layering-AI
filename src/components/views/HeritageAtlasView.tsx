@@ -1,215 +1,257 @@
-import React, { useState } from 'react';
-import {
-  HeartHandshake,
-  Sparkles,
-  BookOpen,
-  ArrowRight,
-  FlaskConical,
-  Compass,
-  Layers,
-  MapPin
-} from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { HERITAGE_ENTRIES } from '../../data/heritageAtlas.js';
-import { HeritageEntry, Fragrance } from '../../types.js';
+import { HeritageEntry, Fragrance, MainNavId } from '../../types.js';
 import { awardXP } from '../../services/gamificationEngine.js';
+import { HeritageHero } from '../heritage/HeritageHero.js';
+import { OlfactoryMap } from '../heritage/OlfactoryMap.js';
+import { BotanicalArchive } from '../heritage/BotanicalArchive.js';
+import { KannaujHeroSection } from '../heritage/KannaujHeroSection.js';
+import { DegBhapkaExploration } from '../heritage/DegBhapkaExploration.js';
+import { AttarArchive } from '../heritage/AttarArchive.js';
+import { CraftArchive } from '../heritage/CraftArchive.js';
+import { HeritageSearchAndFilter, HeritageViewTab } from '../heritage/HeritageSearchAndFilter.js';
+import { HeritageSpecimenDetail } from '../heritage/HeritageSpecimenDetail.js';
+import { HeritageCabinetBridge } from '../heritage/HeritageCabinetBridge.js';
+import { findCabinetMatchesForHeritage } from '../../services/heritageService.js';
 
 interface HeritageAtlasViewProps {
   onSendToLab: (fragA: Fragrance, fragB?: Fragrance) => void;
   allFragrances: Fragrance[];
+  ownedFragrances?: Fragrance[];
+  onInspectInChamber?: (fragrance: Fragrance) => void;
+  onWearToday?: (fragrance: Fragrance) => void;
+  onNavigate?: (tab: MainNavId) => void;
 }
 
 export const HeritageAtlasView: React.FC<HeritageAtlasViewProps> = ({
   onSendToLab,
-  allFragrances
+  allFragrances,
+  ownedFragrances = [],
+  onInspectInChamber,
+  onWearToday,
+  onNavigate
 }) => {
-  const [selectedEntryId, setSelectedEntryId] = useState<string>(HERITAGE_ENTRIES[0].id);
+  const [activeTab, setActiveTab] = useState<HeritageViewTab>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedSpecimen, setSelectedSpecimen] = useState<HeritageEntry | null>(null);
 
-  const selectedEntry = HERITAGE_ENTRIES.find(e => e.id === selectedEntryId) || HERITAGE_ENTRIES[0];
+  // Compute how many specimens connect to the user's personal cabinet
+  const totalCabinetMatches = useMemo(() => {
+    let count = 0;
+    for (const entry of HERITAGE_ENTRIES) {
+      const matches = findCabinetMatchesForHeritage(entry, ownedFragrances);
+      if (matches.length > 0) count++;
+    }
+    return count;
+  }, [ownedFragrances]);
 
-  const handleSelectEntry = (id: string) => {
-    setSelectedEntryId(id);
+  // Kannauj-specific specimens
+  const kannaujEntries = useMemo(() => {
+    return HERITAGE_ENTRIES.filter((e) => e.region.toLowerCase().includes('kannauj'));
+  }, []);
+
+  const handleOpenSpecimen = (entry: HeritageEntry) => {
+    setSelectedSpecimen(entry);
     awardXP(25, 'heritage_voyager');
   };
 
+  // Filtered specimens if searching globally
+  const searchResults = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return [];
+    return HERITAGE_ENTRIES.filter(
+      (e) =>
+        e.name.toLowerCase().includes(q) ||
+        e.hindi_name.toLowerCase().includes(q) ||
+        (e.botanical_name || '').toLowerCase().includes(q) ||
+        e.region.toLowerCase().includes(q) ||
+        e.olfactory_profile.notes.some((n) => n.toLowerCase().includes(q)) ||
+        e.olfactory_profile.dominant_families.some((f) => f.toLowerCase().includes(q))
+    );
+  }, [searchQuery]);
+
   return (
-    <div className="space-y-8 pb-16">
-      {/* Header */}
-      <div>
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/70 backdrop-blur-md border border-white text-amber-900 text-xs font-mono-lab mb-2 shadow-2xs">
-          <HeartHandshake className="w-3.5 h-3.5 text-amber-700" />
-          <span>Living Indian Botanical Archive</span>
-        </div>
-        <h1 className="font-serif text-3xl sm:text-4xl font-medium text-[#1A1613]">
-          Indian Fragrance Heritage Atlas
-        </h1>
-        <p className="text-xs sm:text-sm text-[#5A5046] mt-1 max-w-3xl">
-          Tracing 400+ years of copper Deg &amp; Bhapka hydro-distillation, sacred sandalwood bases, and traditional botanical distillates into contemporary luxury perfumery.
-        </p>
-      </div>
+    <div className="space-y-10 pb-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 1. Cinematic Hero Header */}
+      <HeritageHero
+        onSelectTab={(t) => setActiveTab(t as HeritageViewTab)}
+        activeTab={activeTab}
+        totalSpecimens={HERITAGE_ENTRIES.length}
+        cabinetMatchesCount={totalCabinetMatches}
+      />
 
-      {/* Horizontal Heritage Material Selector */}
-      <div className="flex gap-2.5 overflow-x-auto pb-2 scrollbar-none">
-        {HERITAGE_ENTRIES.map((entry) => {
-          const isSelected = entry.id === selectedEntryId;
-          return (
-            <button
-              key={entry.id}
-              type="button"
-              onClick={() => handleSelectEntry(entry.id)}
-              className={`px-4 py-3 rounded-2xl text-left shrink-0 transition cursor-pointer flex flex-col justify-between ${
-                isSelected
-                  ? 'bg-white/95 border border-white text-amber-950 shadow-md ring-2 ring-amber-500/20'
-                  : 'liquid-glass-pill text-[#3D352E] hover:bg-white/90'
-              }`}
-            >
-              <span className="text-[10px] font-mono-lab text-amber-800 font-semibold block">{entry.region.split(',')[0]}</span>
-              <span className="text-sm font-serif font-semibold text-[#1A1613] mt-0.5">{entry.name}</span>
-              <span className="text-[10px] text-[#6B6056] mt-1">{entry.hindi_name.split('(')[0].trim()}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* 2. Archival Search & Secondary Filter Controls */}
+      <HeritageSearchAndFilter
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        cabinetMatchesCount={totalCabinetMatches}
+      />
 
-      {/* Deep Interactive Connection Matrix:
-          Traditional Material -> Deg-Bhapka Extraction -> Olfactory Profile -> Modern Indian Fragrance -> International Luxury Equivalents -> Layering Chords */}
-      <div className="rounded-3xl liquid-glass p-6 sm:p-10 space-y-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        {/* Title & Cultural Context */}
-        <div className="space-y-2 border-b border-white/60 pb-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-mono-lab uppercase tracking-wider px-3 py-1 rounded-full bg-amber-100/90 text-amber-900 border border-amber-300 font-semibold shadow-2xs">
-              {selectedEntry.historical_period}
-            </span>
-            <span className="text-xs text-[#5A5046] flex items-center gap-1">
-              <MapPin className="w-3.5 h-3.5 text-rose-700" /> {selectedEntry.region}
-            </span>
+      {/* Global Search Results Layer (if user typed in search) */}
+      {searchQuery.trim().length > 0 ? (
+        <div className="space-y-6">
+          <div className="text-xs font-mono-lab uppercase tracking-widest text-[#D97706] border-b border-[#3E3228] pb-3">
+            Search Results for "{searchQuery}" ({searchResults.length} specimens)
           </div>
 
-          <h2 className="font-serif text-3xl sm:text-5xl font-medium text-[#1A1613] mt-2">
-            {selectedEntry.name}
-          </h2>
-          <p className="text-lg font-serif text-amber-900 italic">
-            {selectedEntry.hindi_name}
-          </p>
-          <p className="text-sm text-[#5A5046] leading-relaxed max-w-3xl pt-2">
-            {selectedEntry.olfactory_profile.description}
-          </p>
-        </div>
-
-        {/* 6-Step Botanical Connection Path */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Box 1: Extraction & Distillation */}
-          <div className="p-5 rounded-2xl liquid-glass-inset space-y-2">
-            <span className="text-[10px] font-mono-lab uppercase text-amber-800 font-semibold block">
-              01 &bull; Artisanal Extraction Method
-            </span>
-            <h4 className="font-serif text-lg font-medium text-[#1A1613]">
-              Deg &amp; Bhapka Hydro-Distillation
-            </h4>
-            <p className="text-xs text-[#5A5046] leading-relaxed">
-              {selectedEntry.extraction_method}
-            </p>
-          </div>
-
-          {/* Box 2: Olfactory Profile & Imagery */}
-          <div className="p-5 rounded-2xl liquid-glass-inset space-y-2">
-            <span className="text-[10px] font-mono-lab uppercase text-rose-800 font-semibold block">
-              02 &bull; Evocative Olfactory Imagery
-            </span>
-            <h4 className="font-serif text-lg font-medium text-[#1A1613]">
-              Scent Experience
-            </h4>
-            <p className="text-xs text-[#5A5046] leading-relaxed italic">
-              &ldquo;{selectedEntry.olfactory_profile.evocative_imagery}&rdquo;
-            </p>
-            <div className="flex flex-wrap gap-1.5 pt-2">
-              {selectedEntry.olfactory_profile.notes.map(n => (
-                <span key={n} className="px-2 py-0.5 rounded-md bg-amber-100/90 text-[10px] text-amber-900 font-mono-lab border border-amber-300">
-                  {n}
-                </span>
+          {searchResults.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {searchResults.map((specimen) => (
+                <div
+                  key={specimen.id}
+                  onClick={() => handleOpenSpecimen(specimen)}
+                  className="cursor-pointer p-6 rounded-3xl bg-[#1C1713] border border-[#3E3228] hover:border-[#D97706] transition-all space-y-3"
+                >
+                  <div className="text-[10px] font-mono-lab uppercase text-[#D97706]">
+                    {specimen.region}
+                  </div>
+                  <h3 className="font-serif text-2xl text-[#FAF5F0]">
+                    {specimen.name}
+                  </h3>
+                  <div className="font-serif italic text-sm text-[#FDE68A]">
+                    {specimen.hindi_name}
+                  </div>
+                  <p className="text-xs text-[#A8988B] line-clamp-2">
+                    {specimen.olfactory_profile.description}
+                  </p>
+                  <div className="text-xs font-mono-lab text-[#FEF3C7] pt-2">
+                    Open Archival Dossier →
+                  </div>
+                </div>
               ))}
             </div>
-          </div>
-
-          {/* Box 3: Traditional Role */}
-          <div className="p-5 rounded-2xl liquid-glass-inset space-y-2">
-            <span className="text-[10px] font-mono-lab uppercase text-emerald-800 font-semibold block">
-              03 &bull; Ayurvedic &amp; Royal History
-            </span>
-            <h4 className="font-serif text-lg font-medium text-[#1A1613]">
-              Traditional Purpose
-            </h4>
-            <p className="text-xs text-[#5A5046] leading-relaxed">
-              {selectedEntry.traditional_role}
-            </p>
-          </div>
-
-          {/* Box 4: Modern Indian Fragrances */}
-          <div className="p-5 rounded-2xl liquid-glass-inset space-y-2">
-            <span className="text-[10px] font-mono-lab uppercase text-amber-800 font-semibold block">
-              04 &bull; Modern Indian Perfumes
-            </span>
-            <h4 className="font-serif text-lg font-medium text-[#1A1613]">
-              Contemporary Expressions
-            </h4>
-            <ul className="space-y-1.5 pt-1">
-              {selectedEntry.modern_indian_fragrances.map((f, i) => (
-                <li key={i} className="text-xs text-[#3D352E] flex items-center justify-between">
-                  <span className="font-medium text-[#1A1613]">{f.name}</span>
-                  <span className="text-[10px] text-[#7A6F66] font-mono-lab">{f.brand}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Box 5: International Luxury Equivalents */}
-          <div className="p-5 rounded-2xl liquid-glass-inset space-y-2">
-            <span className="text-[10px] font-mono-lab uppercase text-teal-800 font-semibold block">
-              05 &bull; Global Parfumerie Equivalents
-            </span>
-            <h4 className="font-serif text-lg font-medium text-[#1A1613]">
-              International Parallels
-            </h4>
-            <ul className="space-y-1.5 pt-1">
-              {selectedEntry.international_equivalents.map((f, i) => (
-                <li key={i} className="text-xs text-[#3D352E] flex items-center justify-between">
-                  <span className="font-medium text-[#1A1613]">{f.name}</span>
-                  <span className="text-[10px] text-[#7A6F66] font-mono-lab">{f.brand}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Box 6: Layering Possibility */}
-          <div className="p-5 rounded-2xl bg-amber-50/80 border border-amber-200 space-y-2 flex flex-col justify-between">
-            <div>
-              <span className="text-[10px] font-mono-lab uppercase text-amber-900 font-semibold block">
-                06 &bull; Alchemical Layering Chord
-              </span>
-              <h4 className="font-serif text-lg font-medium text-[#1A1613]">
-                {selectedEntry.layering_chords?.[0]?.chord_title || 'Sacred Synergy'}
-              </h4>
-              <p className="text-xs text-[#5A5046] leading-relaxed mt-1">
-                {selectedEntry.layering_chords?.[0]?.technique || 'Harmonious layering technique'}
-              </p>
+          ) : (
+            <div className="p-10 rounded-3xl bg-[#1C1713] border border-[#3E3228] text-center text-sm text-[#A8988B]">
+              No heritage specimens found matching "{searchQuery}".
             </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                const companion = allFragrances.find(f => f.fragrance_family?.includes('Wood') || f.fragrance_family?.includes('Citrus')) || allFragrances[0];
-                const baseFrag = allFragrances.find(f => f.name.toLowerCase().includes((selectedEntry.name || '').toLowerCase().split(' ')[1] || '')) || allFragrances[1] || allFragrances[0];
-                onSendToLab(baseFrag, companion);
-              }}
-              className="mt-3 px-3.5 py-2 rounded-xl bg-amber-200 hover:bg-amber-300 text-amber-950 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
-            >
-              <FlaskConical className="w-3.5 h-3.5 text-amber-800" />
-              <span>Experiment with this Chord in Lab</span>
-            </button>
-          </div>
+          )}
         </div>
-      </div>
+      ) : (
+        /* Standard Pillar Views based on Active Tab */
+        <div className="space-y-16">
+          {/* TAB: ALL ARCHIVE */}
+          {activeTab === 'all' && (
+            <div className="space-y-16">
+              {/* Section 1: Olfactory Map */}
+              <OlfactoryMap
+                heritageEntries={HERITAGE_ENTRIES}
+                onSelectSpecimen={handleOpenSpecimen}
+              />
+
+              {/* Section 2: Kannauj Hero Workshop Experience */}
+              <KannaujHeroSection
+                kannaujEntries={kannaujEntries}
+                onSelectSpecimen={handleOpenSpecimen}
+              />
+
+              {/* Section 3: Botanical Field Journal */}
+              <BotanicalArchive
+                heritageEntries={HERITAGE_ENTRIES}
+                onSelectSpecimen={handleOpenSpecimen}
+              />
+
+              {/* Section 4: Traditional Craft Archive */}
+              <CraftArchive />
+
+              {/* Section 5: The Attar Archive */}
+              <AttarArchive
+                heritageEntries={HERITAGE_ENTRIES}
+                allFragrances={allFragrances}
+                ownedFragrances={ownedFragrances}
+                onSelectSpecimen={handleOpenSpecimen}
+                onInspectInChamber={onInspectInChamber}
+              />
+
+              {/* Section 6: Cabinet Connection */}
+              <HeritageCabinetBridge
+                ownedFragrances={ownedFragrances}
+                heritageEntries={HERITAGE_ENTRIES}
+                onSelectSpecimen={handleOpenSpecimen}
+                onInspectInChamber={onInspectInChamber}
+                onSendToLab={onSendToLab}
+                onWearToday={onWearToday}
+                onNavigate={onNavigate}
+              />
+            </div>
+          )}
+
+          {/* TAB: OLFACTORY MAP */}
+          {activeTab === 'map' && (
+            <OlfactoryMap
+              heritageEntries={HERITAGE_ENTRIES}
+              onSelectSpecimen={handleOpenSpecimen}
+            />
+          )}
+
+          {/* TAB: BOTANICALS */}
+          {activeTab === 'botanicals' && (
+            <BotanicalArchive
+              heritageEntries={HERITAGE_ENTRIES}
+              onSelectSpecimen={handleOpenSpecimen}
+            />
+          )}
+
+          {/* TAB: KANNAUJ WORKSHOP */}
+          {activeTab === 'kannauj' && (
+            <div className="space-y-12">
+              <KannaujHeroSection
+                kannaujEntries={kannaujEntries}
+                onSelectSpecimen={handleOpenSpecimen}
+              />
+            </div>
+          )}
+
+          {/* TAB: CRAFT & STILLS */}
+          {activeTab === 'craft' && (
+            <div className="space-y-12">
+              <DegBhapkaExploration />
+              <CraftArchive />
+            </div>
+          )}
+
+          {/* TAB: ATTARS */}
+          {activeTab === 'attars' && (
+            <AttarArchive
+              heritageEntries={HERITAGE_ENTRIES}
+              allFragrances={allFragrances}
+              ownedFragrances={ownedFragrances}
+              onSelectSpecimen={handleOpenSpecimen}
+              onInspectInChamber={onInspectInChamber}
+            />
+          )}
+
+          {/* TAB: IN MY CABINET */}
+          {activeTab === 'cabinet' && (
+            <HeritageCabinetBridge
+              ownedFragrances={ownedFragrances}
+              heritageEntries={HERITAGE_ENTRIES}
+              onSelectSpecimen={handleOpenSpecimen}
+              onInspectInChamber={onInspectInChamber}
+              onSendToLab={onSendToLab}
+              onWearToday={onWearToday}
+              onNavigate={onNavigate}
+            />
+          )}
+        </div>
+      )}
+
+      {/* 5-Level Progressive Disclosure Archival Specimen Modal */}
+      <AnimatePresence>
+        {selectedSpecimen && (
+          <HeritageSpecimenDetail
+            specimen={selectedSpecimen}
+            onClose={() => setSelectedSpecimen(null)}
+            ownedFragrances={ownedFragrances}
+            allFragrances={allFragrances}
+            onInspectInChamber={onInspectInChamber}
+            onSendToLab={onSendToLab}
+            onNavigate={onNavigate}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -333,7 +333,9 @@ export type MainNavId =
   | 'discover'
   | 'heritage'
   | 'community'
-  | 'mydna';
+  | 'mydna'
+  | 'scanner'
+  | 'academy';
 
 export interface SecondaryOlfactoryCharacteristics {
   citrus: number;      // 0 - 100
@@ -458,6 +460,10 @@ export interface HeritageEntry {
   modern_indian_fragrances: { name: string; brand: string; id?: number }[];
   international_equivalents: { name: string; brand: string }[];
   layering_chords: { companion_family: string; chord_title: string; technique: string }[];
+  coordinates?: { lat: number; lng: number };
+  category?: 'attar' | 'botanical' | 'wood' | 'spice' | 'mineral';
+  atmosphere_preset?: string;
+  gi_tag?: string;
 }
 
 export interface UserGamification {
@@ -635,6 +641,17 @@ export interface LivingOlfactoryDNA {
   lastUpdated: string;
 }
 
+export interface ScentWearHistoryEntry {
+  fragranceId: number;
+  fragranceName: string;
+  weatherCondition?: WeatherCondition;
+  occasion?: string;
+  partnerFragranceId?: number;
+  partnerFragranceName?: string;
+  satisfactionRating?: number;
+  timestamp: string;
+}
+
 export interface PersonalScentMemory {
   likes: number[];
   dislikes: number[];
@@ -651,6 +668,7 @@ export interface PersonalScentMemory {
     coldWeatherNotes: string[];
     monsoonNotes: string[];
   };
+  history: ScentWearHistoryEntry[];
 }
 
 export interface LayerExperiment {

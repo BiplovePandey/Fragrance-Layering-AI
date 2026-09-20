@@ -138,7 +138,7 @@ export const WhatShouldIWearModal: React.FC<WhatShouldIWearModalProps> = ({
             </div>
             <div>
               <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-mono uppercase tracking-wider mb-1">
-                Central Olfactory Intelligence &bull; Personal AI Decision
+                Atmospheric Olfactory Ritual &bull; Modelled Resonance
               </div>
               <h2 className="font-serif text-2xl sm:text-3xl font-medium text-stone-100">
                 What Should I Wear?
@@ -244,7 +244,7 @@ export const WhatShouldIWearModal: React.FC<WhatShouldIWearModalProps> = ({
                     <div className="font-mono text-2xl font-bold text-amber-300">
                       {recommendation.compatibilityScore}%
                     </div>
-                    <span className="text-[10px] font-mono text-stone-400 uppercase">Personal Match</span>
+                    <span className="text-[10px] font-mono text-stone-400 uppercase">Modelled Match</span>
                   </div>
                   <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 text-xl font-serif">
                     🎯
