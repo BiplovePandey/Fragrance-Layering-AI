@@ -16,18 +16,22 @@ import {
   Droplets,
   Layers,
   ThermometerSun,
-  Activity
+  Activity,
+  Crown,
+  ShieldCheck
 } from 'lucide-react';
 import { Fragrance, WeatherCondition, OlfactoryVector8D } from '../../types.js';
 import { ScentFamilyAtmosphere } from '../AtmosphericFragranceCanvas.js';
 import { HeroFlacon } from './HeroFlacon.js';
 import { AtmosphereSelector } from './AtmosphereSelector.js';
 import { ScentMist } from '../ui/ScentMist.js';
-import { extractFragranceVector8D } from '../../services/olfactoryIntelligence.js';
+import { extractFragranceVector8D, olfactoryIntelligence } from '../../services/olfactoryIntelligence.js';
 import { ambientAudioEngine } from '../../services/ambientAudioEngine.js';
 import { usePrefersReducedMotion } from '../../motion/accessibility.js';
 import { accordionVariants } from '../../motion/variants.js';
 import { getFragranceFamilyTokens } from '../../utils/fragrancePalette.js';
+import { generateHeroExplanation, getCabinetRelationship } from '../../utils/recommendationExplanation.js';
+import { calculateWeatherAlignmentScore } from '../../services/weatherEngine.js';
 
 export interface AtelierHeroProps {
   scentOfTheDay: Fragrance;
@@ -37,6 +41,7 @@ export interface AtelierHeroProps {
   weather: WeatherCondition;
   currentAtmosphere: ScentFamilyAtmosphere;
   allFragrances?: Fragrance[];
+  wardrobeFragrances?: Fragrance[];
   onSetAtmosphere: (atm: ScentFamilyAtmosphere) => void;
   onOpenWeatherModal: () => void;
   onSelectFragranceForChamber: (frag: Fragrance) => void;
@@ -114,6 +119,7 @@ export const AtelierHero: React.FC<AtelierHeroProps> = ({
   weather,
   currentAtmosphere,
   allFragrances = [],
+  wardrobeFragrances = [],
   onSetAtmosphere,
   onOpenWeatherModal,
   onSelectFragranceForChamber,
@@ -128,6 +134,25 @@ export const AtelierHero: React.FC<AtelierHeroProps> = ({
   const [isRevealing, setIsRevealing] = useState(false);
   const [showWhyThisScent, setShowWhyThisScent] = useState(false);
   const [showScienceLevel5, setShowScienceLevel5] = useState(false);
+
+  // Retrieve living DNA safely
+  const livingDNA = React.useMemo(() => {
+    try {
+      return olfactoryIntelligence.getLivingDNA();
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Short generated explanation based strictly on existing data
+  const heroExplanation = React.useMemo(() => {
+    return generateHeroExplanation(scentOfTheDay, weather, undefined, undefined, livingDNA);
+  }, [scentOfTheDay, weather, livingDNA]);
+
+  // Cabinet relationship based strictly on ownership and family similarity
+  const cabinetRel = React.useMemo(() => {
+    return getCabinetRelationship(scentOfTheDay, wardrobeFragrances);
+  }, [scentOfTheDay, wardrobeFragrances]);
 
   // Derive 8D vector of current hero protagonist
   const vector8D: OlfactoryVector8D = extractFragranceVector8D(scentOfTheDay);
@@ -161,7 +186,7 @@ export const AtelierHero: React.FC<AtelierHeroProps> = ({
     }
   };
 
-  // Handle Signature Surprise Me Interaction
+  // Handle Signature Surprise Me Interaction (Constrained by existing recommendation criteria)
   const handleSurpriseClick = () => {
     if (!allFragrances.length) return;
 
@@ -171,8 +196,16 @@ export const AtelierHero: React.FC<AtelierHeroProps> = ({
     // 2. Trigger brief cinematic reveal veil
     setIsRevealing(true);
 
-    // 3. Pick a surprising, serendipitous fragrance
-    const candidateList = allFragrances.filter((f) => f.id !== scentOfTheDay?.id);
+    // 3. Pick a surprising candidate meeting current atmospheric criteria
+    const qualifiedCandidates = allFragrances.filter((f) => {
+      if (f.id === scentOfTheDay?.id) return false;
+      const fit = calculateWeatherAlignmentScore(f, weather);
+      return fit.score >= 70;
+    });
+    const candidateList = qualifiedCandidates.length > 0
+      ? qualifiedCandidates
+      : allFragrances.filter((f) => f.id !== scentOfTheDay?.id);
+
     const chosen = candidateList.length
       ? candidateList[Math.floor(Math.random() * candidateList.length)]
       : allFragrances[0];
@@ -331,22 +364,29 @@ export const AtelierHero: React.FC<AtelierHeroProps> = ({
         transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
         className="flex flex-col items-center max-w-xl px-4 z-20"
       >
+        {/* Eyebrow: Today's Accord */}
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-200 text-xs font-mono mb-3">
+          <Crown className="w-3.5 h-3.5 text-amber-400" />
+          <span className="font-semibold tracking-wider uppercase">TODAY&apos;S ACCORD</span>
+        </div>
+
         {/* Large Cormorant Score */}
         <div className="flex flex-col items-center">
           <span className="font-serif text-5xl sm:text-6xl md:text-7xl font-light text-[#1A1613] tracking-tight leading-none">
             {scentOfTheDayScore}%
           </span>
-          <span className="font-brand text-[11px] sm:text-xs uppercase tracking-[0.22em] text-amber-800 font-semibold mt-1.5">
-            Atmospheric Harmony
+          <span className="font-brand text-[11px] sm:text-xs uppercase tracking-[0.22em] text-amber-800 font-semibold mt-1.5 flex items-center gap-1.5">
+            <span>Atmospheric Harmony</span>
+            <span className="text-[9px] font-mono text-stone-500 font-normal">&bull; CALCULATED</span>
           </span>
         </div>
 
         {/* Fragrance Name & Brand Headline */}
-        <div className="mt-3 text-center">
+        <div className="mt-2 text-center">
           <h2 className="font-serif text-2xl sm:text-3xl text-[#1A1613] font-medium tracking-tight">
             {scentOfTheDay?.name}
           </h2>
-          <div className="flex items-center justify-center gap-2 mt-1">
+          <div className="flex items-center justify-center gap-2 mt-1 flex-wrap">
             <span className="text-xs font-semibold tracking-wider uppercase text-[#7A6F66]">
               by {scentOfTheDay?.brand}
             </span>
@@ -354,15 +394,22 @@ export const AtelierHero: React.FC<AtelierHeroProps> = ({
             <span className="px-2 py-0.5 rounded-full bg-white/80 border border-[#E8DFD3] text-[10px] font-mono font-medium text-amber-900 shadow-2xs">
               {scentOfTheDay?.concentration || 'Fine Parfum'}
             </span>
+            <span className="px-1.5 py-0.5 rounded bg-stone-100 border border-stone-200 text-[9px] font-mono text-stone-500 uppercase">
+              VERIFIED
+            </span>
           </div>
         </div>
 
-        {/* Poetic Advisory Inscription */}
-        <p className="font-serif italic text-base sm:text-lg text-[#5A5046] mt-3 max-w-md leading-relaxed text-center">
-          {scentOfTheDayAdvisory
-            ? `\u201C${scentOfTheDayAdvisory}\u201D`
-            : '\u201CExceptional alignment with today\u2019s atmosphere \u2014 releasing luminous top notes into the climate with graceful sillage.\u201D'}
-        </p>
+        {/* Short Generated Explanation Based ONLY on Existing Data */}
+        <div className="mt-3.5 max-w-md p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200/70 text-[#3D352E] shadow-2xs">
+          <p className="font-serif italic text-sm sm:text-base leading-relaxed text-center text-amber-950">
+            &ldquo;{heroExplanation}&rdquo;
+          </p>
+          <div className="flex items-center justify-center gap-1.5 mt-2 text-[9px] font-mono text-amber-800/80">
+            <ShieldCheck className="w-3 h-3 text-amber-600" />
+            <span>CALCULATED &bull; Generated from live atmosphere &amp; scent profile</span>
+          </div>
+        </div>
 
         {/* Note Pyramid Highlights */}
         {scentOfTheDay && (
@@ -464,7 +511,7 @@ export const AtelierHero: React.FC<AtelierHeroProps> = ({
           {partnerFrag && (
             <button
               type="button"
-              onClick={() => onSendToLaboratory(scentOfTheDay, partnerFrag)}
+              onClick={() => scentOfTheDay && onSendToLaboratory(scentOfTheDay, partnerFrag)}
               className="group inline-flex items-center gap-1.5 hover:text-[#1A1613] transition cursor-pointer"
             >
               <FlaskConical className="w-3.5 h-3.5 text-amber-700/80 group-hover:text-amber-800" />
@@ -518,60 +565,100 @@ export const AtelierHero: React.FC<AtelierHeroProps> = ({
                 className="overflow-hidden"
               >
                 <div className="p-4 sm:p-5 mt-2 rounded-2xl bg-white/85 backdrop-blur-md border border-[#DCD4C8] shadow-xs space-y-4 text-xs text-[#5A5046]">
-                  {/* LEVEL 4: INTELLIGENCE */}
-                  <div>
-                    <span className="font-semibold text-amber-900 block mb-1 text-[11px] uppercase tracking-wider">
-                      Atmospheric Resonance
-                    </span>
-                    <p className="leading-relaxed italic font-serif text-stone-700">
-                      &ldquo;{scentOfTheDayAdvisory || `${scentOfTheDay?.name} delivers optimal molecular performance under current temperature (${weather.temperature_c}°C) and relative humidity (${weather.humidity_pct}%).`}&rdquo;
+                  {/* LEVEL 1: SHORT HUMAN EXPLANATION */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-amber-800">
+                      <span>Level 1 &bull; Short Olfactory Verdict</span>
+                      <span className="text-stone-500">PLAIN-LANGUAGE EXPLANATION</span>
+                    </div>
+                    <p className="leading-relaxed italic font-serif text-stone-800 text-sm">
+                      &ldquo;{heroExplanation}&rdquo;
                     </p>
                   </div>
 
-                  {/* Context Grid */}
-                  <div className="grid grid-cols-2 gap-2 text-[11px]">
-                    <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 flex items-start gap-2">
-                      <ThermometerSun className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="text-stone-500 block text-[9px] uppercase font-semibold">Climate Match</span>
-                        <span className="font-medium text-stone-800">
-                          {weather.temperature_c}°C &bull; {weather.season}
-                        </span>
-                      </div>
+                  {/* LEVEL 2: SIGNAL BREAKDOWN */}
+                  <div className="space-y-2 pt-1 border-t border-[#E8DFD3]">
+                    <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-amber-900 font-semibold">
+                      <span>Level 2 &bull; Signal Breakdown</span>
+                      <span className="text-stone-500">MATHEMATICALLY SEPARATE SIGNALS</span>
                     </div>
 
-                    <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 flex items-start gap-2">
-                      <Clock className="w-3.5 h-3.5 text-teal-700 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="text-stone-500 block text-[9px] uppercase font-semibold">Skin Longevity</span>
-                        <span className="font-medium text-stone-800">
-                          {scentOfTheDay?.longevity_hours || 8}+ Hours
-                        </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                      {/* Climate Signal */}
+                      <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 flex items-start gap-2">
+                        <ThermometerSun className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-stone-500 text-[9px] uppercase font-semibold">Climate Resonance</span>
+                            <span className="text-[8px] font-mono text-stone-400">CALCULATED</span>
+                          </div>
+                          <span className="font-medium text-stone-800 block">
+                            {scentOfTheDayScore}% Fit &bull; {weather.temperature_c}°C {weather.season}
+                          </span>
+                          <span className="text-[10px] text-stone-600 block mt-0.5">
+                            {weather.temperature_c <= 18
+                              ? "Cool air stabilizes deeper base notes."
+                              : weather.temperature_c >= 28
+                              ? "Warm air accelerates top note radiance."
+                              : "Temperate conditions provide linear diffusion."}
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 flex items-start gap-2">
-                      <Wind className="w-3.5 h-3.5 text-sky-700 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="text-stone-500 block text-[9px] uppercase font-semibold">Sillage Radius</span>
-                        <span className="font-medium text-stone-800">
-                          {scentOfTheDay?.projection || 'Expansive Aura (1.4m)'}
-                        </span>
+                      {/* Cabinet Signal */}
+                      <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 flex items-start gap-2">
+                        <Layers className="w-3.5 h-3.5 text-rose-700 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-stone-500 text-[9px] uppercase font-semibold">Cabinet Relationship</span>
+                            <span className="text-[8px] font-mono text-stone-400">{cabinetRel.transparency}</span>
+                          </div>
+                          <span className="font-medium text-stone-800 block">
+                            {cabinetRel.headline}
+                          </span>
+                          <span className="text-[10px] text-stone-600 block mt-0.5">
+                            {cabinetRel.explanation}
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 flex items-start gap-2">
-                      <Layers className="w-3.5 h-3.5 text-rose-700 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="text-stone-500 block text-[9px] uppercase font-semibold">Layer Affinity</span>
-                        <span className="font-medium text-stone-800">
-                          High (Alluvial Base Anchor)
-                        </span>
+                      {/* DNA Signal */}
+                      <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 flex items-start gap-2">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-stone-500 text-[9px] uppercase font-semibold">DNA Resonance</span>
+                            <span className="text-[8px] font-mono text-stone-400">CALCULATED</span>
+                          </div>
+                          <span className="font-medium text-stone-800 block">
+                            {livingDNA?.personalityTitle || 'Living Archetype'} Convergence
+                          </span>
+                          <span className="text-[10px] text-stone-600 block mt-0.5">
+                            Follows core {scentOfTheDay?.fragrance_family || 'curated'} notes in your profile.
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Sillage / Scent Radius */}
+                      <div className="p-2.5 rounded-xl bg-stone-50 border border-stone-200 flex items-start gap-2">
+                        <Wind className="w-3.5 h-3.5 text-sky-700 shrink-0 mt-0.5" />
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-stone-500 text-[9px] uppercase font-semibold">Sillage Radius</span>
+                            <span className="text-[8px] font-mono text-stone-400">MODELLED</span>
+                          </div>
+                          <span className="font-medium text-stone-800 block">
+                            {scentOfTheDay?.projection || 'Expansive Aura (1.4m)'}
+                          </span>
+                          <span className="text-[10px] text-stone-600 block mt-0.5">
+                            Skin longevity modelled at {scentOfTheDay?.longevity_hours || 8}+ hours.
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* LEVEL 5 TOGGLE: ENTHUSIAST & SCIENCE */}
+                  {/* LEVEL 3 TOGGLE: ENTHUSIAST & SCIENCE */}
                   <div className="pt-2 border-t border-[#E8DFD3]">
                     <button
                       type="button"

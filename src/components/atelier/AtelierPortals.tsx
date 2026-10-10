@@ -1,7 +1,8 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { BookOpen, Layers, ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { GlassSurface } from '../ui/GlassSurface.js';
+import { HeritageGlyph, VaultGlyph } from '../ui/AtelierGlyphs.js';
 
 interface AtelierPortalsProps {
   wardrobeCount: number;
@@ -30,7 +31,7 @@ export const AtelierPortals: React.FC<AtelierPortalsProps> = ({
         <div>
           <div className="flex items-center gap-3.5 mb-3.5">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-100 to-amber-200/70 border border-amber-300 flex items-center justify-center text-amber-900 group-hover:scale-105 transition-transform shadow-2xs">
-              <BookOpen className="w-5 h-5 text-amber-900" />
+              <HeritageGlyph size={22} strokeWidth={1.35} className="text-amber-900" />
             </div>
             <div>
               <span className="font-brand text-[10px] uppercase text-amber-800 tracking-[0.2em] font-semibold block">
@@ -46,20 +47,15 @@ export const AtelierPortals: React.FC<AtelierPortalsProps> = ({
             Discover four centuries of Kannauj <span className="font-serif italic text-[#1A1613]">Deg-Bhapka</span> hydro-distillation, subterranean Ruh Khus wild vetiver, Assam agarwood resins, and how ancient indigenous extracts layer with modern haute perfumery.
           </p>
 
-          {/* Archival Material Tags */}
-          <div className="flex flex-wrap gap-1.5 mt-3.5">
-            <span className="px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200/80 text-[10px] font-mono text-amber-900">
-              Mitti Attar
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] font-mono text-emerald-900">
-              Ruh Khus
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200/80 text-[10px] font-mono text-rose-900">
-              Gulab Damask
-            </span>
-            <span className="px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200/80 text-[10px] font-mono text-orange-900">
-              Assam Oud
-            </span>
+          {/* Archival Material Lineage - Clean Unboxed Metadata */}
+          <div className="mt-3.5 pt-2.5 border-t border-[#E8DFD3]/60 text-[11px] font-mono text-amber-900/80 flex items-center gap-2">
+            <span>Mitti Attar</span>
+            <span aria-hidden="true" className="text-amber-400">&bull;</span>
+            <span>Ruh Khus</span>
+            <span aria-hidden="true" className="text-amber-400">&bull;</span>
+            <span>Gulab Damask</span>
+            <span aria-hidden="true" className="text-amber-400">&bull;</span>
+            <span>Assam Oud</span>
           </div>
         </div>
 
@@ -85,7 +81,7 @@ export const AtelierPortals: React.FC<AtelierPortalsProps> = ({
         <div>
           <div className="flex items-center gap-3.5 mb-3.5">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-100 to-rose-200/70 border border-rose-300 flex items-center justify-center text-rose-900 group-hover:scale-105 transition-transform shadow-2xs">
-              <Layers className="w-5 h-5 text-rose-900" />
+              <VaultGlyph size={22} strokeWidth={1.35} className="text-rose-900" />
             </div>
             <div>
               <span className="font-brand text-[10px] uppercase text-rose-800 tracking-[0.2em] font-semibold block">
@@ -127,3 +123,4 @@ export const AtelierPortals: React.FC<AtelierPortalsProps> = ({
     </div>
   );
 };
+

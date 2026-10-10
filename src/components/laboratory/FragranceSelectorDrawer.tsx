@@ -1,9 +1,21 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Search, Sparkles, Droplets, Check, Compass } from 'lucide-react';
+import { X, Search, Sparkles, Droplets, Check, Compass, Layers } from 'lucide-react';
 import { Fragrance } from '../../types.js';
 import { ambientAudioEngine } from '../../services/ambientAudioEngine.js';
 import { getLabPalette } from './LaboratoryAtmosphere.js';
+import {
+  AllCollectionsGlyph,
+  ForHimGlyph,
+  ForHerGlyph,
+  UnisexNicheGlyph,
+  COLLECTION_GLYPH_MAP
+} from '../ui/AtelierGlyphs.js';
+import {
+  DiscoveryCollectionId,
+  getMarketedClassification,
+  getMarketedClassificationBadge
+} from '../../utils/collectionClassification.js';
 
 interface FragranceSelectorDrawerProps {
   isOpen: boolean;
@@ -25,6 +37,7 @@ export const FragranceSelectorDrawer: React.FC<FragranceSelectorDrawerProps> = (
   targetStation
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCollection, setSelectedCollection] = useState<DiscoveryCollectionId>('all');
   const [selectedFamily, setSelectedFamily] = useState<string>('all');
 
   const families = useMemo(() => {
@@ -40,6 +53,14 @@ export const FragranceSelectorDrawer: React.FC<FragranceSelectorDrawerProps> = (
   // Filtered fragrances
   const filtered = useMemo(() => {
     return allFragrances.filter((f) => {
+      // Collection Filter
+      if (selectedCollection !== 'all') {
+        const c = getMarketedClassification(f);
+        if (selectedCollection === 'for-him' && c !== 'masculine') return false;
+        if (selectedCollection === 'for-her' && c !== 'feminine') return false;
+        if (selectedCollection === 'unisex-niche' && c !== 'unisex') return false;
+      }
+
       const matchesSearch =
         searchQuery === '' ||
         f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -53,9 +74,16 @@ export const FragranceSelectorDrawer: React.FC<FragranceSelectorDrawerProps> = (
 
       return matchesSearch && matchesFamily;
     });
-  }, [allFragrances, searchQuery, selectedFamily]);
+  }, [allFragrances, selectedCollection, searchQuery, selectedFamily]);
 
   if (!isOpen) return null;
+
+  const collectionButtons = [
+    { id: 'all' as DiscoveryCollectionId, label: 'All Collections', glyph: AllCollectionsGlyph },
+    { id: 'for-him' as DiscoveryCollectionId, label: 'For Him', glyph: ForHimGlyph },
+    { id: 'for-her' as DiscoveryCollectionId, label: 'For Her', glyph: ForHerGlyph },
+    { id: 'unisex-niche' as DiscoveryCollectionId, label: 'Unisex & Niche', glyph: UnisexNicheGlyph }
+  ];
 
   return (
     <AnimatePresence>
@@ -77,6 +105,9 @@ export const FragranceSelectorDrawer: React.FC<FragranceSelectorDrawerProps> = (
               <h2 className="font-serif text-2xl font-medium text-stone-100 mt-1">
                 Select Flacon for Specimen {targetStation}
               </h2>
+              <p className="text-[11px] font-mono text-stone-400 mt-0.5">
+                Cross-collection layering supported &bull; Any fragrance can pair with any collection
+              </p>
             </div>
 
             <button
@@ -91,6 +122,7 @@ export const FragranceSelectorDrawer: React.FC<FragranceSelectorDrawerProps> = (
 
           {/* Search & Filter Bar */}
           <div className="p-6 pt-4 pb-3 space-y-3 border-b border-stone-800/80">
+            {/* Search Input */}
             <div className="relative">
               <Search className="w-4 h-4 text-stone-400 absolute left-4 top-1/2 -translate-y-1/2" />
               <input
@@ -103,17 +135,42 @@ export const FragranceSelectorDrawer: React.FC<FragranceSelectorDrawerProps> = (
               />
             </div>
 
-            {/* Families Filter Chips */}
+            {/* Collection Filter Chips */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs font-mono">
+              {collectionButtons.map((btn) => {
+                const isSelected = selectedCollection === btn.id;
+                const GlyphComp = btn.glyph;
+
+                return (
+                  <button
+                    key={btn.id}
+                    type="button"
+                    onClick={() => setSelectedCollection(btn.id)}
+                    className={`px-3 py-1 rounded-xl uppercase tracking-wider transition cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-amber-500/25 border border-amber-500/50 text-amber-300 font-bold'
+                        : 'bg-stone-900/60 border border-stone-800 text-stone-400 hover:text-stone-200'
+                    }`}
+                  >
+                    <GlyphComp size={12} strokeWidth={1.4} />
+                    <span>{btn.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Families Filter Chips */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-[11px] font-mono border-t border-stone-800/60 pt-2">
+              <span className="text-stone-500 uppercase tracking-wider text-[9px] mr-1">Family:</span>
               {families.map((fam) => (
                 <button
                   key={fam}
                   type="button"
                   onClick={() => setSelectedFamily(fam)}
-                  className={`px-3 py-1 rounded-xl uppercase tracking-wider transition cursor-pointer whitespace-nowrap ${
+                  className={`px-2.5 py-0.5 rounded-lg uppercase tracking-wider transition cursor-pointer whitespace-nowrap ${
                     selectedFamily === fam
-                      ? 'bg-amber-500/25 border border-amber-500/50 text-amber-300 font-bold'
-                      : 'bg-stone-900/60 border border-stone-800 text-stone-400 hover:text-stone-200'
+                      ? 'bg-amber-900/40 border border-amber-600/40 text-amber-200 font-semibold'
+                      : 'bg-stone-900/40 border border-stone-800 text-stone-400 hover:text-stone-200'
                   }`}
                 >
                   {fam}
@@ -128,12 +185,13 @@ export const FragranceSelectorDrawer: React.FC<FragranceSelectorDrawerProps> = (
               <div className="text-center py-12 px-4 rounded-2xl border border-stone-800/80 bg-stone-900/30 my-4 space-y-3">
                 <p className="text-stone-400 text-sm font-serif">No matching specimens in laboratory archives</p>
                 <p className="text-stone-500 text-xs font-mono">Try searching by note (e.g. &quot;Rose&quot;, &quot;Sandalwood&quot;) or clear your query.</p>
-                {(searchQuery || selectedFamily !== 'All') && (
+                {(searchQuery || selectedFamily !== 'all' || selectedCollection !== 'all') && (
                   <button
                     type="button"
                     onClick={() => {
                       setSearchQuery('');
-                      setSelectedFamily('All');
+                      setSelectedFamily('all');
+                      setSelectedCollection('all');
                     }}
                     className="mt-2 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs font-mono transition cursor-pointer"
                   >
@@ -146,6 +204,8 @@ export const FragranceSelectorDrawer: React.FC<FragranceSelectorDrawerProps> = (
                 const isCurrent = frag.id === currentSelectedId;
                 const isPartner = partnerFragrance && frag.id === partnerFragrance.id;
                 const palette = getLabPalette(frag.fragrance_family);
+                const badge = getMarketedClassificationBadge(frag);
+                const BadgeGlyph = COLLECTION_GLYPH_MAP[badge.collectionId] || AllCollectionsGlyph;
 
                 return (
                   <button
@@ -175,29 +235,34 @@ export const FragranceSelectorDrawer: React.FC<FragranceSelectorDrawerProps> = (
                         <span className="text-[10px] font-mono text-stone-400 truncate">
                           {frag.brand} &bull; {frag.concentration || 'Eau de Parfum'}
                         </span>
+                        <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full border ${badge.bgClass} ${badge.borderClass} ${badge.colorClass} ml-auto flex items-center gap-1`}>
+                          <BadgeGlyph size={10} strokeWidth={1.5} />
+                          <span>{badge.label}</span>
+                        </span>
                       </div>
 
                       <h4 className="font-serif text-base font-medium text-stone-100 truncate group-hover:text-amber-200 transition">
                         {frag.name}
                       </h4>
 
-                      <div className="flex items-center gap-3 text-[11px] text-stone-400 font-sans truncate">
-                        <span>Top: {frag.top_notes?.slice(0, 2).join(', ') || 'N/A'}</span>
-                        <span className="text-stone-600">&bull;</span>
-                        <span>Base: {frag.base_notes?.slice(0, 2).join(', ') || 'N/A'}</span>
+                      <div className="flex items-center gap-2 text-[11px] text-stone-400 truncate">
+                        <span>Top: {(frag.top_notes || []).slice(0, 2).join(', ')}</span>
+                        <span>&bull;</span>
+                        <span>Base: {(frag.base_notes || []).slice(0, 2).join(', ')}</span>
                       </div>
                     </div>
 
-                    <div className="shrink-0 flex items-center gap-2 font-mono text-xs">
-                      {isCurrent && (
-                        <span className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 flex items-center gap-1">
-                          <Check className="w-3.5 h-3.5 text-amber-400" />
+                    <div className="shrink-0 flex items-center">
+                      {isCurrent ? (
+                        <span className="px-3 py-1 rounded-xl bg-amber-500/20 text-amber-300 font-mono text-xs flex items-center gap-1">
+                          <Check className="w-3.5 h-3.5" />
                           <span>Active</span>
                         </span>
-                      )}
-                      {isPartner && (
-                        <span className="text-[10px] text-stone-500 uppercase">
-                          Used at Station {targetStation === 'A' ? 'B' : 'A'}
+                      ) : isPartner ? (
+                        <span className="text-stone-500 font-mono text-xs">Partner Flacon</span>
+                      ) : (
+                        <span className="opacity-0 group-hover:opacity-100 transition text-amber-400 font-mono text-xs">
+                          Select &rarr;
                         </span>
                       )}
                     </div>

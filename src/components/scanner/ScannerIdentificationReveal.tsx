@@ -14,6 +14,8 @@ import {
   Droplets
 } from 'lucide-react';
 import { Fragrance } from '../../types.js';
+import { getMarketedClassificationBadge } from '../../utils/collectionClassification.js';
+import { COLLECTION_GLYPH_MAP, AllCollectionsGlyph } from '../ui/AtelierGlyphs.js';
 
 interface ScannerIdentificationRevealProps {
   fragrance: Fragrance;
@@ -117,6 +119,20 @@ export const ScannerIdentificationReveal: React.FC<ScannerIdentificationRevealPr
               <span className="px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono text-xs">
                 {fragrance.fragrance_family}
               </span>
+              {(() => {
+                const badge = getMarketedClassificationBadge(fragrance);
+                const BadgeGlyph = COLLECTION_GLYPH_MAP[badge.collectionId] || AllCollectionsGlyph;
+                return (
+                  <span
+                    className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono border ${badge.bgClass} ${badge.borderClass} ${badge.colorClass}`}
+                    title={`Verified catalogue positioning: ${badge.editorialTag}`}
+                  >
+                    <BadgeGlyph size={12} strokeWidth={1.5} />
+                    <span className="text-stone-400 text-[10px] uppercase tracking-wider">Catalogue:</span>
+                    <span className="font-medium">{badge.label}</span>
+                  </span>
+                );
+              })()}
               {fragrance.is_oil_based && (
                 <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 font-mono text-xs">
                   Pure Oil Formulation

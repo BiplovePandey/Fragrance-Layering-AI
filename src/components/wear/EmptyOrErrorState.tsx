@@ -7,6 +7,7 @@ interface EmptyOrErrorStateProps {
   onRetry?: () => void;
   onSwitchToCatalog?: () => void;
   onEditContext?: () => void;
+  onBroadenToAllCollections?: () => void;
 }
 
 export const EmptyOrErrorState: React.FC<EmptyOrErrorStateProps> = ({
@@ -14,7 +15,8 @@ export const EmptyOrErrorState: React.FC<EmptyOrErrorStateProps> = ({
   errorMessage,
   onRetry,
   onSwitchToCatalog,
-  onEditContext
+  onEditContext,
+  onBroadenToAllCollections
 }) => {
   if (type === 'empty_wardrobe') {
     return (
@@ -94,21 +96,30 @@ export const EmptyOrErrorState: React.FC<EmptyOrErrorStateProps> = ({
           No Fragrance Profiles Found
         </h3>
         <p className="text-xs sm:text-sm text-[#5A5046] mt-2 leading-relaxed">
-          No catalog fragrances aligned with the provided constraints. Try broadening your occasion or temperature settings.
+          No catalogue fragrances matched the active constraints and collection selection. Broaden your collection preference or adjust context settings.
         </p>
       </div>
-      {onEditContext && (
-        <div className="pt-2">
+      <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+        {onBroadenToAllCollections && (
+          <button
+            type="button"
+            onClick={onBroadenToAllCollections}
+            className="px-5 py-2.5 rounded-xl text-xs font-semibold text-stone-900 bg-amber-400 hover:bg-amber-300 transition cursor-pointer flex items-center gap-2"
+          >
+            <span>Broaden to All Collections</span>
+          </button>
+        )}
+        {onEditContext && (
           <button
             type="button"
             onClick={onEditContext}
-            className="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-amber-800 hover:bg-amber-900 transition cursor-pointer flex items-center gap-2 mx-auto"
+            className="px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-amber-800 hover:bg-amber-900 transition cursor-pointer flex items-center gap-2"
           >
             <Edit3 className="w-3.5 h-3.5" />
             <span>Modify Context</span>
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

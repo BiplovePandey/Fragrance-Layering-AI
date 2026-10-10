@@ -418,7 +418,8 @@ export const olfactoryIntelligence = {
     ownedFragrances: Fragrance[],
     weather: WeatherCondition,
     mood: string = 'Refined',
-    occasion: string = 'Signature'
+    occasion: string = 'Signature',
+    collectionPreferences?: ('all' | 'for-him' | 'for-her' | 'unisex-niche')[]
   ): WhatShouldIWearRecommendation {
     const dna = this.getLivingDNA();
     const memory = this.getScentMemory();
@@ -427,6 +428,21 @@ export const olfactoryIntelligence = {
     const safeAll = allFragrances.length > 0 ? allFragrances : [];
     const ownedIds = new Set((ownedFragrances || []).map(f => f.id));
 
+    // Optional Discovery Collection Preference Candidate Filtering
+    const activeCols = (collectionPreferences || []).filter(c => c && c !== 'all');
+    let candidatePool = safeAll;
+    if (activeCols.length > 0) {
+      candidatePool = safeAll.filter(frag => {
+        const g = (frag.gender || '').toLowerCase().trim();
+        return activeCols.some(pref => {
+          if (pref === 'for-him') return g === 'masculine' || g === 'men';
+          if (pref === 'for-her') return g === 'feminine' || g === 'women';
+          if (pref === 'unisex-niche') return g === 'unisex' || g === 'universal';
+          return false;
+        });
+      });
+    }
+
     // Check recent wears to enforce intelligent rotation
     const recentWears = eventHistory
       .filter(e => e.type === 'WEAR' && e.fragranceId)
@@ -434,7 +450,7 @@ export const olfactoryIntelligence = {
     const lastWornId = recentWears[0]?.fragranceId;
 
     // Score all candidate fragrances
-    const scoredCandidates = safeAll.map(frag => {
+    const scoredCandidates = candidatePool.map(frag => {
       const fragVec = extractFragranceVector8D(frag);
       
       // 1. DNA compatibility score (0 - 100)

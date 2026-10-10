@@ -7,13 +7,17 @@ import {
   Layers,
   FlaskConical,
   CheckCircle2,
-  Plus
+  Plus,
+  Info,
+  ShieldCheck
 } from 'lucide-react';
 import { WearRecommendation, Fragrance } from '../../types.js';
 import { ScentBottle } from '../ui/ScentBottle.js';
+import { getAlternativeDifference } from '../../utils/recommendationExplanation.js';
 
 interface AlternativeAccordsSectionProps {
   alternatives: WearRecommendation[];
+  protagonist?: Fragrance;
   onWearToday: (frag: Fragrance) => void;
   onInspectInChamber: (frag: Fragrance) => void;
   onSendToLab?: (frag: Fragrance) => void;
@@ -24,6 +28,7 @@ interface AlternativeAccordsSectionProps {
 
 export const AlternativeAccordsSection: React.FC<AlternativeAccordsSectionProps> = ({
   alternatives = [],
+  protagonist,
   onWearToday,
   onInspectInChamber,
   onSendToLab,
@@ -34,30 +39,6 @@ export const AlternativeAccordsSection: React.FC<AlternativeAccordsSectionProps>
   if (alternatives.length === 0 && !onSurpriseTheAtelier) {
     return null;
   }
-
-  // Determine nuance badge based on fragrance characteristics
-  const getNuanceBadge = (frag: Fragrance, idx: number): string => {
-    const family = (frag.fragrance_family || '').toLowerCase();
-    const notes = [
-      ...(frag.top_notes || []),
-      ...(frag.middle_notes || []),
-      ...(frag.base_notes || [])
-    ].join(' ').toLowerCase();
-
-    if (family.includes('fresh') || notes.includes('bergamot') || notes.includes('citrus')) {
-      return 'More Fresh & Solar';
-    }
-    if (family.includes('woody') || notes.includes('sandalwood') || notes.includes('cedar')) {
-      return 'More Deep & Woody';
-    }
-    if (family.includes('amber') || family.includes('oriental') || notes.includes('vanilla')) {
-      return 'More Intimate & Amber';
-    }
-    if (notes.includes('rose') || notes.includes('jasmine') || family.includes('floral')) {
-      return 'More Regal & Floral';
-    }
-    return `Alternative Path #${idx + 1}`;
-  };
 
   return (
     <section
@@ -72,8 +53,11 @@ export const AlternativeAccordsSection: React.FC<AlternativeAccordsSectionProps>
             Chapter VII &bull; Alternative Paths
           </span>
           <h2 className="font-serif text-xl sm:text-2xl text-stone-100 font-normal">
-            Not Quite Your Mood?
+            Seeking a Different Olfactory Direction?
           </h2>
+          <p className="text-xs text-stone-400 mt-1">
+            Alternative candidates evaluated by actual note and family differences, not ranked as better or worse.
+          </p>
         </div>
 
         {onSurpriseTheAtelier && (
@@ -81,8 +65,8 @@ export const AlternativeAccordsSection: React.FC<AlternativeAccordsSectionProps>
             type="button"
             onClick={onSurpriseTheAtelier}
             disabled={isLoading}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-700/80 to-rose-800/80 hover:from-amber-600 hover:to-rose-700 text-amber-100 border border-amber-500/40 text-xs font-mono transition cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
-            title="Let the atelier choose a surprising harmony"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-700/80 to-rose-800/80 hover:from-amber-600 hover:to-rose-700 text-amber-100 border border-amber-500/40 text-xs font-mono transition cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+            title="Explore an alternative qualified candidate"
           >
             <Shuffle className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             <span>Surprise the Atelier</span>
@@ -94,24 +78,30 @@ export const AlternativeAccordsSection: React.FC<AlternativeAccordsSectionProps>
       {alternatives.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {alternatives.slice(0, 3).map((rec, idx) => {
-            const { fragrance, score, reasons, ownership } = rec;
+            const { fragrance, score, ownership } = rec;
             const isOwned = ownership?.owned ?? false;
-            const nuance = getNuanceBadge(fragrance, idx);
-            const primaryReason = reasons[0] || `${fragrance.fragrance_family} composition offering high diurnal balance.`;
+
+            // Compute factual difference relative to protagonist or benchmark
+            const diff = getAlternativeDifference(
+              fragrance,
+              protagonist || alternatives[0]?.fragrance || fragrance,
+              idx
+            );
 
             return (
               <div
-                key={fragrance.id}
+                key={fragrance?.id || idx}
                 className="p-5 rounded-2xl bg-stone-900/50 border border-stone-800/90 hover:border-amber-700/40 transition flex flex-col justify-between space-y-4 group"
               >
                 <div className="space-y-3">
-                  {/* Nuance Badge & Score */}
+                  {/* Factual Difference Badge & Alignment Score */}
                   <div className="flex items-center justify-between gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-950/70 border border-amber-600/30 text-amber-300 text-[10px] font-mono uppercase tracking-wider">
-                      {nuance}
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-950/70 border border-amber-600/40 text-amber-300 text-[10px] font-mono uppercase tracking-wider font-semibold">
+                      {diff.badge}
                     </span>
-                    <span className="text-xs font-mono font-semibold text-stone-300">
-                      {score}% Match
+                    <span className="text-xs font-mono font-medium text-stone-300 flex items-center gap-1">
+                      <span>{score}% Alignment</span>
+                      <span className="text-[9px] text-stone-500 uppercase">CALCULATED</span>
                     </span>
                   </div>
 
@@ -134,77 +124,107 @@ export const AlternativeAccordsSection: React.FC<AlternativeAccordsSectionProps>
                       <h4 className="font-serif text-base text-stone-100 font-medium truncate group-hover:text-amber-200 transition-colors">
                         {fragrance.name}
                       </h4>
-                      <span className="text-[11px] text-amber-400/90 font-mono block mt-0.5">
-                        {fragrance.concentration || 'Eau de Parfum'}
-                      </span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[11px] text-amber-400/90 font-mono">
+                          {fragrance.concentration || 'Eau de Parfum'}
+                        </span>
+                        <span className="text-stone-600">&bull;</span>
+                        <span className="text-[10px] text-stone-400 font-mono">
+                          {fragrance.fragrance_family}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* One-Line Reason */}
-                  <p className="text-xs text-stone-400 line-clamp-2 leading-relaxed font-sans">
-                    {primaryReason}
-                  </p>
-                </div>
-
-                {/* Ownership Tag & Quick Action Strip */}
-                <div className="pt-3 border-t border-white/[0.06] space-y-2.5">
-                  <div className="flex items-center justify-between text-[11px] font-mono">
-                    {isOwned ? (
-                      <span className="text-emerald-400 flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3" />
-                        <span>In Cabinet</span>
-                      </span>
-                    ) : (
-                      <span className="text-stone-500">From Atelier Catalog</span>
-                    )}
+                  {/* Factual Difference Explanation (No better/worse bias) */}
+                  <div className="p-3 rounded-xl bg-stone-950/50 border border-stone-800 text-xs text-stone-300 space-y-1">
+                    <div className="text-[10px] font-mono text-amber-400/80 uppercase tracking-wider">
+                      Difference Dimension &bull; {diff.dimension}
+                    </div>
+                    <p className="leading-relaxed text-[11px] font-sans text-stone-300">
+                      {diff.explanation}
+                    </p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-1.5 pt-1">
-                    {/* Wear This */}
+                  {/* Note Chips */}
+                  <div className="flex flex-wrap gap-1 pt-0.5">
+                    {(fragrance.top_notes || []).slice(0, 2).map((n) => (
+                      <span
+                        key={n}
+                        className="px-2 py-0.5 rounded-md bg-stone-950/70 border border-stone-800 text-[10px] text-stone-400 font-mono"
+                      >
+                        {n}
+                      </span>
+                    ))}
+                    {(fragrance.base_notes || []).slice(0, 2).map((n) => (
+                      <span
+                        key={n}
+                        className="px-2 py-0.5 rounded-md bg-amber-950/40 border border-amber-900/30 text-[10px] text-amber-300/80 font-mono"
+                      >
+                        {n}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Bottom Actions */}
+                <div className="pt-2 border-t border-white/[0.04] flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => onWearToday(fragrance)}
-                      className="py-1.5 px-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-stone-950 font-serif font-semibold text-xs transition cursor-pointer text-center"
+                      className="px-3 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-mono transition cursor-pointer flex items-center gap-1.5"
                     >
-                      Wear
+                      <Crown className="w-3 h-3 text-amber-400" />
+                      <span>Wear</span>
                     </button>
 
-                    {/* Inspect */}
                     <button
                       type="button"
                       onClick={() => onInspectInChamber(fragrance)}
-                      className="py-1.5 px-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-mono transition cursor-pointer text-center"
+                      className="p-1.5 rounded-lg bg-stone-800/80 hover:bg-stone-800 text-stone-400 hover:text-stone-200 transition cursor-pointer"
+                      title="Inspect in Fragrance Chamber"
                     >
-                      Inspect
+                      <Eye className="w-3.5 h-3.5" />
                     </button>
 
-                    {/* Layer / Lab */}
-                    {onSendToLab ? (
+                    {onSendToLab && (
                       <button
                         type="button"
                         onClick={() => onSendToLab(fragrance)}
-                        className="py-1.5 px-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-mono transition cursor-pointer text-center"
+                        className="p-1.5 rounded-lg bg-stone-800/80 hover:bg-stone-800 text-stone-400 hover:text-stone-200 transition cursor-pointer"
+                        title="Send to Layering Laboratory"
                       >
-                        Layer
+                        <FlaskConical className="w-3.5 h-3.5" />
                       </button>
-                    ) : !isOwned && onAddToWardrobe ? (
-                      <button
-                        type="button"
-                        onClick={() => onAddToWardrobe(fragrance.id)}
-                        className="py-1.5 px-2 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-200 text-xs font-mono transition cursor-pointer text-center"
-                      >
-                        + Cabinet
-                      </button>
-                    ) : null}
+                    )}
                   </div>
+
+                  {!isOwned && onAddToWardrobe && (
+                    <button
+                      type="button"
+                      onClick={() => onAddToWardrobe(fragrance.id)}
+                      className="text-[11px] font-mono text-stone-400 hover:text-amber-300 transition cursor-pointer flex items-center gap-1"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Cabinet</span>
+                    </button>
+                  )}
+
+                  {isOwned && (
+                    <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>Owned</span>
+                    </span>
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
       ) : (
-        <div className="p-6 rounded-2xl bg-stone-900/40 border border-stone-800 text-center text-xs text-stone-400 font-mono">
-          No secondary variations found matching current filters.
+        <div className="p-6 rounded-2xl bg-stone-900/40 border border-stone-800 text-center text-xs text-stone-400">
+          No alternative paths currently required. You are viewing today’s optimal accord.
         </div>
       )}
     </section>

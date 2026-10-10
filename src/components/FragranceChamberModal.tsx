@@ -29,6 +29,8 @@ import { VisualNotePyramid } from './chamber/VisualNotePyramid.js';
 import { ChamberDrydownMachine } from './chamber/ChamberDrydownMachine.js';
 import { ChamberHeritageArchival } from './chamber/ChamberHeritageArchival.js';
 import { ChamberWhyThisFragrance } from './chamber/ChamberWhyThisFragrance.js';
+import { getMarketedClassificationBadge } from '../utils/collectionClassification.js';
+import { COLLECTION_GLYPH_MAP, AllCollectionsGlyph } from './ui/AtelierGlyphs.js';
 
 interface FragranceChamberModalProps {
   fragrance: Fragrance | null;
@@ -157,8 +159,22 @@ export const FragranceChamberModal: React.FC<FragranceChamberModalProps> = ({
               {fragrance.concentration || 'Fine Eau de Parfum'}
             </span>
             <span className="text-[11px] font-mono text-stone-400 px-3 py-1 rounded-full bg-white/[0.03] border border-white/10">
-              {fragrance.brand_country || 'Heritage Origin'} &bull; {fragrance.gender || 'Unisex'}
+              {fragrance.brand_country || 'Heritage Origin'}
             </span>
+            {(() => {
+              const badge = getMarketedClassificationBadge(fragrance);
+              const BadgeGlyph = COLLECTION_GLYPH_MAP[badge.collectionId] || AllCollectionsGlyph;
+              return (
+                <span
+                  className={`inline-flex items-center gap-1.5 text-[10px] font-mono px-3 py-1 rounded-full border ${badge.bgClass} ${badge.borderClass} ${badge.colorClass}`}
+                  title={`Catalogue positioning: ${badge.editorialTag}. Scent is open to every wearer.`}
+                >
+                  <BadgeGlyph size={12} strokeWidth={1.5} />
+                  <span className="text-stone-400 uppercase text-[9px] tracking-wider">Marketed:</span>
+                  <span className="font-semibold">{badge.label}</span>
+                </span>
+              );
+            })()}
             <span className="text-[11px] font-mono text-amber-300 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30">
               {palette.name}
             </span>

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion } from 'motion/react';
 import {
   Sparkles,
   CheckCircle2,
@@ -14,18 +14,27 @@ import {
   Droplets,
   Clock,
   ShieldCheck,
-  BookOpen
+  BookOpen,
+  Info
 } from 'lucide-react';
 import { Fragrance, WearRecommendation, WeatherCondition } from '../../types.js';
 import { HeroFlacon } from '../atelier/HeroFlacon.js';
 import { ScentMist } from '../ui/ScentMist.js';
 import { usePrefersReducedMotion } from '../../motion/accessibility.js';
-import { awardXP } from '../../services/gamificationEngine.js';
+import { olfactoryIntelligence } from '../../services/olfactoryIntelligence.js';
+import {
+  generateHeroExplanation,
+  getCabinetRelationship,
+  getVerifiedHeritageConnection
+} from '../../utils/recommendationExplanation.js';
 
 interface CuratedAccordRevealProps {
   recommendation: WearRecommendation;
   layerPartner?: Fragrance;
   weather: WeatherCondition;
+  mood?: string;
+  occasion?: string;
+  wardrobeFragrances?: Fragrance[];
   onWearToday: (frag: Fragrance) => void;
   onInspectInChamber: (frag: Fragrance) => void;
   onSendToLab?: (fragA: Fragrance, fragB?: Fragrance) => void;
@@ -34,23 +43,13 @@ interface CuratedAccordRevealProps {
   hasRecordedWear?: boolean;
 }
 
-// Indian Heritage Note Signatures supported in dataset
-const HERITAGE_NOTE_MAPPINGS: { keyword: string; name: string; region: string }[] = [
-  { keyword: 'sandalwood', name: 'Mysore Sandalwood', region: 'Karnataka' },
-  { keyword: 'mitti', name: 'Kannauj Geeli Mitti', region: 'Uttar Pradesh' },
-  { keyword: 'khus', name: 'North Indian Ruh Khus (Vetiver)', region: 'Uttar Pradesh & Rajasthan' },
-  { keyword: 'vetiver', name: 'Wild Ruh Khus Roots', region: 'Kannauj & Awadh' },
-  { keyword: 'damask rose', name: 'Kannauj Damask Rose (Ruh Gulab)', region: 'Kannauj' },
-  { keyword: 'saffron', name: 'Kashmiri Mongra Saffron (Zafran)', region: 'Pampore, Kashmir' },
-  { keyword: 'oud', name: 'Assam Wild Agarwood (Oud)', region: 'Upper Assam' },
-  { keyword: 'kewra', name: 'Ganjam Pandanus (Kewra)', region: 'Odisha' },
-  { keyword: 'jasmine', name: 'Madurai & Kannauj Jasmine Sambac (Mogra)', region: 'Tamil Nadu & UP' }
-];
-
 export const CuratedAccordReveal: React.FC<CuratedAccordRevealProps> = ({
   recommendation,
   layerPartner,
   weather,
+  mood,
+  occasion,
+  wardrobeFragrances = [],
   onWearToday,
   onInspectInChamber,
   onSendToLab,
@@ -59,8 +58,16 @@ export const CuratedAccordReveal: React.FC<CuratedAccordRevealProps> = ({
   hasRecordedWear = false
 }) => {
   const prefersReduced = usePrefersReducedMotion();
-  const { fragrance, score, reasons, ownership } = recommendation;
-  const isOwned = ownership?.owned ?? false;
+  const { fragrance, score, reasons } = recommendation;
+
+  // Retrieve living DNA for grounded explanation
+  const livingDNA = useMemo(() => {
+    try {
+      return olfactoryIntelligence.getLivingDNA();
+    } catch {
+      return null;
+    }
+  }, []);
 
   // Cinematic reveal animation state (phased reveal)
   const [revealStage, setRevealStage] = useState<number>(prefersReduced ? 5 : 0);
@@ -85,34 +92,24 @@ export const CuratedAccordReveal: React.FC<CuratedAccordRevealProps> = ({
       clearTimeout(t4);
       clearTimeout(t5);
     };
-  }, [fragrance.id, prefersReduced]);
+  }, [fragrance?.id, prefersReduced]);
 
-  // Construct poetic sensory line strictly from fragrance's real notes & character
-  const topNotesStr = (fragrance.top_notes || []).slice(0, 2).join(' & ');
-  const heartNotesStr = (fragrance.middle_notes || []).slice(0, 2).join(' & ');
-  const baseNotesStr = (fragrance.base_notes || []).slice(0, 2).join(' & ');
+  // Derived Recommendation Hero text based ONLY on existing verified & calculated data
+  const heroGeneratedExplanation = useMemo(() => {
+    return generateHeroExplanation(fragrance, weather, mood, occasion, livingDNA);
+  }, [fragrance, weather, mood, occasion, livingDNA]);
 
-  let poeticSensoryLine = fragrance.description;
-  if (!poeticSensoryLine || poeticSensoryLine.length < 15) {
-    if (topNotesStr && baseNotesStr) {
-      poeticSensoryLine = `${topNotesStr} sparkling over a luminous heart of ${heartNotesStr || 'botanical blooms'}, anchored in deep ${baseNotesStr}.`;
-    } else {
-      poeticSensoryLine = `A calibrated ${fragrance.fragrance_family} accord harmonized for today’s ${weather.season?.toLowerCase() || 'atmospheric'} conditions.`;
-    }
-  }
+  // Cabinet relationship based strictly on ownership and family similarity
+  const cabinetRelationship = useMemo(() => {
+    return getCabinetRelationship(fragrance, wardrobeFragrances);
+  }, [fragrance, wardrobeFragrances]);
 
-  // Detect Heritage Connection from actual notes
-  const allNotes = [
-    ...(fragrance.top_notes || []),
-    ...(fragrance.middle_notes || []),
-    ...(fragrance.base_notes || []),
-    fragrance.name,
-    fragrance.fragrance_family
-  ].join(' ').toLowerCase();
+  // Verified Heritage Connection (only verified facts, no inference)
+  const heritageConnection = useMemo(() => {
+    return getVerifiedHeritageConnection(fragrance);
+  }, [fragrance]);
 
-  const matchedHeritage = HERITAGE_NOTE_MAPPINGS.find(h =>
-    allNotes.includes(h.keyword)
-  );
+  const isOwned = cabinetRelationship.status === 'owned';
 
   return (
     <section
@@ -134,26 +131,56 @@ export const CuratedAccordReveal: React.FC<CuratedAccordRevealProps> = ({
       <div className="relative z-10 flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.08] pb-5">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-950/80 border border-amber-500/40 text-amber-200 text-xs font-mono">
           <Crown className="w-3.5 h-3.5 text-amber-400" />
-          <span className="font-semibold tracking-wider">CHAPTER IV &bull; TODAY&apos;S ACCORD</span>
+          <span className="font-semibold tracking-wider uppercase">TODAY&apos;S ACCORD</span>
         </div>
 
-        {/* Ownership & Context Match Score */}
-        <div className="flex items-center gap-3">
-          {isOwned ? (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-mono">
+        {/* Ownership & Context Match Score with explicit transparency labels */}
+        <div className="flex flex-wrap items-center gap-3">
+          {cabinetRelationship.status === 'owned' && (
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-mono"
+              title="Verified from your Cabinet collection"
+            >
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span>FROM YOUR CABINET</span>
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900 border border-stone-700 text-stone-300 text-xs font-mono">
-              <Layers className="w-3.5 h-3.5 text-amber-400" />
-              <span>NEW TO YOUR CABINET</span>
+              <span>{cabinetRelationship.headline}</span>
+              <span className="text-[9px] uppercase tracking-wider text-emerald-400/70 border-l border-emerald-500/30 pl-1.5 ml-0.5">
+                USER OBSERVATION
+              </span>
             </span>
           )}
 
-          <div className="px-3 py-1 rounded-xl bg-amber-950/60 border border-amber-600/40 text-xs font-mono">
-            <span className="text-stone-400 text-[10px] mr-1.5">CONTEXT MATCH:</span>
+          {cabinetRelationship.status === 'similar' && (
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-950/60 border border-amber-600/40 text-amber-300 text-xs font-mono"
+              title="Calculated similarity to existing Cabinet flacon"
+            >
+              <Layers className="w-3.5 h-3.5 text-amber-400" />
+              <span>{cabinetRelationship.headline}</span>
+              <span className="text-[9px] uppercase tracking-wider text-amber-400/70 border-l border-amber-600/30 pl-1.5 ml-0.5">
+                CALCULATED
+              </span>
+            </span>
+          )}
+
+          {cabinetRelationship.status === 'outside' && (
+            <span
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-900 border border-stone-700 text-stone-300 text-xs font-mono"
+              title="Calculated exploration territory"
+            >
+              <Compass className="w-3.5 h-3.5 text-stone-400" />
+              <span>{cabinetRelationship.headline}</span>
+              <span className="text-[9px] uppercase tracking-wider text-stone-400/80 border-l border-stone-700 pl-1.5 ml-0.5">
+                CALCULATED
+              </span>
+            </span>
+          )}
+
+          <div className="px-3 py-1 rounded-xl bg-amber-950/60 border border-amber-600/40 text-xs font-mono flex items-center gap-1.5">
+            <span className="text-stone-400 text-[10px]">CONTEXT MATCH:</span>
             <strong className="text-amber-300 font-bold text-sm">{score}%</strong>
+            <span className="text-[9px] uppercase tracking-wider text-amber-400/70 border-l border-amber-600/30 pl-1.5">
+              CALCULATED
+            </span>
           </div>
         </div>
       </div>
@@ -198,9 +225,10 @@ export const CuratedAccordReveal: React.FC<CuratedAccordRevealProps> = ({
           transition={{ duration: 0.5, ease: 'easeOut' }}
           className="lg:col-span-7 space-y-6"
         >
+          {/* Recommendation Hero: House, Fragrance, Concentration + Short Generated Explanation */}
           <div>
-            <div className="text-xs font-mono uppercase tracking-widest text-amber-400/90 mb-1 flex items-center gap-2">
-              <span>{fragrance.brand_name || fragrance.brand}</span>
+            <div className="text-xs font-mono uppercase tracking-widest text-amber-400/90 mb-1.5 flex flex-wrap items-center gap-2">
+              <span className="font-semibold text-stone-200">{fragrance.brand_name || fragrance.brand}</span>
               <span className="text-stone-600">&bull;</span>
               <span>{fragrance.concentration || 'Eau de Parfum'}</span>
               {fragrance.format && (
@@ -209,39 +237,58 @@ export const CuratedAccordReveal: React.FC<CuratedAccordRevealProps> = ({
                   <span className="text-stone-400">{fragrance.format}</span>
                 </>
               )}
+              <span className="px-1.5 py-0.5 rounded bg-stone-900 border border-stone-700/60 text-[9px] font-mono text-stone-400">
+                VERIFIED
+              </span>
             </div>
 
             <h3 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-normal text-stone-100 tracking-tight leading-tight">
               {fragrance.name}
             </h3>
 
-            <p className="font-serif italic text-base sm:text-lg text-amber-200/90 mt-3 leading-relaxed">
-              &ldquo;{poeticSensoryLine}&rdquo;
-            </p>
+            {/* Short generated explanation based strictly on existing atmosphere, mood & DNA */}
+            <div className="mt-3.5 p-3.5 rounded-2xl bg-amber-950/30 border border-amber-600/30 text-amber-100/90">
+              <p className="font-serif italic text-base sm:text-lg leading-relaxed">
+                &ldquo;{heroGeneratedExplanation}&rdquo;
+              </p>
+              <div className="flex items-center gap-1.5 mt-2 text-[10px] font-mono text-amber-400/70">
+                <ShieldCheck className="w-3 h-3 text-amber-400" />
+                <span>CALCULATED &bull; Generated from ambient telemetry, mood context &amp; living DNA</span>
+              </div>
+            </div>
           </div>
 
           {/* Olfactory Pyramid Accords Trio */}
           <div className="grid grid-cols-3 gap-2.5 p-3.5 rounded-2xl bg-stone-950/60 border border-amber-900/20 text-xs">
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400/70 block mb-1">
-                Top Notes
-              </span>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400/70">
+                  Top Notes
+                </span>
+                <span className="text-[9px] font-mono text-stone-500">VERIFIED</span>
+              </div>
               <span className="text-stone-200 font-medium line-clamp-2">
                 {(fragrance.top_notes || ['Citrus']).slice(0, 3).join(', ')}
               </span>
             </div>
             <div className="border-x border-white/[0.06] px-2.5">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400/70 block mb-1">
-                Heart Notes
-              </span>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400/70">
+                  Heart Notes
+                </span>
+                <span className="text-[9px] font-mono text-stone-500">VERIFIED</span>
+              </div>
               <span className="text-stone-200 font-medium line-clamp-2">
                 {(fragrance.middle_notes || ['Florals', 'Spices']).slice(0, 3).join(', ')}
               </span>
             </div>
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400/70 block mb-1">
-                Base Notes
-              </span>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400/70">
+                  Base Notes
+                </span>
+                <span className="text-[9px] font-mono text-stone-500">VERIFIED</span>
+              </div>
               <span className="text-stone-200 font-medium line-clamp-2">
                 {(fragrance.base_notes || ['Woods', 'Resin']).slice(0, 3).join(', ')}
               </span>
@@ -250,22 +297,27 @@ export const CuratedAccordReveal: React.FC<CuratedAccordRevealProps> = ({
 
           {/* Special Integrations: Heritage Thread & Layering Chord */}
           <div className="space-y-2.5">
-            {/* Heritage Thread Connection */}
-            {matchedHeritage && onNavigateToHeritageAtlas && (
+            {/* Heritage Thread Connection (Only verified facts from canonical dataset) */}
+            {heritageConnection.hasHeritageConnection && (
               <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-600/30 flex items-center justify-between gap-3 text-xs">
                 <div className="flex items-center gap-2 text-amber-200">
                   <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
                   <span>
-                    <strong className="text-amber-100">Heritage Thread:</strong> Connected to {matchedHeritage.name} ({matchedHeritage.region})
+                    <strong className="text-amber-100">Heritage Connection:</strong> {heritageConnection.materialName} ({heritageConnection.region})
+                    <span className="ml-2 px-1.5 py-0.5 rounded bg-amber-900/60 text-[9px] font-mono text-amber-300">
+                      VERIFIED FACT
+                    </span>
                   </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => onNavigateToHeritageAtlas(matchedHeritage.keyword)}
-                  className="text-amber-400 hover:text-amber-200 underline font-mono text-[11px] shrink-0 cursor-pointer"
-                >
-                  Explore in Atlas &rarr;
-                </button>
+                {onNavigateToHeritageAtlas && heritageConnection.keyword && (
+                  <button
+                    type="button"
+                    onClick={() => onNavigateToHeritageAtlas(heritageConnection.keyword)}
+                    className="text-amber-400 hover:text-amber-200 underline font-mono text-[11px] shrink-0 cursor-pointer"
+                  >
+                    Explore in Atlas &rarr;
+                  </button>
+                )}
               </div>
             )}
 
@@ -276,6 +328,9 @@ export const CuratedAccordReveal: React.FC<CuratedAccordRevealProps> = ({
                   <FlaskConical className="w-4 h-4 text-amber-400 shrink-0" />
                   <span>
                     <strong className="text-stone-100">Harmonic Layer Partner:</strong> {layerPartner.name}
+                    <span className="ml-2 px-1.5 py-0.5 rounded bg-stone-800 text-[9px] font-mono text-stone-400">
+                      CALCULATED PAIRING
+                    </span>
                   </span>
                 </div>
                 <button

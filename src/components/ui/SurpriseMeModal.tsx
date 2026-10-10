@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, X, RefreshCw, Check } from 'lucide-react';
+import { Sparkles, X, RefreshCw, Check, Info } from 'lucide-react';
 import { Fragrance, WeatherCondition } from '../../types.js';
 import { ScentBottle } from './ScentBottle.js';
 import { ScentMist } from './ScentMist.js';
@@ -8,6 +8,7 @@ import { WhyThisScent } from './WhyThisScent.js';
 import { AtelierButton } from './AtelierButton.js';
 import { usePrefersReducedMotion } from '../../motion/accessibility.js';
 import { ambientAudioEngine } from '../../services/ambientAudioEngine.js';
+import { calculateWeatherAlignmentScore } from '../../services/weatherEngine.js';
 
 export interface SurpriseMeModalProps {
   isOpen: boolean;
@@ -49,9 +50,20 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
     setIsUnveiling(true);
     setHasWorn(false);
 
-    // Pick random fragrance
-    const randomIdx = Math.floor(Math.random() * allFragrances.length);
-    const frag = allFragrances[randomIdx];
+    // Pick serendipitous fragrance respecting atmospheric compatibility constraints
+    let candidatePool = allFragrances;
+    if (weather) {
+      const qualified = allFragrances.filter(f => {
+        const fit = calculateWeatherAlignmentScore(f, weather);
+        return fit.score >= 65;
+      });
+      if (qualified.length > 0) {
+        candidatePool = qualified;
+      }
+    }
+
+    const randomIdx = Math.floor(Math.random() * candidatePool.length);
+    const frag = candidatePool[randomIdx] || allFragrances[0];
     setSelectedFragrance(frag);
 
     const randomPoetic = POETIC_IMPRESSIONS[Math.floor(Math.random() * POETIC_IMPRESSIONS.length)];
@@ -173,6 +185,12 @@ export const SurpriseMeModal: React.FC<SurpriseMeModalProps> = ({
                 <p className="font-serif italic text-sm sm:text-base text-[#5A5046] pt-1">
                   “{poeticPhrase}”
                 </p>
+
+                {/* Honest Transparency Notice */}
+                <div className="pt-2 flex items-center justify-center gap-1.5 text-[10px] font-mono text-stone-500">
+                  <Info className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span>Serendipitous Discovery &bull; Qualified atmospheric candidate providing harmonious variation</span>
+                </div>
               </div>
 
               {/* Primary Actions */}

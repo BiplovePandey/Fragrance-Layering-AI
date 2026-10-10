@@ -17,7 +17,7 @@ import {
 import { Fragrance, WeatherCondition } from '../../types.js';
 import { CabinetHero } from './CabinetHero.js';
 import { CabinetShelf } from './CabinetShelf.js';
-import { CabinetSearchAndFilters } from './CabinetSearchAndFilters.js';
+import { CabinetSearchAndFilters, CabinetCollectionFilter } from './CabinetSearchAndFilters.js';
 import { CabinetSpecimenModal } from './CabinetSpecimenModal.js';
 import { CollectionIntelligenceMap } from './CollectionIntelligenceMap.js';
 import { CollectionShapeAndGaps } from './CollectionShapeAndGaps.js';
@@ -26,6 +26,7 @@ import { CollectionRotation } from './CollectionRotation.js';
 import { HeritageShelfPortal } from './HeritageShelfPortal.js';
 import { CabinetEmptyState } from './CabinetEmptyState.js';
 import { usePrefersReducedMotion } from '../../motion/accessibility.js';
+import { getMarketedClassification } from '../../utils/collectionClassification.js';
 
 interface PrivateFragranceCabinetProps {
   ownedFragrances: Fragrance[];
@@ -88,6 +89,7 @@ export const PrivateFragranceCabinet: React.FC<PrivateFragranceCabinetProps> = (
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCollection, setSelectedCollection] = useState<CabinetCollectionFilter>('all');
   const [selectedFamily, setSelectedFamily] = useState<string | null>(null);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [showHeritageOnly, setShowHeritageOnly] = useState(false);
@@ -143,6 +145,25 @@ export const PrivateFragranceCabinet: React.FC<PrivateFragranceCabinetProps> = (
     }, 4500);
   };
 
+  // Live cabinet collection counts
+  const cabinetCollectionCounts = useMemo(() => {
+    const counts = {
+      all: ownedFragrances.length,
+      'for-him': 0,
+      'for-her': 0,
+      'unisex-niche': 0,
+      unclassified: 0
+    };
+    ownedFragrances.forEach((f) => {
+      const c = getMarketedClassification(f);
+      if (c === 'masculine') counts['for-him']++;
+      else if (c === 'feminine') counts['for-her']++;
+      else if (c === 'unisex') counts['unisex-niche']++;
+      else counts.unclassified++;
+    });
+    return counts;
+  }, [ownedFragrances]);
+
   // Available families for filtering
   const availableFamilies = useMemo(() => {
     const set = new Set<string>();
@@ -155,6 +176,15 @@ export const PrivateFragranceCabinet: React.FC<PrivateFragranceCabinetProps> = (
   // Filtered collection based on search & chips
   const filteredFragrances = useMemo(() => {
     return ownedFragrances.filter(f => {
+      // Collection Filter
+      if (selectedCollection !== 'all') {
+        const c = getMarketedClassification(f);
+        if (selectedCollection === 'for-him' && c !== 'masculine') return false;
+        if (selectedCollection === 'for-her' && c !== 'feminine') return false;
+        if (selectedCollection === 'unisex-niche' && c !== 'unisex') return false;
+        if (selectedCollection === 'unclassified' && c !== 'unspecified') return false;
+      }
+
       if (showFavoritesOnly && !favoriteIds.has(f.id)) return false;
 
       if (showHeritageOnly) {
@@ -185,7 +215,7 @@ export const PrivateFragranceCabinet: React.FC<PrivateFragranceCabinetProps> = (
 
       return true;
     });
-  }, [ownedFragrances, favoriteIds, showFavoritesOnly, showHeritageOnly, selectedFamily, searchQuery]);
+  }, [ownedFragrances, selectedCollection, favoriteIds, showFavoritesOnly, showHeritageOnly, selectedFamily, searchQuery]);
 
   // Curated Shelves logic
   // 1. Favorites Shelf
@@ -323,6 +353,8 @@ export const PrivateFragranceCabinet: React.FC<PrivateFragranceCabinetProps> = (
         <CabinetSearchAndFilters
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+          selectedCollection={selectedCollection}
+          onSelectCollection={setSelectedCollection}
           selectedFamily={selectedFamily}
           onSelectFamily={setSelectedFamily}
           showFavoritesOnly={showFavoritesOnly}
@@ -331,6 +363,7 @@ export const PrivateFragranceCabinet: React.FC<PrivateFragranceCabinetProps> = (
           onToggleHeritageOnly={() => setShowHeritageOnly(prev => !prev)}
           availableFamilies={availableFamilies}
           totalResults={filteredFragrances.length}
+          collectionCounts={cabinetCollectionCounts}
         />
 
         {/* If no fragrances at all in collection */}

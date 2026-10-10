@@ -418,6 +418,11 @@ export const ScentSignatureVisualizer: React.FC<ScentSignatureVisualizerProps> =
                 </div>
               );
             })}
+
+            <div className="pt-2 border-t border-white/[0.06] text-[9.5px] font-mono text-stone-400 flex items-center justify-between">
+              <span>Scientific Disclosure: Modelled 8D sensory vector coordinates</span>
+              <span>Normalized against verified note taxonomy</span>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

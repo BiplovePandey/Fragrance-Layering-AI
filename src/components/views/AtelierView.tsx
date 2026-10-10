@@ -20,6 +20,8 @@ import { AtelierAtmosphereSoundscape } from '../atelier/AtelierAtmosphereSoundsc
 import { AtelierPortals } from '../atelier/AtelierPortals.js';
 import { AtelierIntelligence } from '../atelier/AtelierIntelligence.js';
 import { ChapterDivider } from '../atelier/ChapterDivider.js';
+import { CollectionDiscoverySection } from '../atelier/CollectionDiscoverySection.js';
+import { DiscoveryCollectionId } from '../../utils/collectionClassification.js';
 
 interface AtelierViewProps {
   fragrances: Fragrance[];
@@ -27,7 +29,7 @@ interface AtelierViewProps {
   onOpenWeatherModal: () => void;
   gamification: UserGamification;
   wardrobeFragrances: Fragrance[];
-  onNavigate: (tab: any) => void;
+  onNavigate: (tab: any, options?: any) => void;
   onSelectFragranceForChamber: (frag: Fragrance) => void;
   onSendToLaboratory: (fragA: Fragrance, fragB?: Fragrance) => void;
   onSetAtmosphere: (atm: ScentFamilyAtmosphere) => void;
@@ -128,6 +130,7 @@ export const AtelierView: React.FC<AtelierViewProps> = ({
         weather={weather}
         currentAtmosphere={currentAtmosphere}
         allFragrances={safeFrags}
+        wardrobeFragrances={wardrobeFragrances}
         onSetAtmosphere={onSetAtmosphere}
         onOpenWeatherModal={onOpenWeatherModal}
         onSelectFragranceForChamber={onSelectFragranceForChamber}
@@ -138,11 +141,25 @@ export const AtelierView: React.FC<AtelierViewProps> = ({
         onSurpriseSelect={(frag) => setSelectedHeroFragrance(frag)}
       />
 
-      {/* CHAPTER II: THE DAY'S ACCORD */}
+      {/* CHAPTER II: EXPLORE THE ATELIER (CORE DISCOVERY COLLECTIONS) */}
+      <ChapterDivider
+        chapter="CHAPTER II"
+        title="EXPLORE THE ATELIER"
+        subtitle="Explore scents by collection, character, and the way you want to feel"
+      />
+      <CollectionDiscoverySection
+        fragrances={safeFrags}
+        onExploreCollection={(collectionId: DiscoveryCollectionId) => {
+          onNavigate('explore', { collection: collectionId });
+        }}
+        onSelectFragranceForChamber={onSelectFragranceForChamber}
+      />
+
+      {/* CHAPTER III: THE DAY'S ACCORD */}
       {scentOfTheDay && partnerFrag && (
         <>
           <ChapterDivider
-            chapter="CHAPTER II"
+            chapter="CHAPTER III"
             title="THE DAY'S ACCORD"
             subtitle="Harmonic synergy of volatile sparks and alluvial fixative foundations"
           />
@@ -156,11 +173,11 @@ export const AtelierView: React.FC<AtelierViewProps> = ({
         </>
       )}
 
-      {/* CHAPTER III: TIME REVEALS THE COMPOSITION */}
+      {/* CHAPTER IV: TIME REVEALS THE COMPOSITION */}
       {scentOfTheDay && (
         <>
           <ChapterDivider
-            chapter="CHAPTER III"
+            chapter="CHAPTER IV"
             title="TIME REVEALS THE COMPOSITION"
             subtitle="Isothermal evaporation dynamics and continuous skin drydown kinetics"
           />
@@ -168,9 +185,9 @@ export const AtelierView: React.FC<AtelierViewProps> = ({
         </>
       )}
 
-      {/* CHAPTER IV: THE AIR AROUND THE SCENT */}
+      {/* CHAPTER V: THE AIR AROUND THE SCENT */}
       <ChapterDivider
-        chapter="CHAPTER IV"
+        chapter="CHAPTER V"
         title="THE AIR AROUND THE SCENT"
         subtitle="Synesthetic acoustics, atmospheric humidity, and Kannauj hydrodistillation soundscapes"
       />
@@ -186,9 +203,9 @@ export const AtelierView: React.FC<AtelierViewProps> = ({
         onToggleSound={handleToggleSound}
       />
 
-      {/* CHAPTER V: THE ATELIER'S INSTRUMENTS */}
+      {/* CHAPTER VI: THE ATELIER'S INSTRUMENTS */}
       <ChapterDivider
-        chapter="CHAPTER V"
+        chapter="CHAPTER VI"
         title="THE ATELIER'S INSTRUMENTS"
         subtitle="Artisanal heritage portals and computational olfactory intelligence"
       />

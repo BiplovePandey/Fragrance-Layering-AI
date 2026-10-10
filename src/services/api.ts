@@ -18,14 +18,24 @@ import {
   FragranceBehaviorSummary
 } from '../types.js';
 
+// Base API URL: allows pointing to remote backend when built as mobile app (Capacitor/Android)
+const API_BASE = (import.meta as any).env?.VITE_API_URL || (typeof window !== 'undefined' && (window as any).API_BASE_URL) || '';
+
+function apiUrl(endpoint: string): string {
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) return endpoint;
+  const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  return `${API_BASE}${path}`;
+}
+
 const apiCache = new Map<string, { data: any; time: number }>();
 const CACHE_TTL = 60000; // 60s cache for fast tab navigation
 
 async function fetchWithRetry(url: string, options?: RequestInit, retries = 2): Promise<Response> {
+  const targetUrl = apiUrl(url);
   let lastError: any;
   for (let i = 0; i <= retries; i++) {
     try {
-      const res = await fetch(url, options);
+      const res = await fetch(targetUrl, options);
       if (res.ok || i === retries) return res;
     } catch (err) {
       lastError = err;
@@ -75,13 +85,13 @@ export const api = {
   },
 
   async getBrandById(id: number): Promise<Brand & { fragrances: Fragrance[] }> {
-    const res = await fetch(`/api/brands/${id}`);
+    const res = await fetchWithRetry(`/api/brands/${id}`);
     if (!res.ok) throw new Error('Failed to fetch brand details');
     return res.json();
   },
 
   async createBrand(brand: Partial<Brand>): Promise<Brand> {
-    const res = await fetch('/api/brands', {
+    const res = await fetchWithRetry('/api/brands', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(brand)
@@ -94,7 +104,7 @@ export const api = {
   },
 
   async updateBrand(id: number, brand: Partial<Brand>): Promise<Brand> {
-    const res = await fetch(`/api/brands/${id}`, {
+    const res = await fetchWithRetry(`/api/brands/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(brand)
@@ -107,7 +117,7 @@ export const api = {
   },
 
   async deleteBrand(id: number): Promise<{ success: boolean; id: number }> {
-    const res = await fetch(`/api/brands/${id}`, {
+    const res = await fetchWithRetry(`/api/brands/${id}`, {
       method: 'DELETE'
     });
     if (!res.ok) {
@@ -124,7 +134,7 @@ export const api = {
 
   async createTaxonomyEntry(entry: Partial<NoteTaxonomyEntry>): Promise<NoteTaxonomyEntry> {
     api.invalidateCache('/api/taxonomy');
-    const res = await fetch('/api/taxonomy', {
+    const res = await fetchWithRetry('/api/taxonomy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(entry)
@@ -138,7 +148,7 @@ export const api = {
 
   async updateTaxonomyEntry(id: number, entry: Partial<NoteTaxonomyEntry>): Promise<NoteTaxonomyEntry> {
     api.invalidateCache('/api/taxonomy');
-    const res = await fetch(`/api/taxonomy/${id}`, {
+    const res = await fetchWithRetry(`/api/taxonomy/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(entry)
@@ -152,7 +162,7 @@ export const api = {
 
   async deleteTaxonomyEntry(id: number): Promise<{ success: boolean; id: number }> {
     api.invalidateCache('/api/taxonomy');
-    const res = await fetch(`/api/taxonomy/${id}`, {
+    const res = await fetchWithRetry(`/api/taxonomy/${id}`, {
       method: 'DELETE'
     });
     if (!res.ok) {
@@ -168,7 +178,7 @@ export const api = {
   },
 
   async getFragranceById(id: number): Promise<Fragrance> {
-    const res = await fetch(`/api/fragrances/${id}`);
+    const res = await fetchWithRetry(`/api/fragrances/${id}`);
     if (!res.ok) throw new Error('Failed to fetch fragrance details');
     return res.json();
   },
@@ -176,7 +186,7 @@ export const api = {
   async createFragrance(fragrance: Partial<Fragrance>): Promise<Fragrance> {
     api.invalidateCache('/api/fragrances');
     api.invalidateCache('/api/clusters');
-    const res = await fetch('/api/fragrances', {
+    const res = await fetchWithRetry('/api/fragrances', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(fragrance)
@@ -191,7 +201,7 @@ export const api = {
   async updateFragrance(id: number, fragrance: Partial<Fragrance>): Promise<Fragrance> {
     api.invalidateCache('/api/fragrances');
     api.invalidateCache('/api/clusters');
-    const res = await fetch(`/api/fragrances/${id}`, {
+    const res = await fetchWithRetry(`/api/fragrances/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(fragrance)
@@ -206,7 +216,7 @@ export const api = {
   async deleteFragrance(id: number): Promise<{ success: boolean; id: number }> {
     api.invalidateCache('/api/fragrances');
     api.invalidateCache('/api/clusters');
-    const res = await fetch(`/api/fragrances/${id}`, {
+    const res = await fetchWithRetry(`/api/fragrances/${id}`, {
       method: 'DELETE'
     });
     if (!res.ok) {
@@ -223,7 +233,7 @@ export const api = {
 
   // Single Recommendation
   async getSingleRecommendations(preferences: UserPreferences): Promise<RecommendationScore[]> {
-    const res = await fetch('/api/recommend', {
+    const res = await fetchWithRetry('/api/recommend', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(preferences),
@@ -239,7 +249,7 @@ export const api = {
     candidate_ids?: number[];
     limit?: number;
   }): Promise<LayeringResult[]> {
-    const res = await fetch('/api/layer', {
+    const res = await fetchWithRetry('/api/layer', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params),
@@ -250,13 +260,13 @@ export const api = {
 
   // User Collection
   async getCollection(): Promise<{ ownedIds: number[]; fragrances: Fragrance[] }> {
-    const res = await fetch('/api/collection');
+    const res = await fetchWithRetry('/api/collection');
     if (!res.ok) throw new Error('Failed to fetch user collection');
     return res.json();
   },
 
   async addToCollection(fragranceId: number): Promise<void> {
-    const res = await fetch('/api/collection', {
+    const res = await fetchWithRetry('/api/collection', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fragrance_id: fragranceId }),
@@ -265,7 +275,7 @@ export const api = {
   },
 
   async removeFromCollection(fragranceId: number): Promise<void> {
-    const res = await fetch(`/api/collection/${fragranceId}`, {
+    const res = await fetchWithRetry(`/api/collection/${fragranceId}`, {
       method: 'DELETE',
     });
     if (!res.ok) throw new Error('Failed to remove from collection');
@@ -273,7 +283,7 @@ export const api = {
 
   // User Preferences
   async getUserPreferences(userId: number = 1): Promise<UserPreferences> {
-    const res = await fetch(`/api/users/${userId}/preferences`);
+    const res = await fetchWithRetry(`/api/users/${userId}/preferences`);
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
       throw new Error(`Failed to fetch user preferences: ${err.error || res.statusText}`);
@@ -282,7 +292,7 @@ export const api = {
   },
 
   async saveUserPreferences(preferences: UserPreferences, userId: number = 1): Promise<void> {
-    const res = await fetch(`/api/users/${userId}/preferences`, {
+    const res = await fetchWithRetry(`/api/users/${userId}/preferences`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(preferences),
@@ -300,7 +310,7 @@ export const api = {
     rating: number;
     feedback_tag?: string;
   }): Promise<{ success: boolean; id: number }> {
-    const res = await fetch('/api/ratings', {
+    const res = await fetchWithRetry('/api/ratings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -310,14 +320,14 @@ export const api = {
   },
 
   async getRatings(): Promise<UserRating[]> {
-    const res = await fetch('/api/ratings');
+    const res = await fetchWithRetry('/api/ratings');
     if (!res.ok) throw new Error('Failed to fetch ratings');
     return res.json();
   },
 
   // Saved Combinations
   async getSavedCombinations(): Promise<SavedCombination[]> {
-    const res = await fetch('/api/saved-combinations');
+    const res = await fetchWithRetry('/api/saved-combinations');
     if (!res.ok) throw new Error('Failed to fetch saved combinations');
     return res.json();
   },
@@ -330,7 +340,7 @@ export const api = {
     season: string;
     occasion: string;
   }): Promise<{ success: boolean; id: number }> {
-    const res = await fetch('/api/saved-combinations', {
+    const res = await fetchWithRetry('/api/saved-combinations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -340,7 +350,7 @@ export const api = {
   },
 
   async deleteSavedCombination(id: number): Promise<void> {
-    const res = await fetch(`/api/saved-combinations/${id}`, {
+    const res = await fetchWithRetry(`/api/saved-combinations/${id}`, {
       method: 'DELETE',
     });
     if (!res.ok) throw new Error('Failed to delete saved combination');
@@ -348,14 +358,14 @@ export const api = {
 
   // Brand Intelligence
   async getBrandIntelligence(): Promise<any> {
-    const res = await fetch('/api/brand-intelligence');
+    const res = await fetchWithRetry('/api/brand-intelligence');
     if (!res.ok) throw new Error('Failed to fetch brand intelligence');
     return res.json();
   },
 
   // Scent Battle
   async runScentBattle(fragrance_a_id: number, fragrance_b_id: number): Promise<any> {
-    const res = await fetch('/api/scent-battles', {
+    const res = await fetchWithRetry('/api/scent-battles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fragrance_a_id, fragrance_b_id })
@@ -366,7 +376,7 @@ export const api = {
 
   // Discovery Box
   async configureDiscoveryBox(params: { budget_inr?: number; preferred_families?: string[] }): Promise<any> {
-    const res = await fetch('/api/discovery-box', {
+    const res = await fetchWithRetry('/api/discovery-box', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params)
@@ -382,7 +392,7 @@ export const api = {
     budget?: number;
     customer_preference?: string;
   }): Promise<any> {
-    const res = await fetch('/api/retail-recommendations', {
+    const res = await fetchWithRetry('/api/retail-recommendations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(params)
@@ -398,14 +408,14 @@ export const api = {
     if (params.condition) query.set('condition', params.condition);
     if (params.time_of_day) query.set('time_of_day', params.time_of_day);
 
-    const res = await fetch(`/api/weather-recommendation?${query.toString()}`);
+    const res = await fetchWithRetry(`/api/weather-recommendation?${query.toString()}`);
     if (!res.ok) throw new Error('Failed to fetch weather scent recommendation');
     return res.json();
   },
 
   // Journal
   async getJournal(): Promise<any[]> {
-    const res = await fetch('/api/journal');
+    const res = await fetchWithRetry('/api/journal');
     if (!res.ok) throw new Error('Failed to fetch scent journal');
     return res.json();
   },
@@ -415,7 +425,7 @@ export const api = {
   },
 
   async addJournalEntry(entry: any): Promise<{ success: boolean; id: string }> {
-    const res = await fetch('/api/journal', {
+    const res = await fetchWithRetry('/api/journal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(entry)
@@ -426,13 +436,13 @@ export const api = {
 
   // Ingestion Submissions
   async getIngestionSubmissions(): Promise<any[]> {
-    const res = await fetch('/api/ingestion/submissions');
+    const res = await fetchWithRetry('/api/ingestion/submissions');
     if (!res.ok) throw new Error('Failed to fetch submissions');
     return res.json();
   },
 
   async submitProduct(submission: any): Promise<{ success: boolean; id: string }> {
-    const res = await fetch('/api/ingestion/submissions', {
+    const res = await fetchWithRetry('/api/ingestion/submissions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(submission)
@@ -446,7 +456,7 @@ export const api = {
   },
 
   async reviewSubmission(id: string, status: 'approved' | 'rejected'): Promise<{ success: boolean }> {
-    const res = await fetch(`/api/ingestion/submissions/${id}/review`, {
+    const res = await fetchWithRetry(`/api/ingestion/submissions/${id}/review`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
@@ -457,7 +467,7 @@ export const api = {
 
   // Canonical Fragrance Import
   async importCanonicalFragrance(payload: CanonicalFragranceImport): Promise<any> {
-    const res = await fetch('/api/canonical-import', {
+    const res = await fetchWithRetry('/api/canonical-import', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -471,7 +481,7 @@ export const api = {
 
   // Central Olfactory Context Normalization
   async normalizeContext(input: RawOlfactoryContextInput): Promise<NormalizedContextResponse> {
-    const res = await fetch('/api/context/normalize', {
+    const res = await fetchWithRetry('/api/context/normalize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input)
@@ -485,7 +495,7 @@ export const api = {
 
   // What Should I Wear? Olfactory Recommendation Engine
   async recommendWear(request: WearRecommendationRequest): Promise<WearRecommendationResponse> {
-    const res = await fetch('/api/recommend/wear', {
+    const res = await fetchWithRetry('/api/recommend/wear', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request)
@@ -512,7 +522,7 @@ export const api = {
       sessionId: event.sessionId ?? null
     };
 
-    const res = await fetch('/api/behavior/events', {
+    const res = await fetchWithRetry('/api/behavior/events', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -537,7 +547,7 @@ export const api = {
       sessionId: ev.sessionId ?? null
     }));
 
-    const res = await fetch('/api/behavior/events/batch', {
+    const res = await fetchWithRetry('/api/behavior/events/batch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ events: payloads })
@@ -550,7 +560,7 @@ export const api = {
   },
 
   async getOlfactoryMemory(userId: number = 1): Promise<OlfactoryMemorySnapshot> {
-    const res = await fetch(`/api/behavior/memory?userId=${userId}`);
+    const res = await fetchWithRetry(`/api/behavior/memory?userId=${userId}`);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'Failed to fetch olfactory memory snapshot');
@@ -574,7 +584,7 @@ export const api = {
     if (params.source) query.set('source', params.source);
     if (params.fragranceId) query.set('fragranceId', String(params.fragranceId));
 
-    const res = await fetch(`/api/behavior/history?${query.toString()}`);
+    const res = await fetchWithRetry(`/api/behavior/history?${query.toString()}`);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'Failed to fetch behavior history');
@@ -583,7 +593,7 @@ export const api = {
   },
 
   async getFragranceBehavior(id: number, userId: number = 1): Promise<FragranceBehaviorSummary> {
-    const res = await fetch(`/api/behavior/fragrance/${id}?userId=${userId}`);
+    const res = await fetchWithRetry(`/api/behavior/fragrance/${id}?userId=${userId}`);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || `Failed to fetch behavior for fragrance ${id}`);
@@ -592,7 +602,7 @@ export const api = {
   },
 
   async clearBehaviorHistory(userId: number = 1): Promise<{ success: boolean; message: string; deletedCount: number }> {
-    const res = await fetch(`/api/behavior/history?userId=${userId}`, {
+    const res = await fetchWithRetry(`/api/behavior/history?userId=${userId}`, {
       method: 'DELETE'
     });
     if (!res.ok) {

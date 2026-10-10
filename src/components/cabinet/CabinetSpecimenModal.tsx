@@ -24,6 +24,8 @@ import { ChamberDrydownMachine } from '../chamber/ChamberDrydownMachine.js';
 import { ChamberWhyThisFragrance } from '../chamber/ChamberWhyThisFragrance.js';
 import { usePrefersReducedMotion } from '../../motion/accessibility.js';
 import { MOTION_DURATIONS, MOTION_EASINGS } from '../../motion/config.js';
+import { getMarketedClassificationBadge } from '../../utils/collectionClassification.js';
+import { COLLECTION_GLYPH_MAP, AllCollectionsGlyph } from '../ui/AtelierGlyphs.js';
 
 interface CabinetSpecimenModalProps {
   fragrance: Fragrance | null;
@@ -147,6 +149,22 @@ export const CabinetSpecimenModal: React.FC<CabinetSpecimenModalProps> = ({
                   <p className="text-xs text-amber-300/90 font-mono mt-0.5">
                     {fragrance.brand} &bull; {fragrance.concentration || 'Fine Parfum'}
                   </p>
+                  {(() => {
+                    const badge = getMarketedClassificationBadge(fragrance);
+                    const BadgeGlyph = COLLECTION_GLYPH_MAP[badge.collectionId] || AllCollectionsGlyph;
+                    return (
+                      <div className="mt-2 flex justify-center">
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-[10px] font-mono px-2.5 py-0.5 rounded-full border ${badge.bgClass} ${badge.borderClass} ${badge.colorClass}`}
+                          title={`Documented catalogue positioning: ${badge.editorialTag}`}
+                        >
+                          <BadgeGlyph size={12} strokeWidth={1.5} />
+                          <span className="text-stone-400 uppercase text-[9px] tracking-wider">Marketed:</span>
+                          <span className="font-semibold">{badge.label}</span>
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
 

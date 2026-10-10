@@ -7,7 +7,8 @@ import {
   ChevronDown,
   Sparkles,
   Menu,
-  X
+  X,
+  Presentation
 } from 'lucide-react';
 import { MainNavId, WeatherCondition, UserGamification } from '../types.js';
 import { MOTION_SPRINGS } from '../motion/config.js';
@@ -38,6 +39,7 @@ interface AtelierNavbarProps {
   currentAtmosphere?: ScentFamilyAtmosphere;
   onOpenAtmosphere?: () => void;
   onTriggerSurprise?: () => void;
+  onOpenPresentation?: () => void;
 }
 
 export const AtelierNavbar: React.FC<AtelierNavbarProps> = ({
@@ -49,7 +51,8 @@ export const AtelierNavbar: React.FC<AtelierNavbarProps> = ({
   wardrobeCount,
   currentAtmosphere = 'default',
   onOpenAtmosphere,
-  onTriggerSurprise
+  onTriggerSurprise,
+  onOpenPresentation
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAudioActive, setIsAudioActive] = useState(ambientAudioEngine.isPlaying());
@@ -156,6 +159,22 @@ export const AtelierNavbar: React.FC<AtelierNavbarProps> = ({
 
           {/* Right Status Accessories (Understated & Quiet) */}
           <div className="flex items-center gap-2">
+            {/* Project Presentation Deck & PPTX Download */}
+            {onOpenPresentation && (
+              <motion.button
+                id="navbar-presentation-btn"
+                type="button"
+                onClick={onOpenPresentation}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:border-amber-600/30 text-[#4A3F36] dark:text-[#D1C7BB] text-[11px] font-mono transition cursor-pointer select-none"
+                title="Project Presentation Deck & Download PPT"
+              >
+                <Presentation className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
+                <span>Deck</span>
+              </motion.button>
+            )}
+
             {/* Surprise Me Serendipity */}
             {onTriggerSurprise && (
               <motion.button
@@ -163,8 +182,8 @@ export const AtelierNavbar: React.FC<AtelierNavbarProps> = ({
                 type="button"
                 onClick={onTriggerSurprise}
                 whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.2 rounded-lg border border-amber-600/30 bg-amber-500/5 hover:bg-amber-500/10 text-[#4A3828] dark:text-[#E8DACB] text-[11px] font-medium tracking-wide transition cursor-pointer select-none"
+                whileTap={{ scale: 0.98 }}
+                className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:border-amber-600/30 text-[#4A3F36] dark:text-[#D1C7BB] text-[11px] font-mono transition cursor-pointer select-none"
                 title="Serendipitous Fragrance Discovery"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
@@ -178,9 +197,9 @@ export const AtelierNavbar: React.FC<AtelierNavbarProps> = ({
               type="button"
               onClick={onOpenAtmosphere}
               whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
+              whileTap={{ scale: 0.98 }}
               title={`Active Atmosphere: ${atmosphereProfile.name}`}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-black/[0.05] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] text-xs cursor-pointer text-[#4A3F36] dark:text-[#D1C7BB]"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:border-amber-600/30 text-xs cursor-pointer text-[#4A3F36] dark:text-[#D1C7BB] transition select-none"
             >
               <span
                 className="w-2 h-2 rounded-full shrink-0"
@@ -200,9 +219,9 @@ export const AtelierNavbar: React.FC<AtelierNavbarProps> = ({
               type="button"
               onClick={onOpenWeatherModal}
               whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
+              whileTap={{ scale: 0.98 }}
               title="Olfactory Climate Factors"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-black/[0.05] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] text-xs cursor-pointer text-[#4A3F36] dark:text-[#D1C7BB]"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] hover:border-amber-600/30 text-xs cursor-pointer text-[#4A3F36] dark:text-[#D1C7BB] transition select-none"
             >
               <CloudSun className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 shrink-0" />
               <span className="text-[11px] font-mono tracking-tight">
@@ -215,9 +234,9 @@ export const AtelierNavbar: React.FC<AtelierNavbarProps> = ({
               id="user-xp-badge"
               onClick={() => setActiveTab('mydna')}
               whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
+              whileTap={{ scale: 0.98 }}
               title={`Rank: ${gamification.title} (${gamification.xp} XP)`}
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-black/[0.05] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] text-xs cursor-pointer text-[#4A3F36] dark:text-[#D1C7BB]"
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-black/[0.06] dark:border-white/[0.08] bg-black/[0.02] dark:bg-white/[0.03] text-xs cursor-pointer text-[#4A3F36] dark:text-[#D1C7BB] select-none"
             >
               <Award className="w-3 h-3 text-amber-700 dark:text-amber-400" />
               <span className="text-[10px] font-mono tracking-wider font-semibold">
@@ -271,6 +290,20 @@ export const AtelierNavbar: React.FC<AtelierNavbarProps> = ({
                   </button>
                 );
               })}
+
+              {onOpenPresentation && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onOpenPresentation();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="col-span-2 sm:col-span-5 p-2 rounded-lg text-xs font-semibold tracking-wide uppercase inline-flex items-center justify-center gap-2 text-center cursor-pointer transition select-none bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-500/30"
+                >
+                  <Presentation size={14} className="text-amber-700 dark:text-amber-400" />
+                  <span>Project Presentation Deck (Download PPT)</span>
+                </button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

@@ -49,7 +49,7 @@ export const WhyThisScent: React.FC<WhyThisScentProps> = ({
             <div>
               <span className="text-stone-500 block text-[9px] uppercase">Longevity</span>
               <span className="font-medium text-stone-800">
-                {fragrance.longevity_hours || 6} to {(fragrance.longevity_hours || 6) + 2} Hours
+                {fragrance.longevity ? `${fragrance.longevity} on Skin` : '6 to 8 Hours'}
               </span>
             </div>
           </div>
@@ -94,13 +94,13 @@ export const WhyThisScent: React.FC<WhyThisScentProps> = ({
   const level3Content = (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-stone-400 text-[10px]">
-        <span>Scent Family Affinity:</span>
-        <span className="text-amber-300 font-bold">{fragrance.scent_family || 'Woody'}</span>
+        <span>Scent Family:</span>
+        <span className="text-amber-300 font-bold">{fragrance.fragrance_family || 'Woody'}</span>
       </div>
 
       {harmonyScore !== undefined && (
         <div className="flex items-center justify-between text-stone-400 text-[10px]">
-          <span>Calculated Scent Harmony:</span>
+          <span>Calculated Dual-Fragrance Harmony:</span>
           <span className="text-emerald-400 font-bold">{Math.round(harmonyScore)}%</span>
         </div>
       )}
@@ -109,7 +109,7 @@ export const WhyThisScent: React.FC<WhyThisScentProps> = ({
       {fragrance.vector && fragrance.vector.length > 0 && (
         <div className="pt-1.5">
           <span className="text-stone-400 text-[9px] block mb-1">
-            8-D Olfactory Vector Embeddings:
+            Modelled 8-D Olfactory Vector (Simulated Coordinate Space):
           </span>
           <div className="grid grid-cols-4 gap-1 text-[9px]">
             {fragrance.vector.slice(0, 8).map((val, i) => (

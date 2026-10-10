@@ -102,7 +102,7 @@ export const ChamberWhyThisFragrance: React.FC<ChamberWhyThisFragranceProps> = (
                   <span>Longevity Rating</span>
                 </div>
                 <div className="text-stone-200 font-medium">
-                  {fragrance.longevity_hours || 8} Hours on Skin
+                  {fragrance.longevity ? `${fragrance.longevity} on Skin` : '8+ Hours on Skin'}
                 </div>
                 <div className="text-[10px] text-stone-400">
                   {fragrance.longevity || 'Long-Lasting'} substantivity with persistent base fixatives.

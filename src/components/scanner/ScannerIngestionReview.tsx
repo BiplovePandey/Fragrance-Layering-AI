@@ -31,6 +31,7 @@ export const ScannerIngestionReview: React.FC<ScannerIngestionReviewProps> = ({
     format: 'Eau de Parfum',
     concentration: 'Eau de Parfum (18%)',
     fragranceFamily: 'Woody / Oriental',
+    marketedClassification: 'unisex' as 'unisex' | 'masculine' | 'feminine' | 'unspecified',
     topNotes: '',
     heartNotes: '',
     baseNotes: '',
@@ -73,6 +74,8 @@ export const ScannerIngestionReview: React.FC<ScannerIngestionReviewProps> = ({
           product: formData.product,
           format: formData.format,
           concentration: formData.concentration,
+          gender: formData.marketedClassification,
+          is_community_submitted: true,
           notes: candidate.notes || { top: [], heart: [], base: [] },
           accords: [formData.fragranceFamily],
           description: formData.description,
@@ -95,6 +98,7 @@ export const ScannerIngestionReview: React.FC<ScannerIngestionReviewProps> = ({
       format: 'Eau de Parfum',
       concentration: 'Eau de Parfum (18%)',
       fragranceFamily: 'Woody / Oriental',
+      marketedClassification: 'unisex',
       topNotes: '',
       heartNotes: '',
       baseNotes: '',
@@ -237,6 +241,26 @@ export const ScannerIngestionReview: React.FC<ScannerIngestionReviewProps> = ({
                 className="w-full px-4 py-2.5 rounded-xl bg-[#14110E] border border-white/[0.1] text-stone-100 text-sm focus:border-amber-400 focus:outline-hidden"
               />
               <span className="text-[10px] text-stone-500 font-mono">STATUS: USER SUBMITTED</span>
+            </div>
+
+            {/* Documented Marketed Collection */}
+            <div className="space-y-1.5 md:col-span-2">
+              <label className="block text-xs font-mono uppercase text-stone-400">
+                Documented Marketed Collection (Optional)
+              </label>
+              <select
+                value={formData.marketedClassification}
+                onChange={(e) => setFormData({ ...formData, marketedClassification: e.target.value as any })}
+                className="w-full px-4 py-2.5 rounded-xl bg-[#14110E] border border-white/[0.1] text-stone-100 text-sm focus:border-amber-400 focus:outline-hidden"
+              >
+                <option value="unisex">Unisex &amp; Niche (Marketed Unisex / Universal)</option>
+                <option value="masculine">For Him (Marketed Masculine)</option>
+                <option value="feminine">For Her (Marketed Feminine)</option>
+                <option value="unspecified">Not Specified / Unclassified</option>
+              </select>
+              <span className="text-[10px] text-stone-500 font-mono">
+                STATUS: SUBMITTER-PROVIDED METADATA &bull; Documented brand marketing only; do not infer from bottle or notes
+              </span>
             </div>
           </div>
 

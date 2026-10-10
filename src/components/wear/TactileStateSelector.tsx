@@ -1,14 +1,24 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Sparkles, Heart, Briefcase, RefreshCw, Compass } from 'lucide-react';
+import { Sparkles, Heart, Briefcase, RefreshCw, Compass, Layers, Check } from 'lucide-react';
 import { DAILY_MOOD_PRESETS } from '../../data/moods.js';
 import { usePrefersReducedMotion } from '../../motion/accessibility.js';
+import {
+  AllCollectionsGlyph,
+  ForHimGlyph,
+  ForHerGlyph,
+  UnisexNicheGlyph
+} from '../ui/AtelierGlyphs.js';
+
+export type WearCollectionPreference = 'all' | 'for-him' | 'for-her' | 'unisex-niche';
 
 interface TactileStateSelectorProps {
   currentMood: string;
   onSelectMood: (moodId: string, moodTitle: string) => void;
   currentOccasion: string;
   onSelectOccasion: (occasion: string) => void;
+  selectedCollections: WearCollectionPreference[];
+  onToggleCollection: (colId: WearCollectionPreference) => void;
   onRecalculate?: () => void;
   isLoading?: boolean;
 }
@@ -24,11 +34,20 @@ const OCCASIONS: { id: string; label: string; icon: string; desc: string }[] = [
   { id: 'Meditation / Spiritual', label: 'Meditation / Temple', icon: '🪔', desc: 'Calming sandalwood & khus' }
 ];
 
+const COLLECTION_OPTIONS = [
+  { id: 'all' as WearCollectionPreference, label: 'All Collections', glyph: AllCollectionsGlyph, desc: 'Complete catalogue without bounds' },
+  { id: 'for-him' as WearCollectionPreference, label: 'For Him', glyph: ForHimGlyph, desc: 'Smoked woods, aromatic greens & resins' },
+  { id: 'for-her' as WearCollectionPreference, label: 'For Her', glyph: ForHerGlyph, desc: 'Luminous florals, warm vanilla & amber' },
+  { id: 'unisex-niche' as WearCollectionPreference, label: 'Unisex & Niche', glyph: UnisexNicheGlyph, desc: 'Boundary-free artisanal & heritage attars' }
+];
+
 export const TactileStateSelector: React.FC<TactileStateSelectorProps> = ({
   currentMood,
   onSelectMood,
   currentOccasion,
   onSelectOccasion,
+  selectedCollections = ['all'],
+  onToggleCollection,
   onRecalculate,
   isLoading = false
 }) => {
@@ -38,6 +57,8 @@ export const TactileStateSelector: React.FC<TactileStateSelectorProps> = ({
   const activeMoodPreset = DAILY_MOOD_PRESETS.find(
     m => m.id === currentMood || m.title.toLowerCase() === currentMood.toLowerCase()
   );
+
+  const isAllSelected = selectedCollections.includes('all') || selectedCollections.length === 0;
 
   return (
     <section
@@ -125,7 +146,7 @@ export const TactileStateSelector: React.FC<TactileStateSelectorProps> = ({
       </div>
 
       {/* Part 2: Where Are You Going? (Occasion Selector) */}
-      <div className="space-y-3 pt-2">
+      <div className="space-y-3 pt-2 border-t border-white/[0.06]">
         <label className="text-xs font-mono uppercase tracking-wider text-stone-400 flex items-center gap-2">
           <Briefcase className="w-3.5 h-3.5 text-amber-400" />
           <span>Where are you going? (External Canvas)</span>
@@ -157,6 +178,72 @@ export const TactileStateSelector: React.FC<TactileStateSelectorProps> = ({
             );
           })}
         </div>
+      </div>
+
+      {/* Part 3: Optional Collection Preference (Catalogue Positioning) */}
+      <div className="space-y-3 pt-2 border-t border-white/[0.06]">
+        <div className="flex items-center justify-between">
+          <label className="text-xs font-mono uppercase tracking-wider text-stone-400 flex items-center gap-2">
+            <Compass className="w-3.5 h-3.5 text-amber-400" />
+            <span>Catalogue Collection Preference (Optional)</span>
+          </label>
+          <span className="text-[10px] font-mono text-stone-500 hidden sm:inline">
+            Catalogue positioning only &bull; Never restricts who can wear a fragrance
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {COLLECTION_OPTIONS.map((opt) => {
+            const isSelected =
+              opt.id === 'all'
+                ? isAllSelected
+                : !isAllSelected && selectedCollections.includes(opt.id);
+
+            const GlyphComponent = opt.glyph;
+
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => onToggleCollection(opt.id)}
+                className={`p-3 rounded-2xl border text-left transition cursor-pointer flex items-center justify-between gap-2 ${
+                  isSelected
+                    ? 'bg-amber-950/70 border-amber-500/60 text-stone-100 ring-1 ring-amber-500/40 shadow-sm'
+                    : 'bg-stone-900/50 border-stone-800/80 hover:border-stone-700 text-stone-400 hover:text-stone-200'
+                }`}
+                aria-pressed={isSelected}
+                title={opt.desc}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <div
+                    className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
+                      isSelected
+                        ? 'bg-amber-500/20 text-amber-300'
+                        : 'bg-white/[0.04] text-stone-400'
+                    }`}
+                  >
+                    <GlyphComponent size={14} strokeWidth={1.4} />
+                  </div>
+                  <div className="truncate">
+                    <span className="text-xs font-mono font-medium block truncate">
+                      {opt.label}
+                    </span>
+                  </div>
+                </div>
+
+                {isSelected && (
+                  <Check className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {!isAllSelected && selectedCollections.length > 1 && (
+          <div className="text-[11px] font-mono text-amber-400/90 pl-1">
+            My Selected Collections: {selectedCollections.map(c => COLLECTION_OPTIONS.find(o => o.id === c)?.label).join(' + ')}
+          </div>
+        )}
       </div>
     </section>
   );

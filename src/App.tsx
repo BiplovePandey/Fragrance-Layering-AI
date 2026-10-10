@@ -45,6 +45,7 @@ import {
   WeatherCondition,
   UserGamification
 } from './types.js';
+import { DiscoveryCollectionId } from './utils/collectionClassification.js';
 import { CheckCircle2, SlidersHorizontal, Sparkles, X } from 'lucide-react';
 
 export default function App() {
@@ -58,6 +59,7 @@ export default function App() {
 
   // Navigation State
   const [activeTab, setActiveTab] = useState<MainNavId>('atelier');
+  const [exploreCollection, setExploreCollection] = useState<DiscoveryCollectionId>('all');
 
   // Weather & Atmosphere Engine State
   const [weather, setWeather] = useState<WeatherCondition>(() =>
@@ -440,7 +442,12 @@ export default function App() {
                 onOpenWeatherModal={() => setIsWeatherModalOpen(true)}
                 gamification={gamification}
                 wardrobeFragrances={ownedFragrances}
-                onNavigate={(tab) => setActiveTab(tab)}
+                onNavigate={(tab, options) => {
+                  if (options?.collection) {
+                    setExploreCollection(options.collection);
+                  }
+                  setActiveTab(tab);
+                }}
                 onSelectFragranceForChamber={handleInspectInChamber}
                 onSendToLaboratory={handleSendToLaboratory}
                 onSetAtmosphere={setCurrentAtmosphere}
@@ -491,8 +498,17 @@ export default function App() {
                 brands={brands}
                 clusters={clusters}
                 weather={weather}
+                initialCollection={exploreCollection}
+                onCollectionChange={setExploreCollection}
                 onSelectFragranceForChamber={handleInspectInChamber}
                 onSendToLab={(f) => handleSendToLaboratory(f)}
+                ownedFragrances={ownedFragrances}
+                userPreferences={preferences}
+                recommendationScores={singleRecommendations}
+                onWearToday={handleWearToday}
+                onAddToCabinet={handleAddToCabinet}
+                onNavigate={(tab) => setActiveTab(tab)}
+                onNavigateToHeritage={(_material) => setActiveTab('heritage')}
               />
             </MotionPage>
           )}

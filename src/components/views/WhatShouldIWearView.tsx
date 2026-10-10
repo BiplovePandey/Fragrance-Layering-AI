@@ -23,12 +23,13 @@ import { api } from '../../services/api.js';
 import { awardXP } from '../../services/gamificationEngine.js';
 import { olfactoryIntelligence } from '../../services/olfactoryIntelligence.js';
 import { AtmosphericMomentHero } from '../wear/AtmosphericMomentHero.js';
-import { TactileStateSelector } from '../wear/TactileStateSelector.js';
+import { TactileStateSelector, WearCollectionPreference } from '../wear/TactileStateSelector.js';
 import { AtmosphericSensorStrip } from '../wear/AtmosphericSensorStrip.js';
 import { CuratedAccordReveal } from '../wear/CuratedAccordReveal.js';
 import { WhyThisScentAlignment } from '../wear/WhyThisScentAlignment.js';
 import { WearRitualAndDrydown } from '../wear/WearRitualAndDrydown.js';
 import { AlternativeAccordsSection } from '../wear/AlternativeAccordsSection.js';
+import { EmptyOrErrorState } from '../wear/EmptyOrErrorState.js';
 import { DAILY_MOOD_PRESETS } from '../../data/moods.js';
 
 interface WhatShouldIWearViewProps {
@@ -59,6 +60,7 @@ export const WhatShouldIWearView: React.FC<WhatShouldIWearViewProps> = ({
   // Atmospheric Consultation State
   const [currentMood, setCurrentMood] = useState<string>('Refined & Elevated');
   const [currentOccasion, setCurrentOccasion] = useState<string>('Office');
+  const [selectedCollections, setSelectedCollections] = useState<WearCollectionPreference[]>(['all']);
   const [isWardrobeOnly, setIsWardrobeOnly] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,10 +76,13 @@ export const WhatShouldIWearView: React.FC<WhatShouldIWearViewProps> = ({
     async (
       moodVal: string,
       occasionVal: string,
-      wardrobeOnlyFlag: boolean
+      wardrobeOnlyFlag: boolean,
+      collectionsOverride?: WearCollectionPreference[]
     ) => {
       setIsLoading(true);
       setError(null);
+
+      const activeCollections = collectionsOverride || selectedCollections;
 
       const contextInput: RawOlfactoryContextInput = {
         weather: {
@@ -101,13 +106,14 @@ export const WhatShouldIWearView: React.FC<WhatShouldIWearViewProps> = ({
         const normRes = await api.normalizeContext(contextInput);
         setNormalizedContext(normRes.context);
 
-        // Step 2: Query Wear Recommendation Engine
+        // Step 2: Query Wear Recommendation Engine with optional collection preferences
         const recRes = await api.recommendWear({
           context: normRes.context,
           source: {
             wardrobeOnly: wardrobeOnlyFlag,
             includeCatalog: true
           },
+          collectionPreferences: activeCollections,
           limit: 6
         });
 
@@ -116,7 +122,10 @@ export const WhatShouldIWearView: React.FC<WhatShouldIWearViewProps> = ({
           const clientRec = olfactoryIntelligence.recommendWhatShouldIWear(
             fragrances,
             wardrobeFragrances,
-            weather
+            weather,
+            moodVal,
+            occasionVal,
+            activeCollections
           );
           if (clientRec) {
             setFallbackPartner(clientRec.layerPartner);
@@ -255,6 +264,23 @@ export const WhatShouldIWearView: React.FC<WhatShouldIWearViewProps> = ({
   const handleToggleWardrobeOnly = (val: boolean) => {
     setIsWardrobeOnly(val);
     executeRecommendationCycle(currentMood, currentOccasion, val);
+  };
+
+  const handleToggleCollection = (colId: WearCollectionPreference) => {
+    let next: WearCollectionPreference[];
+    if (colId === 'all') {
+      next = ['all'];
+    } else {
+      const withoutAll = selectedCollections.filter(c => c !== 'all');
+      if (withoutAll.includes(colId)) {
+        const remaining = withoutAll.filter(c => c !== colId);
+        next = remaining.length > 0 ? remaining : ['all'];
+      } else {
+        next = [...withoutAll, colId];
+      }
+    }
+    setSelectedCollections(next);
+    executeRecommendationCycle(currentMood, currentOccasion, isWardrobeOnly, next);
   };
 
   // Smooth scroll to Chapter IV (Accord Reveal)
@@ -424,7 +450,9 @@ export const WhatShouldIWearView: React.FC<WhatShouldIWearViewProps> = ({
         onSelectMood={handleSelectMood}
         currentOccasion={currentOccasion}
         onSelectOccasion={handleSelectOccasion}
-        onRecalculate={() => executeRecommendationCycle(currentMood, currentOccasion, isWardrobeOnly)}
+        selectedCollections={selectedCollections}
+        onToggleCollection={handleToggleCollection}
+        onRecalculate={() => executeRecommendationCycle(currentMood, currentOccasion, isWardrobeOnly, selectedCollections)}
         isLoading={isLoading}
       />
 
@@ -434,12 +462,31 @@ export const WhatShouldIWearView: React.FC<WhatShouldIWearViewProps> = ({
         onOpenWeatherModal={onOpenWeatherModal}
       />
 
+      {/* Helpful Empty State if collection preference yields no candidates */}
+      {!topRec && !isLoading && recommendationResponse && (
+        <EmptyOrErrorState
+          type="no_results"
+          onBroadenToAllCollections={() => handleToggleCollection('all')}
+          onSwitchToCatalog={() => {
+            setIsWardrobeOnly(false);
+            executeRecommendationCycle(currentMood, currentOccasion, false, selectedCollections);
+          }}
+          onEditContext={() => {
+            const el = document.getElementById('wear-today-state');
+            el?.scrollIntoView({ behavior: 'smooth' });
+          }}
+        />
+      )}
+
       {/* Chapter IV: TODAY'S OLFACTORY ACCORD */}
       {topRec && (
         <CuratedAccordReveal
           recommendation={topRec}
           layerPartner={fallbackPartner}
           weather={weather}
+          mood={currentMood}
+          occasion={currentOccasion}
+          wardrobeFragrances={wardrobeFragrances}
           onWearToday={handleWearToday}
           onInspectInChamber={handleInspectInChamber}
           onSendToLab={onSendToLaboratory}
@@ -456,6 +503,7 @@ export const WhatShouldIWearView: React.FC<WhatShouldIWearViewProps> = ({
           weather={weather}
           currentMood={currentMood}
           currentOccasion={currentOccasion}
+          wardrobeFragrances={wardrobeFragrances}
         />
       )}
 
@@ -470,6 +518,7 @@ export const WhatShouldIWearView: React.FC<WhatShouldIWearViewProps> = ({
       {/* Chapter VII: ALTERNATIVE PATHS & SURPRISE ME */}
       <AlternativeAccordsSection
         alternatives={altRecs}
+        protagonist={topRec?.fragrance}
         onWearToday={handleWearToday}
         onInspectInChamber={handleInspectInChamber}
         onSendToLab={onSendToLaboratory}

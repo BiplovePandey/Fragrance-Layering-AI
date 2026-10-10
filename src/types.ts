@@ -498,6 +498,8 @@ export interface AIProductSubmission {
   accords: string[];
   description: string;
   country: string;
+  gender?: 'unisex' | 'masculine' | 'feminine' | 'unspecified';
+  is_community_submitted?: boolean;
   launch_year?: number;
   perfumer?: string;
   source_url: string;
@@ -1012,6 +1014,7 @@ export interface WearRecommendationRequest {
   source?: WearRecommendationSource;
   limit?: number;
   excludeFragranceIds?: (number | string)[];
+  collectionPreferences?: ('all' | 'for-him' | 'for-her' | 'unisex-niche')[];
 }
 
 export interface WearRecommendationMatchBreakdown {

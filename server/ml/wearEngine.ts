@@ -547,6 +547,25 @@ export function generateWearRecommendations(
     candidates = allFragrances.filter(f => wardrobeIdsSet.has(f.id));
   }
 
+  // Optional Discovery Collection Preference Filter (Catalogue Positioning)
+  // Preserves existing recommendation logic, scoring weights, and context calculations.
+  const colPrefs = (request.collectionPreferences || []).filter(c => c && c !== 'all');
+  if (colPrefs.length > 0) {
+    candidates = candidates.filter(frag => {
+      const g = (frag.gender || '').toLowerCase().trim();
+      const isMasculine = g === 'masculine' || g === 'men';
+      const isFeminine = g === 'feminine' || g === 'women';
+      const isUnisex = g === 'unisex' || g === 'universal';
+
+      return colPrefs.some(pref => {
+        if (pref === 'for-him') return isMasculine;
+        if (pref === 'for-her') return isFeminine;
+        if (pref === 'unisex-niche') return isUnisex;
+        return false;
+      });
+    });
+  }
+
   const totalConsidered = candidates.length;
 
   // 2. Hard Constraint Filtering

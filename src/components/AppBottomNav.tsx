@@ -69,7 +69,9 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
               type="button"
               whileTap={{ scale: 0.94 }}
               onClick={() => setActiveTab(item.id)}
-              className="min-h-[44px] min-w-[54px] flex flex-col items-center justify-center gap-1 cursor-pointer relative px-2 py-1 select-none group"
+              className={`min-h-[44px] min-w-[54px] flex flex-col items-center justify-center gap-1 cursor-pointer relative px-2 py-1 select-none group transition-transform duration-200 ${
+                isActive ? '-translate-y-0.5' : 'hover:-translate-y-0.5'
+              }`}
               aria-label={`Switch to ${item.label}`}
             >
               {/* Restrained Instrument Activation Notch */}
@@ -84,14 +86,14 @@ export const AppBottomNav: React.FC<AppBottomNavProps> = ({
               {/* Glyph with Restrained Instrument Illumination */}
               <div className="relative flex items-center justify-center">
                 {isActive && (
-                  <div className="absolute inset-0 rounded-full bg-amber-400/10 blur-sm pointer-events-none" />
+                  <div className="absolute -inset-1 rounded-full bg-amber-400/15 blur-xs pointer-events-none" />
                 )}
                 <Glyph
                   size={17}
                   strokeWidth={isActive ? 1.5 : 1.3}
                   className={`transition-colors duration-200 ${
                     isActive
-                      ? 'text-amber-400'
+                      ? 'text-amber-400 drop-shadow-[0_0_5px_rgba(245,158,11,0.35)]'
                       : 'text-[#8C8176] group-hover:text-[#D1C7BB]'
                   }`}
                 />

@@ -28,6 +28,7 @@ import {
 import { olfactoryIntelligence } from '../services/olfactoryIntelligence.js';
 import { MotionModal, MotionButton, MotionCard } from '../motion/index.js';
 import { awardXP } from '../services/gamificationEngine.js';
+import { generateHeroExplanation, getCabinetRelationship } from '../utils/recommendationExplanation.js';
 
 interface WhatShouldIWearModalProps {
   isOpen: boolean;
@@ -92,6 +93,17 @@ export const WhatShouldIWearModal: React.FC<WhatShouldIWearModalProps> = ({
 
   const frag = recommendation.fragrance;
   const partner = recommendation.layerPartner;
+
+  const heroExplanation = React.useMemo(() => {
+    if (!frag) return '';
+    const livingDNA = olfactoryIntelligence.getLivingDNA();
+    return generateHeroExplanation(frag, weather, selectedMood, selectedOccasion, livingDNA);
+  }, [frag, weather, selectedMood, selectedOccasion]);
+
+  const cabinetRel = React.useMemo(() => {
+    if (!frag) return null;
+    return getCabinetRelationship(frag, ownedFragrances);
+  }, [frag, ownedFragrances]);
 
   const handleRecordWear = () => {
     olfactoryIntelligence.recordEvent({
@@ -217,26 +229,36 @@ export const WhatShouldIWearModal: React.FC<WhatShouldIWearModalProps> = ({
             <div className="relative rounded-3xl bg-gradient-to-br from-[#1C1814] via-[#15120F] to-[#120F0D] border border-amber-500/40 p-6 sm:p-8 shadow-2xl space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/[0.08]">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-semibold">
-                      Today's Primary Signature Scent
+                      TODAY&apos;S ACCORD
                     </span>
-                    {recommendation.isFromWardrobe ? (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-[10px] font-mono">
-                        From Your Wardrobe Shelf
-                      </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] font-mono">
-                        Atelier Discovery Pick
+                    {cabinetRel && (
+                      <span className="px-2 py-0.5 rounded-full bg-stone-900 border border-stone-700 text-stone-300 text-[10px] font-mono flex items-center gap-1">
+                        <span>{cabinetRel.headline}</span>
+                        <span className="text-[8px] text-amber-400 uppercase">&bull; {cabinetRel.transparency}</span>
                       </span>
                     )}
                   </div>
                   <h3 className="font-serif text-3xl sm:text-4xl font-medium text-stone-100">
                     {frag.name}
                   </h3>
-                  <p className="text-xs sm:text-sm text-stone-400 font-sans">
-                    by <span className="text-stone-200 font-semibold">{frag.brand_name || frag.brand}</span> &bull; {frag.format || 'Fine Fragrance'} &bull; {frag.fragrance_family}
+                  <p className="text-xs sm:text-sm text-stone-400 font-sans flex items-center gap-1.5 flex-wrap">
+                    <span>by</span>
+                    <strong className="text-stone-200 font-semibold">{frag.brand_name || frag.brand}</strong>
+                    <span>&bull;</span>
+                    <span>{frag.concentration || frag.format || 'Fine Fragrance'}</span>
+                    <span className="px-1.5 py-0.2 rounded bg-stone-900 text-[9px] font-mono text-stone-400 uppercase">VERIFIED</span>
+                    <span>&bull;</span>
+                    <span>{frag.fragrance_family}</span>
                   </p>
+
+                  {/* Short generated explanation */}
+                  {heroExplanation && (
+                    <p className="font-serif italic text-xs sm:text-sm text-amber-200/90 pt-1 leading-relaxed">
+                      &ldquo;{heroExplanation}&rdquo;
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-3 self-start sm:self-center">
@@ -244,7 +266,7 @@ export const WhatShouldIWearModal: React.FC<WhatShouldIWearModalProps> = ({
                     <div className="font-mono text-2xl font-bold text-amber-300">
                       {recommendation.compatibilityScore}%
                     </div>
-                    <span className="text-[10px] font-mono text-stone-400 uppercase">Modelled Match</span>
+                    <span className="text-[9px] font-mono text-stone-400 uppercase">Context Match &bull; CALCULATED</span>
                   </div>
                   <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 text-xl font-serif">
                     🎯

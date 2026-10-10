@@ -790,6 +790,16 @@ async function startServer() {
     }
   });
 
+  // GET /api/download-presentation - download the PPTX presentation
+  app.get('/api/download-presentation', (req, res) => {
+    const pptxPath = path.join(process.cwd(), 'public', 'Olfactory_AI_Presentation.pptx');
+    res.download(pptxPath, 'Olfactory_AI_Presentation.pptx', (err) => {
+      if (err && !res.headersSent) {
+        res.status(404).json({ error: 'Presentation file not found' });
+      }
+    });
+  });
+
   // ================= VITE MIDDLEWARE SETUP =================
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

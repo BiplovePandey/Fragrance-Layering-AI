@@ -25,3 +25,4 @@ export * from './OccasionCard';
 export * from './SurpriseMeButton';
 export * from './SurpriseMeModal';
 export * from './ScentLoading';
+export * from './AtelierGlyphs';
