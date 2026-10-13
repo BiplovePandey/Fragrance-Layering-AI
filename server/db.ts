@@ -13,7 +13,8 @@ import {
   CanonicalImportValidationResult,
   CanonicalImportResolution,
   OlfactoryBehaviorEvent,
-  FragranceBehaviorSummary
+  FragranceBehaviorSummary,
+  UserProfile
 } from '../src/types.js';
 import { extractFragranceVector, setDynamicTaxonomy, resolveTaxonomyNote } from './ml/features.js';
 import { performKMeansClustering } from './ml/clustering.js';
@@ -25,6 +26,7 @@ import {
   validateCanonicalImport,
   resolveImportConflict
 } from './ml/canonicalValidation.js';
+import { hashPassword, verifyPassword } from './authSecurity.js';
 
 const DB_FILE_PATH = path.join(process.cwd(), 'fragrances.db');
 const BRANDS_JSON_PATH = path.join(process.cwd(), 'data', 'brands.json');
@@ -124,6 +126,35 @@ export class FragranceDatabase {
       // Table doesn't exist yet, proceed
     }
 
+    // Ensure users table has all necessary auth columns
+    try {
+      const checkUsers = this.db.exec("PRAGMA table_info(users);");
+      if (checkUsers[0]) {
+        const existingCols = checkUsers[0].values.map(row => row[1]);
+        const userColumns = [
+          { name: 'password_hash', ddl: 'ALTER TABLE users ADD COLUMN password_hash TEXT;' },
+          { name: 'avatar', ddl: 'ALTER TABLE users ADD COLUMN avatar TEXT;' },
+          { name: 'title', ddl: 'ALTER TABLE users ADD COLUMN title TEXT;' },
+          { name: 'level', ddl: 'ALTER TABLE users ADD COLUMN level INTEGER DEFAULT 1;' },
+          { name: 'xp', ddl: 'ALTER TABLE users ADD COLUMN xp INTEGER DEFAULT 100;' },
+          { name: 'role', ddl: 'ALTER TABLE users ADD COLUMN role TEXT DEFAULT "connoisseur";' },
+          { name: 'signature_notes', ddl: 'ALTER TABLE users ADD COLUMN signature_notes TEXT;' },
+          { name: 'preferred_family', ddl: 'ALTER TABLE users ADD COLUMN preferred_family TEXT;' },
+          { name: 'bio', ddl: 'ALTER TABLE users ADD COLUMN bio TEXT;' },
+          { name: 'verified_at', ddl: 'ALTER TABLE users ADD COLUMN verified_at DATETIME;' },
+          { name: 'last_login_at', ddl: 'ALTER TABLE users ADD COLUMN last_login_at DATETIME;' }
+        ];
+        for (const col of userColumns) {
+          if (!existingCols.includes(col.name)) {
+            console.log(`Migrating users table: adding ${col.name} column...`);
+            this.db.run(col.ddl);
+          }
+        }
+      }
+    } catch (e) {
+      // Table doesn't exist yet, proceed
+    }
+
     this.db.run(`
       CREATE TABLE IF NOT EXISTS brands (
         id INTEGER PRIMARY KEY,
@@ -214,7 +245,28 @@ export class FragranceDatabase {
       CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        email TEXT,
+        email TEXT UNIQUE,
+        password_hash TEXT,
+        avatar TEXT,
+        title TEXT,
+        level INTEGER DEFAULT 1,
+        xp INTEGER DEFAULT 100,
+        role TEXT DEFAULT 'connoisseur',
+        signature_notes TEXT,
+        preferred_family TEXT,
+        bio TEXT,
+        verified_at DATETIME,
+        last_login_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS email_otps (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT NOT NULL,
+        otp_code TEXT NOT NULL,
+        expires_at DATETIME NOT NULL,
+        attempts INTEGER DEFAULT 0,
+        is_used INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -460,9 +512,94 @@ export class FragranceDatabase {
       this.db.run(`INSERT OR IGNORE INTO user_collection (user_id, fragrance_id) VALUES (1, 1), (1, 6), (1, 23), (1, 39), (1, 53)`);
     }
 
+    // Ensure curated personas exist in users table
+    this.seedUserPersonas();
+
     // Cache brands
     this.refreshBrandsCache();
     this.refreshTaxonomyCache();
+  }
+
+  private seedUserPersonas() {
+    if (!this.db) return;
+    const personas = [
+      {
+        id: 1,
+        name: 'Elena Vance',
+        email: 'elena@olfactory.ai',
+        password_hash: hashPassword('atelier123'),
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
+        title: 'Master Perfumer & Haute Connoisseur',
+        level: 5,
+        xp: 1450,
+        role: 'perfumer',
+        signature_notes: JSON.stringify(['Mysore Sandalwood', 'Turkish Rose', 'Assam Oud']),
+        preferred_family: 'Woody Aromatic',
+        bio: 'Senior evaluator of oriental chypres and rare attars. Fascinated by resinous alchemy and cold-weather incense chords.',
+        wardrobe: [1, 6, 23, 39, 53]
+      },
+      {
+        id: 2,
+        name: 'Aarav Sharma',
+        email: 'aarav@olfactory.ai',
+        password_hash: hashPassword('heritage123'),
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
+        title: 'Kannauj Heritage Scholar',
+        level: 4,
+        xp: 880,
+        role: 'scholar',
+        signature_notes: JSON.stringify(['Mitti Attar', 'Ruh Gulab', 'Shamama']),
+        preferred_family: 'Traditional Indian Attar',
+        bio: 'Preserving fifth-generation hydro-distillation traditions across the deg-bhapka hearths of Kannauj.',
+        wardrobe: [39, 40, 42, 6, 12]
+      },
+      {
+        id: 3,
+        name: 'Maya Patel',
+        email: 'maya@olfactory.ai',
+        password_hash: hashPassword('minimalist123'),
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&q=80',
+        title: 'Contemporary Scent Explorer',
+        level: 2,
+        xp: 340,
+        role: 'enthusiast',
+        signature_notes: JSON.stringify(['Bergamot', 'Sea Salt', 'Cardamom']),
+        preferred_family: 'Fresh Citrus / Aquatic',
+        bio: 'Exploring botanical skin-scents, monsoon ozonics, and crisp daily office accords.',
+        wardrobe: [1, 14, 28, 45]
+      }
+    ];
+
+    for (const p of personas) {
+      try {
+        this.db.run(
+          `INSERT INTO users (id, name, email, password_hash, avatar, title, level, xp, role, signature_notes, preferred_family, bio)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET
+             name=excluded.name,
+             email=excluded.email,
+             password_hash=COALESCE(excluded.password_hash, users.password_hash),
+             avatar=COALESCE(excluded.avatar, users.avatar),
+             title=COALESCE(excluded.title, users.title),
+             level=COALESCE(excluded.level, users.level),
+             xp=COALESCE(excluded.xp, users.xp),
+             role=COALESCE(excluded.role, users.role),
+             signature_notes=COALESCE(excluded.signature_notes, users.signature_notes),
+             preferred_family=COALESCE(excluded.preferred_family, users.preferred_family),
+             bio=COALESCE(excluded.bio, users.bio)`,
+          [p.id, p.name, p.email, p.password_hash, p.avatar, p.title, p.level, p.xp, p.role, p.signature_notes, p.preferred_family, p.bio]
+        );
+
+        for (const fragId of p.wardrobe) {
+          this.db.run(
+            `INSERT OR IGNORE INTO user_collection (user_id, fragrance_id) VALUES (?, ?)`,
+            [p.id, fragId]
+          );
+        }
+      } catch (err) {
+        console.warn('Persona seed error for user ' + p.id, err);
+      }
+    }
   }
 
   private refreshBrandsCache() {
@@ -1030,6 +1167,411 @@ export class FragranceDatabase {
     this.db.run(`UPDATE product_submissions SET status = ? WHERE id = ?`, [status, id]);
     this.saveToFile();
     return true;
+  }
+
+  // ================= USER & AUTHENTICATION METHODS =================
+
+  getUserById(id: number): UserProfile | null {
+    if (!this.db) return null;
+    const res = this.db.exec(`SELECT * FROM users WHERE id = ?`, [id]);
+    if (!res[0] || res[0].values.length === 0) return null;
+    const cols = res[0].columns;
+    const vals = res[0].values[0];
+    const obj: any = {};
+    cols.forEach((c, idx) => { obj[c] = vals[idx]; });
+
+    return {
+      id: obj.id,
+      name: obj.name,
+      email: obj.email,
+      avatar: obj.avatar || undefined,
+      title: obj.title || 'Scent Explorer',
+      level: obj.level || 1,
+      xp: obj.xp || 100,
+      role: obj.role || 'connoisseur',
+      signature_notes: obj.signature_notes ? (typeof obj.signature_notes === 'string' ? JSON.parse(obj.signature_notes) : obj.signature_notes) : [],
+      preferred_family: obj.preferred_family || 'Woody Aromatic',
+      bio: obj.bio || '',
+      verified_at: obj.verified_at || undefined,
+      last_login_at: obj.last_login_at || undefined,
+      created_at: obj.created_at
+    };
+  }
+
+  getUserByEmail(email: string): any {
+    if (!this.db) return null;
+    const res = this.db.exec(`SELECT * FROM users WHERE LOWER(email) = LOWER(?)`, [email.trim()]);
+    if (!res[0] || res[0].values.length === 0) return null;
+    const cols = res[0].columns;
+    const vals = res[0].values[0];
+    const obj: any = {};
+    cols.forEach((c, idx) => { obj[c] = vals[idx]; });
+    return obj;
+  }
+
+  authenticateUser(email: string, password?: string): {
+    success: boolean;
+    user?: UserProfile;
+    error?: 'USER_NOT_FOUND' | 'INVALID_PASSWORD' | string;
+    message?: string;
+  } {
+    if (!this.db) {
+      return { success: false, error: 'DB_ERROR', message: 'Database not initialized' };
+    }
+    const trimmedEmail = email.trim().toLowerCase();
+    const userRow = this.getUserByEmail(trimmedEmail);
+
+    // 1. If user DOES NOT exist in database:
+    if (!userRow) {
+      return {
+        success: false,
+        error: 'USER_NOT_FOUND',
+        message: 'No account found with this email. Please create an account first.'
+      };
+    }
+
+    if (!password) {
+      return {
+        success: false,
+        error: 'INVALID_PASSWORD',
+        message: 'Password is required to log in.'
+      };
+    }
+
+    // 2. Validate password match
+    const isValid = verifyPassword(password, userRow.password_hash);
+    if (!isValid) {
+      return {
+        success: false,
+        error: 'INVALID_PASSWORD',
+        message: 'Incorrect password. Please verify your credentials.'
+      };
+    }
+
+    // 3. Update last_login_at
+    const nowIso = new Date().toISOString();
+    this.db.run(`UPDATE users SET last_login_at = ? WHERE id = ?`, [nowIso, userRow.id]);
+    this.saveToFile();
+
+    const userProfile = this.getUserById(userRow.id);
+    return {
+      success: true,
+      user: userProfile || undefined
+    };
+  }
+
+  resetPassword(email: string, newPassword: string): {
+    success: boolean;
+    user?: UserProfile;
+    error?: 'USER_NOT_FOUND' | 'INVALID_PASSWORD' | string;
+    message?: string;
+  } {
+    if (!this.db) {
+      return { success: false, error: 'DB_ERROR', message: 'Database not initialized' };
+    }
+    const cleanEmail = email.trim().toLowerCase();
+    const userRow = this.getUserByEmail(cleanEmail);
+
+    if (!userRow) {
+      return {
+        success: false,
+        error: 'USER_NOT_FOUND',
+        message: 'No account found with this email. Please create an account first.'
+      };
+    }
+
+    if (!newPassword || newPassword.length < 6) {
+      return {
+        success: false,
+        error: 'INVALID_PASSWORD',
+        message: 'Password must be at least 6 characters.'
+      };
+    }
+
+    const hashedPassword = hashPassword(newPassword);
+    this.db.run(`UPDATE users SET password_hash = ? WHERE id = ?`, [hashedPassword, userRow.id]);
+    this.saveToFile();
+
+    const userProfile = this.getUserById(userRow.id);
+    return {
+      success: true,
+      user: userProfile || undefined,
+      message: 'Password reset successfully. You can now log in.'
+    };
+  }
+
+  registerUser(data: {
+    name?: string;
+    email: string;
+    password?: string;
+    preferred_family?: string;
+    signature_notes?: string[];
+    title?: string;
+  }): UserProfile {
+    if (!this.db) throw new Error('Database not initialized');
+    if (!data.email) throw new Error('Email is required');
+
+    const cleanEmail = data.email.trim().toLowerCase();
+    const existing = this.getUserByEmail(cleanEmail);
+    if (existing) {
+      throw new Error('Account already exists. Please log in instead.');
+    }
+
+    const rawPrefix = cleanEmail.split('@')[0];
+    const defaultName = data.name?.trim() || (rawPrefix.charAt(0).toUpperCase() + rawPrefix.slice(1));
+    const defaultTitle = data.title || 'Scent Explorer';
+    const initialLevel = 1;
+    const initialXp = 150;
+    const notesJson = JSON.stringify(data.signature_notes || ['Bergamot', 'Mysore Sandalwood']);
+    const family = data.preferred_family || 'Woody Aromatic';
+    const rawPwd = data.password || 'atelier123';
+    const hashedPassword = hashPassword(rawPwd);
+    const avatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(defaultName)}&backgroundColor=b45309`;
+    const nowIso = new Date().toISOString();
+
+    this.db.run(
+      `INSERT INTO users (name, email, password_hash, avatar, title, level, xp, role, signature_notes, preferred_family, bio, verified_at, last_login_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [defaultName, cleanEmail, hashedPassword, avatar, defaultTitle, initialLevel, initialXp, 'enthusiast', notesJson, family, 'Member of Olfactory AI Atelier', nowIso, nowIso]
+    );
+    this.saveToFile();
+
+    const idRes = this.db.exec(`SELECT last_insert_rowid()`);
+    const newId = (idRes[0]?.values[0]?.[0] as number) || 1;
+
+    // Seed default preferences for this user
+    this.saveUserPreferences({
+      favorite_family: [family],
+      preferred_notes: data.signature_notes || ['Bergamot', 'Sandalwood'],
+      sweetness: 5,
+      freshness: 6,
+      intensity: 6,
+      preferred_gender: 'all',
+      season: 'Summer',
+      occasion: 'Date',
+      time_of_day: 'Evening'
+    }, newId);
+
+    // Seed 2 starter bottles in user wardrobe
+    this.db.run(`INSERT OR IGNORE INTO user_collection (user_id, fragrance_id) VALUES (?, 1), (?, 6)`, [newId, newId]);
+
+    const created = this.getUserById(newId);
+    if (!created) throw new Error('Failed to retrieve newly created user');
+    return created;
+  }
+
+  getAllPersonas(): UserProfile[] {
+    if (!this.db) return [];
+    const res = this.db.exec(`SELECT * FROM users ORDER BY level DESC, id ASC LIMIT 10`);
+    if (!res[0]) return [];
+    const cols = res[0].columns;
+    return res[0].values.map(vals => {
+      const obj: any = {};
+      cols.forEach((c, idx) => { obj[c] = vals[idx]; });
+      return {
+        id: obj.id,
+        name: obj.name,
+        email: obj.email,
+        avatar: obj.avatar || undefined,
+        title: obj.title || 'Scent Explorer',
+        level: obj.level || 1,
+        xp: obj.xp || 100,
+        role: obj.role || 'connoisseur',
+        signature_notes: obj.signature_notes ? (typeof obj.signature_notes === 'string' ? JSON.parse(obj.signature_notes) : obj.signature_notes) : [],
+        preferred_family: obj.preferred_family || 'Woody Aromatic',
+        bio: obj.bio || '',
+        created_at: obj.created_at
+      };
+    });
+  }
+
+  updateUserProfile(id: number, data: Partial<UserProfile>): UserProfile | null {
+    if (!this.db) return null;
+    const existing = this.getUserById(id);
+    if (!existing) return null;
+
+    const name = data.name !== undefined ? data.name : existing.name;
+    const title = data.title !== undefined ? data.title : existing.title;
+    const level = data.level !== undefined ? data.level : existing.level;
+    const xp = data.xp !== undefined ? data.xp : existing.xp;
+    const role = data.role !== undefined ? data.role : existing.role;
+    const family = data.preferred_family !== undefined ? data.preferred_family : existing.preferred_family;
+    const bio = data.bio !== undefined ? data.bio : existing.bio;
+    const notesJson = data.signature_notes ? JSON.stringify(data.signature_notes) : (existing.signature_notes ? JSON.stringify(existing.signature_notes) : null);
+
+    this.db.run(
+      `UPDATE users SET name = ?, title = ?, level = ?, xp = ?, role = ?, preferred_family = ?, bio = ?, signature_notes = ? WHERE id = ?`,
+      [name, title, level, xp, role, family, bio, notesJson, id]
+    );
+    this.saveToFile();
+    return this.getUserById(id);
+  }
+
+  createEmailOtp(email: string): { otp: string; expiresAt: string } {
+    if (!this.db) throw new Error('Database not initialized');
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Invalidate existing active OTPs for this email
+    this.db.run(`UPDATE email_otps SET is_used = 1 WHERE email = ? AND is_used = 0`, [cleanEmail]);
+
+    // Generate random 6-digit code
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // 10 minutes expiry ISO string
+    const expiresDate = new Date(Date.now() + 10 * 60 * 1000);
+    const expiresAt = expiresDate.toISOString();
+
+    this.db.run(
+      `INSERT INTO email_otps (email, otp_code, expires_at, attempts, is_used) VALUES (?, ?, ?, 0, 0)`,
+      [cleanEmail, otp, expiresAt]
+    );
+    this.saveToFile();
+
+    return { otp, expiresAt };
+  }
+
+  verifyEmailOtp(email: string, otpInput: string, additionalData?: {
+    name?: string;
+    preferred_family?: string;
+    signature_notes?: string[];
+  }): { success: boolean; user?: UserProfile; isNewUser?: boolean; error?: string } {
+    if (!this.db) return { success: false, error: 'Database not initialized' };
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanOtp = otpInput.trim();
+
+    const res = this.db.exec(
+      `SELECT * FROM email_otps WHERE email = ? AND is_used = 0 ORDER BY id DESC LIMIT 1`,
+      [cleanEmail]
+    );
+
+    if (!res[0] || res[0].values.length === 0) {
+      return { success: false, error: 'No active verification code found for this email. Please request a new code.' };
+    }
+
+    const cols = res[0].columns;
+    const vals = res[0].values[0];
+    const record: any = {};
+    cols.forEach((c, idx) => { record[c] = vals[idx]; });
+
+    // Check expiration
+    const expiryTime = new Date(record.expires_at).getTime();
+    if (Date.now() > expiryTime) {
+      this.db.run(`UPDATE email_otps SET is_used = 1 WHERE id = ?`, [record.id]);
+      this.saveToFile();
+      return { success: false, error: 'Verification code has expired (valid 10 minutes). Please request a fresh code.' };
+    }
+
+    // Check attempts limit (max 5)
+    if (record.attempts >= 5) {
+      this.db.run(`UPDATE email_otps SET is_used = 1 WHERE id = ?`, [record.id]);
+      this.saveToFile();
+      return { success: false, error: 'Too many incorrect attempts. Please request a new code.' };
+    }
+
+    if (record.otp_code !== cleanOtp) {
+      this.db.run(`UPDATE email_otps SET attempts = attempts + 1 WHERE id = ?`, [record.id]);
+      this.saveToFile();
+      const remaining = 5 - (record.attempts + 1);
+      return { success: false, error: `Invalid verification code. (${remaining} attempts remaining)` };
+    }
+
+    // Mark OTP as used
+    this.db.run(`UPDATE email_otps SET is_used = 1 WHERE id = ?`, [record.id]);
+
+    // Check if user exists
+    let existing = this.getUserByEmail(cleanEmail);
+    let isNewUser = false;
+    const nowIso = new Date().toISOString();
+
+    if (!existing) {
+      isNewUser = true;
+      const rawPrefix = cleanEmail.split('@')[0];
+      const defaultName = additionalData?.name?.trim() || (rawPrefix.charAt(0).toUpperCase() + rawPrefix.slice(1));
+      const defaultFamily = additionalData?.preferred_family || 'Woody Aromatic';
+      const notesJson = JSON.stringify(additionalData?.signature_notes || ['Bergamot', 'Mysore Sandalwood']);
+      const avatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(defaultName)}&backgroundColor=b45309`;
+
+      this.db.run(
+        `INSERT INTO users (name, email, password_hash, avatar, title, level, xp, role, signature_notes, preferred_family, bio, verified_at, last_login_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          defaultName,
+          cleanEmail,
+          'otp_verified',
+          avatar,
+          'Scent Explorer',
+          1,
+          200,
+          'connoisseur',
+          notesJson,
+          defaultFamily,
+          'Verified Member of Olfactory AI Atelier',
+          nowIso,
+          nowIso
+        ]
+      );
+
+      const idRes = this.db.exec(`SELECT last_insert_rowid()`);
+      const newId = (idRes[0]?.values[0]?.[0] as number) || 1;
+
+      // Seed starter wardrobe & preferences for this new user
+      this.saveUserPreferences({
+        favorite_family: [defaultFamily],
+        preferred_notes: additionalData?.signature_notes || ['Bergamot', 'Mysore Sandalwood'],
+        sweetness: 5,
+        freshness: 6,
+        intensity: 6,
+        preferred_gender: 'all',
+        season: 'Summer',
+        occasion: 'Date',
+        time_of_day: 'Evening'
+      }, newId);
+
+      this.db.run(`INSERT OR IGNORE INTO user_collection (user_id, fragrance_id) VALUES (?, 1), (?, 6), (?, 39)`, [newId, newId, newId]);
+
+      existing = this.getUserById(newId);
+    } else {
+      this.db.run(
+        `UPDATE users SET last_login_at = ?, verified_at = COALESCE(verified_at, ?) WHERE id = ?`,
+        [nowIso, nowIso, existing.id]
+      );
+    }
+
+    this.saveToFile();
+
+    const finalUser = this.getUserById(existing.id);
+    return {
+      success: true,
+      user: finalUser || undefined,
+      isNewUser
+    };
+  }
+
+  getAllUsers(): UserProfile[] {
+    if (!this.db) return [];
+    const res = this.db.exec(`SELECT * FROM users ORDER BY id ASC`);
+    if (!res[0]) return [];
+    const cols = res[0].columns;
+    return res[0].values.map(vals => {
+      const obj: any = {};
+      cols.forEach((c, idx) => { obj[c] = vals[idx]; });
+      return {
+        id: obj.id,
+        name: obj.name,
+        email: obj.email,
+        avatar: obj.avatar || undefined,
+        title: obj.title || 'Scent Explorer',
+        level: obj.level || 1,
+        xp: obj.xp || 100,
+        role: obj.role || 'connoisseur',
+        signature_notes: obj.signature_notes ? (typeof obj.signature_notes === 'string' ? JSON.parse(obj.signature_notes) : obj.signature_notes) : [],
+        preferred_family: obj.preferred_family || 'Woody Aromatic',
+        bio: obj.bio || '',
+        verified_at: obj.verified_at || undefined,
+        last_login_at: obj.last_login_at || undefined,
+        created_at: obj.created_at
+      };
+    });
   }
 
   // ================= CRUD: BRANDS =================

@@ -1,4 +1,13 @@
-import type { CapacitorConfig } from '@capacitor/cli';
+export interface CapacitorConfig {
+  appId: string;
+  appName: string;
+  webDir: string;
+  server?: {
+    androidScheme?: string;
+    cleartext?: boolean;
+    url?: string;
+  };
+}
 
 const config: CapacitorConfig = {
   appId: 'com.olfactory.atelier',

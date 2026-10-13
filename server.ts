@@ -8,6 +8,7 @@ import { UserPreferences, WearRecommendationRequest, OlfactoryBehaviorEvent } fr
 import { normalizeOlfactoryContext } from './src/services/contextEngine.js';
 import { generateWearRecommendations } from './server/ml/wearEngine.js';
 import { olfactoryMemoryService } from './server/olfactoryMemory.js';
+import { emailService } from './server/emailService.js';
 
 async function startServer() {
   const app = express();
@@ -24,6 +25,232 @@ async function startServer() {
   // Health check
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
+  // ================= AUTHENTICATION & PERSONA ROUTES =================
+
+  // POST /api/auth/login - Authenticate user credentials
+  app.post('/api/auth/login', (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ error: 'Email is required to log in.' });
+      }
+      if (!password || typeof password !== 'string') {
+        return res.status(400).json({ error: 'Password is required to log in.' });
+      }
+
+      const result = dbService.authenticateUser(email, password);
+      if (!result.success || !result.user) {
+        const statusCode = result.error === 'USER_NOT_FOUND' ? 404 : 401;
+        return res.status(statusCode).json({
+          error: result.message || 'Invalid credentials.',
+          errorCode: result.error
+        });
+      }
+
+      res.json({
+        success: true,
+        user: result.user,
+        token: `session_token_${result.user.id}_${Date.now()}`
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/auth/register - Create a new Atelier account
+  app.post('/api/auth/register', (req, res) => {
+    try {
+      const { name, email, password, preferred_family, signature_notes, title } = req.body;
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        return res.status(400).json({ error: 'A valid email address is required.' });
+      }
+      if (!password || typeof password !== 'string') {
+        return res.status(400).json({ error: 'Password is required to create an account.' });
+      }
+
+      const newUser = dbService.registerUser({
+        name,
+        email,
+        password,
+        preferred_family,
+        signature_notes,
+        title
+      });
+
+      res.status(201).json({
+        success: true,
+        user: newUser,
+        token: `session_token_${newUser.id}_${Date.now()}`,
+        message: 'Account created successfully.'
+      });
+    } catch (err: any) {
+      const isDuplicate = err.message && err.message.includes('Account already exists');
+      res.status(isDuplicate ? 409 : 400).json({ error: err.message });
+    }
+  });
+
+  // POST /api/auth/forgot-password - Check if email exists in database
+  app.post('/api/auth/forgot-password', (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        return res.status(400).json({ error: 'A valid email address is required.' });
+      }
+      const cleanEmail = email.trim().toLowerCase();
+      const user = dbService.getUserByEmail(cleanEmail);
+      if (!user) {
+        return res.status(404).json({
+          error: 'No account found with this email. Please create an account first.',
+          errorCode: 'USER_NOT_FOUND'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Account verified. You can now set your new password.',
+        email: cleanEmail
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/auth/reset-password - Reset password for a verified account
+  app.post('/api/auth/reset-password', (req, res) => {
+    try {
+      const { email, newPassword } = req.body;
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ error: 'Email is required.' });
+      }
+      if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+      }
+
+      const result = dbService.resetPassword(email, newPassword);
+      if (!result.success) {
+        const statusCode = result.error === 'USER_NOT_FOUND' ? 404 : 400;
+        return res.status(statusCode).json({ error: result.message || 'Failed to reset password.' });
+      }
+
+      res.json({
+        success: true,
+        message: 'Password reset successfully. You can now log in with your new password.',
+        user: result.user
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/auth/me - Retrieve profile for active user
+  app.get('/api/auth/me', (req, res) => {
+    try {
+      const userId = parseInt(req.query.userId as string, 10) || 1;
+      const user = dbService.getUserById(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      res.json({ success: true, user });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/auth/personas - Retrieve curated quick-login demo personas
+  app.get('/api/auth/personas', (req, res) => {
+    try {
+      const personas = dbService.getAllPersonas();
+      res.json(personas);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // POST /api/auth/logout - End session
+  app.post('/api/auth/logout', (req, res) => {
+    res.json({ success: true, message: 'Logged out of Olfactory Atelier' });
+  });
+
+  // POST /api/auth/otp/send - Generate and dispatch 6-digit OTP code to email
+  app.post('/api/auth/otp/send', async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        return res.status(400).json({ error: 'A valid email address is required' });
+      }
+
+      const cleanEmail = email.trim().toLowerCase();
+
+      // 1. Generate & store OTP in database
+      const { otp, expiresAt } = dbService.createEmailOtp(cleanEmail);
+
+      // 2. Dispatch email via EmailService
+      const emailResult = await emailService.sendOtp(cleanEmail, otp);
+
+      res.json({
+        success: true,
+        message: emailResult.delivered
+          ? `Verification passkey dispatched directly to ${cleanEmail}.`
+          : `Verification code generated for ${cleanEmail}. Check your inbox or preview code below.`,
+        emailDelivered: emailResult.delivered,
+        previewOtp: emailResult.previewOtp,
+        provider: emailResult.provider,
+        expiresAt,
+        expiresInSeconds: 600
+      });
+    } catch (err: any) {
+      console.error('Error sending OTP:', err);
+      res.status(500).json({ error: err.message || 'Failed to dispatch verification email' });
+    }
+  });
+
+  // POST /api/auth/otp/verify - Verify OTP and login or create user
+  app.post('/api/auth/otp/verify', (req, res) => {
+    try {
+      const { email, otp, name, preferred_family, signature_notes } = req.body;
+      if (!email || !otp) {
+        return res.status(400).json({ error: 'Email and 6-digit verification code are required' });
+      }
+
+      const cleanEmail = email.trim().toLowerCase();
+      const cleanOtp = String(otp).trim();
+
+      const verifyResult = dbService.verifyEmailOtp(cleanEmail, cleanOtp, {
+        name,
+        preferred_family,
+        signature_notes
+      });
+
+      if (!verifyResult.success || !verifyResult.user) {
+        return res.status(400).json({ error: verifyResult.error || 'Verification failed' });
+      }
+
+      const token = `session_token_${verifyResult.user.id}_${Date.now()}`;
+
+      res.json({
+        success: true,
+        user: verifyResult.user,
+        token,
+        isNewUser: verifyResult.isNewUser,
+        message: verifyResult.isNewUser
+          ? `Welcome to Olfactory AI, ${verifyResult.user.name}. Your Scent Passport has been issued.`
+          : `Welcome back, ${verifyResult.user.name}. Scent Passport active.`
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Verification error' });
+    }
+  });
+
+  // GET /api/auth/users - Retrieve all users in the database
+  app.get('/api/auth/users', (req, res) => {
+    try {
+      const users = dbService.getAllUsers();
+      res.json(users);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // GET /api/brands - returns all brands
@@ -281,7 +508,8 @@ async function startServer() {
   // User collection endpoints
   app.get('/api/collection', (req, res) => {
     try {
-      const ownedIds = dbService.getUserCollection(1);
+      const userId = parseInt(req.query.userId as string, 10) || 1;
+      const ownedIds = dbService.getUserCollection(userId);
       const allFragrances = dbService.getAllFragrances();
       const collection = allFragrances.filter(f => ownedIds.includes(f.id));
       res.json({ ownedIds, fragrances: collection });

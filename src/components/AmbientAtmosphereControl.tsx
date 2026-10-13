@@ -89,6 +89,26 @@ export const AmbientAtmosphereControl: React.FC<AmbientAtmosphereControlProps> =
     }
   }, [activeFragrance, localAutoSync, currentAtmosphere, onSetAtmosphere]);
 
+  // Handle ESC key to dismiss modal and body scroll lock
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
   const activeProfile: AtmosphereMeta = ATMOSPHERE_PROFILES[currentAtmosphere] || ATMOSPHERE_PROFILES.default;
 
   const handleSelectAtmosphere = (id: ScentFamilyAtmosphere) => {
@@ -192,7 +212,7 @@ export const AmbientAtmosphereControl: React.FC<AmbientAtmosphereControlProps> =
       {/* Atmospheric Sanctuary Modal / Drawer */}
       <AnimatePresence>
         {isOpen && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}

@@ -26,6 +26,8 @@ import { WhatShouldIWearView } from './components/views/WhatShouldIWearView.js';
 import { ScannerView } from './components/views/ScannerView.js';
 import { AcademyView } from './components/views/AcademyView.js';
 
+import { LoginPage } from './components/auth/LoginPage.js';
+import { authService } from './services/authService.js';
 import { api } from './services/api.js';
 import { updateWeatherCondition } from './services/weatherEngine.js';
 import { getGamificationState, awardXP } from './services/gamificationEngine.js';
@@ -43,7 +45,8 @@ import {
   DailyMoodPreset,
   MainNavId,
   WeatherCondition,
-  UserGamification
+  UserGamification,
+  UserProfile
 } from './types.js';
 import { DiscoveryCollectionId } from './utils/collectionClassification.js';
 import { CheckCircle2, SlidersHorizontal, Sparkles, X } from 'lucide-react';
@@ -165,6 +168,51 @@ export default function App() {
 
     loadInitialData();
   }, []);
+
+  // Active User / Auth State
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => authService.getCurrentUser());
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+
+  // Subscribe to auth state changes
+  useEffect(() => {
+    const unsub = authService.subscribe((user) => {
+      setCurrentUser(user);
+    });
+    return unsub;
+  }, []);
+
+  const handleUserChanged = async (user: UserProfile) => {
+    setCurrentUser(user);
+    setGamification(prev => ({
+      ...prev,
+      level: user.level,
+      xp: user.xp,
+      title: (user.title as any) || prev.title
+    }));
+
+    // Refresh collection & preferences for this active user
+    try {
+      const [colRes, prefsRes] = await Promise.allSettled([
+        api.getCollection(user.id),
+        api.getUserPreferences(user.id)
+      ]);
+      if (colRes.status === 'fulfilled' && colRes.value?.fragrances) {
+        setOwnedFragrances(colRes.value.fragrances);
+      }
+      if (prefsRes.status === 'fulfilled' && prefsRes.value) {
+        setPreferences(prev => ({ ...prev, ...prefsRes.value }));
+      }
+    } catch (err) {
+      console.warn('Could not refresh user collection:', err);
+    }
+
+    showNotification(`Scent Passport active for ${user.name}.`, 'success');
+  };
+
+  const handleLogout = async () => {
+    await authService.logout();
+    showNotification('Signed out of Atelier. Browsing in guest mode.', 'info');
+  };
 
   // Handlers
   const handleCalculateLayering = async (customCandidateIds?: number[], triggerModal: boolean = false) => {
@@ -420,6 +468,20 @@ export default function App() {
         gamification={gamification}
         wardrobeCount={ownedFragrances?.length || 0}
         onTriggerSurprise={() => setIsSurpriseMeOpen(true)}
+        currentUser={currentUser}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
+        onLogout={handleLogout}
+      />
+
+      {/* Scent Passport / Login Modal */}
+      <LoginPage
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onSuccess={(user) => {
+          handleUserChanged(user);
+          setIsLoginModalOpen(false);
+        }}
+        isModal={true}
       />
 
       {/* Floating Notification Toast */}
@@ -628,6 +690,19 @@ export default function App() {
                 onAddToWardrobe={(f) => handleAddToCabinet(f.id)}
                 onNavigate={setActiveTab}
                 onNavigateToHeritageAtlas={(_matId) => setActiveTab('heritage')}
+              />
+            </MotionPage>
+          )}
+
+          {/* PILLAR 10: DEDICATED SCENT PASSPORT LOGIN PAGE */}
+          {activeTab === 'login' && (
+            <MotionPage key="login">
+              <LoginPage
+                isModal={false}
+                onSuccess={(user) => {
+                  handleUserChanged(user);
+                  setActiveTab('atelier');
+                }}
               />
             </MotionPage>
           )}

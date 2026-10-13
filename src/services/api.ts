@@ -15,7 +15,13 @@ import {
   WearRecommendationResponse,
   OlfactoryBehaviorEvent,
   OlfactoryMemorySnapshot,
-  FragranceBehaviorSummary
+  FragranceBehaviorSummary,
+  UserProfile,
+  AuthCredentials,
+  RegisterData,
+  AuthResponse,
+  OtpSendResponse,
+  OtpVerifyResponse
 } from '../types.js';
 
 // Base API URL: allows pointing to remote backend when built as mobile app (Capacitor/Android)
@@ -259,8 +265,9 @@ export const api = {
   },
 
   // User Collection
-  async getCollection(): Promise<{ ownedIds: number[]; fragrances: Fragrance[] }> {
-    const res = await fetchWithRetry('/api/collection');
+  async getCollection(userId?: number): Promise<{ ownedIds: number[]; fragrances: Fragrance[] }> {
+    const url = userId ? `/api/collection?userId=${userId}` : '/api/collection';
+    const res = await fetchWithRetry(url);
     if (!res.ok) throw new Error('Failed to fetch user collection');
     return res.json();
   },
@@ -610,5 +617,120 @@ export const api = {
       throw new Error(err.error || 'Failed to clear behavior history');
     }
     return res.json();
+  },
+
+  // ================= AUTHENTICATION API =================
+  auth: {
+    async login(credentials: AuthCredentials): Promise<AuthResponse> {
+      const res = await fetchWithRetry('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Authentication failed');
+      }
+      return res.json();
+    },
+
+    async register(data: RegisterData): Promise<AuthResponse> {
+      const res = await fetchWithRetry('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to create Atelier account');
+      }
+      return res.json();
+    },
+
+    async getMe(userId: number = 1): Promise<{ success: boolean; user: UserProfile }> {
+      const res = await fetchWithRetry(`/api/auth/me?userId=${userId}`);
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to retrieve profile');
+      }
+      return res.json();
+    },
+
+    async forgotPassword(email: string): Promise<{ success: boolean; message: string; email: string }> {
+      const res = await fetchWithRetry('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to verify email');
+      }
+      return res.json();
+    },
+
+    async resetPassword(email: string, newPassword: string): Promise<{ success: boolean; message: string; user?: UserProfile }> {
+      const res = await fetchWithRetry('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, newPassword })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to reset password');
+      }
+      return res.json();
+    },
+
+    async getPersonas(): Promise<UserProfile[]> {
+      return cachedFetchJson<UserProfile[]>('/api/auth/personas');
+    },
+
+    async getUsers(): Promise<UserProfile[]> {
+      const res = await fetchWithRetry('/api/auth/users');
+      if (!res.ok) throw new Error('Failed to fetch registered users');
+      return res.json();
+    },
+
+    async sendOtp(email: string): Promise<OtpSendResponse> {
+      const res = await fetchWithRetry('/api/auth/otp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to dispatch verification email');
+      }
+      return res.json();
+    },
+
+    async verifyOtp(
+      email: string,
+      otp: string,
+      additionalData?: { name?: string; preferred_family?: string; signature_notes?: string[] }
+    ): Promise<OtpVerifyResponse> {
+      const res = await fetchWithRetry('/api/auth/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          otp,
+          ...additionalData
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Verification code failed');
+      }
+      return res.json();
+    },
+
+    async logout(): Promise<{ success: boolean; message: string }> {
+      const res = await fetchWithRetry('/api/auth/logout', {
+        method: 'POST'
+      });
+      return res.json().catch(() => ({ success: true, message: 'Logged out' }));
+    }
   }
 };

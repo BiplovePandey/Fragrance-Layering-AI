@@ -335,7 +335,8 @@ export type MainNavId =
   | 'community'
   | 'mydna'
   | 'scanner'
-  | 'academy';
+  | 'academy'
+  | 'login';
 
 export interface SecondaryOlfactoryCharacteristics {
   citrus: number;      // 0 - 100
@@ -481,6 +482,60 @@ export interface UserGamification {
     progress: number;
     max: number;
   }[];
+}
+
+export interface UserProfile {
+  id: number;
+  name: string;
+  email: string;
+  avatar?: string;
+  title?: string;
+  level: number;
+  xp: number;
+  role?: 'connoisseur' | 'perfumer' | 'scholar' | 'enthusiast' | 'guest';
+  signature_notes?: string[];
+  preferred_family?: string;
+  created_at?: string;
+  verified_at?: string;
+  last_login_at?: string;
+  bio?: string;
+}
+
+export interface OtpSendResponse {
+  success: boolean;
+  message: string;
+  emailDelivered: boolean;
+  previewOtp?: string;
+  expiresInSeconds?: number;
+}
+
+export interface OtpVerifyResponse {
+  success: boolean;
+  user?: UserProfile;
+  token?: string;
+  isNewUser?: boolean;
+  message?: string;
+}
+
+export interface AuthCredentials {
+  email: string;
+  password?: string;
+}
+
+export interface RegisterData {
+  name: string;
+  email: string;
+  password?: string;
+  preferred_family?: string;
+  signature_notes?: string[];
+  title?: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  user?: UserProfile;
+  token?: string;
+  message?: string;
 }
 
 export interface AIProductSubmission {

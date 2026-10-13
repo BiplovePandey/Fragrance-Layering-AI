@@ -10,11 +10,12 @@ import {
   X,
   Presentation
 } from 'lucide-react';
-import { MainNavId, WeatherCondition, UserGamification } from '../types.js';
+import { MainNavId, WeatherCondition, UserGamification, UserProfile } from '../types.js';
 import { MOTION_SPRINGS } from '../motion/config.js';
 import { ScentFamilyAtmosphere, ATMOSPHERE_PROFILES } from './AtmosphericFragranceCanvas.js';
 import { ambientAudioEngine } from '../services/ambientAudioEngine.js';
 import { resolveVisualWorld } from '../utils/visualWorlds.js';
+import { UserProfileMenu } from './auth/UserProfileMenu.js';
 import {
   AtelierGlyph,
   WearGlyph,
@@ -40,6 +41,9 @@ interface AtelierNavbarProps {
   onOpenAtmosphere?: () => void;
   onTriggerSurprise?: () => void;
   onOpenPresentation?: () => void;
+  currentUser?: UserProfile | null;
+  onOpenLogin?: () => void;
+  onLogout?: () => void;
 }
 
 export const AtelierNavbar: React.FC<AtelierNavbarProps> = ({
@@ -52,7 +56,10 @@ export const AtelierNavbar: React.FC<AtelierNavbarProps> = ({
   currentAtmosphere = 'default',
   onOpenAtmosphere,
   onTriggerSurprise,
-  onOpenPresentation
+  onOpenPresentation,
+  currentUser,
+  onOpenLogin,
+  onLogout
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAudioActive, setIsAudioActive] = useState(ambientAudioEngine.isPlaying());
@@ -244,6 +251,17 @@ export const AtelierNavbar: React.FC<AtelierNavbarProps> = ({
               </span>
             </motion.div>
 
+            {/* Scent Passport & User Profile Menu */}
+            {onOpenLogin && (
+              <UserProfileMenu
+                currentUser={currentUser || null}
+                onOpenLogin={onOpenLogin}
+                onLogout={onLogout || (() => {})}
+                onNavigateToDna={() => setActiveTab('mydna')}
+                onNavigateToWardrobe={() => setActiveTab('wardrobe')}
+              />
+            )}
+
             {/* Mobile Menu Toggle */}
             <motion.button
               id="mobile-menu-toggle-btn"
@@ -268,6 +286,40 @@ export const AtelierNavbar: React.FC<AtelierNavbarProps> = ({
               transition={MOTION_SPRINGS.luxurySoft}
               className="xl:hidden py-3 border-t border-black/[0.06] dark:border-white/[0.08] grid grid-cols-2 sm:grid-cols-5 gap-1.5 overflow-hidden"
             >
+              {/* Mobile Profile / Scent Passport Strip */}
+              {onOpenLogin && (
+                <div className="col-span-2 sm:col-span-5 pb-2 mb-1 border-b border-black/[0.04] dark:border-white/[0.06] flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {currentUser && currentUser.role !== 'guest' ? (
+                      <>
+                        <div className="w-6 h-6 rounded-full bg-amber-700 text-white text-[10px] font-mono flex items-center justify-center font-bold">
+                          {currentUser.name.charAt(0)}
+                        </div>
+                        <span className="text-xs font-semibold text-[#1A1613] dark:text-[#F4EFEA]">
+                          {currentUser.name}
+                        </span>
+                        <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-amber-500/15 text-amber-900 dark:text-amber-300">
+                          Lvl {currentUser.level}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-xs text-[#7A6E63] dark:text-[#A89C8F]">
+                        Visiting Atelier Guest
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onOpenLogin();
+                      setMobileMenuOpen(false);
+                    }}
+                    className="text-xs font-medium text-amber-800 dark:text-amber-400 hover:underline cursor-pointer"
+                  >
+                    {currentUser && currentUser.role !== 'guest' ? 'Switch Persona' : 'Sign In'}
+                  </button>
+                </div>
+              )}
               {navItems.map((item) => {
                 const Glyph = item.glyph;
                 const isActive = activeTab === item.id;
